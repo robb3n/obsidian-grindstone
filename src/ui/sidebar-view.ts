@@ -81,12 +81,12 @@ export class GrindstoneSidebarView extends ItemView {
       app: this.app,
       component: this.component,
       cardManager: this.cardManager,
-      onRate: (rating) => this.handleRating(id, card, rating),
+      onRate: (rating, elapsed) => this.handleRating(id, card, rating, elapsed),
       // No onClose for sidebar – jump-to-source doesn't close the panel
     });
   }
 
-  private async handleRating(id: string, card: CardData, rating: Rating): Promise<void> {
+  private async handleRating(id: string, card: CardData, rating: Rating, elapsed: number): Promise<void> {
     const newState = schedule(
       { interval: card.interval, ease: card.ease, reviewCount: card.reviewCount },
       rating,
@@ -104,6 +104,12 @@ export class GrindstoneSidebarView extends ItemView {
 
     this.store.setCard(id, card);
     await this.store.save();
+    await this.store.addReviewLog({
+      cardId: id,
+      rating,
+      timestamp: today.toISOString().slice(0, 19),
+      elapsed,
+    });
     await this.cardManager.writeStarsBack(card, rating);
 
     this.currentIndex++;

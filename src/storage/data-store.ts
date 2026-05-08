@@ -1,7 +1,7 @@
 import { Plugin } from 'obsidian';
 import {
   PluginData, CardData, DEFAULT_DATA, GrindstoneSettings, DEFAULT_SETTINGS,
-  StoreStats, MaturityDistribution,
+  StoreStats, MaturityDistribution, ReviewLog, Rating,
 } from '../card/types';
 
 export class DataStore {
@@ -20,6 +20,7 @@ export class DataStore {
         version: raw.version ?? 1,
         settings: { ...DEFAULT_SETTINGS, ...raw.settings },
         cards: raw.cards ?? {},
+        reviewLogs: raw.reviewLogs ?? [],
       };
     }
   }
@@ -124,6 +125,83 @@ export class DataStore {
       else dist.mature++;
     }
     return dist;
+  }
+
+  // ── Review log methods ──
+
+  /** Append a review log entry and persist. */
+  async addReviewLog(log: ReviewLog): Promise<void> {
+    this.data.reviewLogs.push(log);
+    await this.save();
+  }
+
+  /** Number of cards reviewed per day over the last N days. */
+  getReviewHistory(days: number): Array<{ date: string; count: number }> {
+    const result: Array<{ date: string; count: number }> = [];
+    const today = new Date();
+    const dateCountMap = new Map<string, number>();
+
+    for (let i = days - 1; i >= 0; i--) {
+      const d = new Date(today);
+      d.setDate(d.getDate() - i);
+      const ds = formatDate(d);
+      dateCountMap.set(ds, 0);
+    }
+
+    for (const log of this.data.reviewLogs) {
+      const logDate = log.timestamp.slice(0, 10); // "YYYY-MM-DD"
+      if (dateCountMap.has(logDate)) {
+        dateCountMap.set(logDate, (dateCountMap.get(logDate) ?? 0) + 1);
+      }
+    }
+
+    for (const [date, count] of dateCountMap) {
+      result.push({ date, count });
+    }
+    return result;
+  }
+
+  /** Rating distribution. If days is provided, only count logs within that window. */
+  getRatingDistribution(days?: number): Record<Rating, number> {
+    const dist: Record<Rating, number> = { hard: 0, good: 0, easy: 0 };
+    const cutoff = days != null ? this.dateCutoff(days) : null;
+
+    for (const log of this.data.reviewLogs) {
+      if (cutoff && log.timestamp < cutoff) continue;
+      dist[log.rating]++;
+    }
+    return dist;
+  }
+
+  /** Total study time (ms) per day over the last N days. */
+  getDailyStudyTime(days: number): Array<{ date: string; ms: number }> {
+    const result: Array<{ date: string; ms: number }> = [];
+    const today = new Date();
+    const dateMap = new Map<string, number>();
+
+    for (let i = days - 1; i >= 0; i--) {
+      const d = new Date(today);
+      d.setDate(d.getDate() - i);
+      dateMap.set(formatDate(d), 0);
+    }
+
+    for (const log of this.data.reviewLogs) {
+      const logDate = log.timestamp.slice(0, 10);
+      if (dateMap.has(logDate)) {
+        dateMap.set(logDate, (dateMap.get(logDate) ?? 0) + log.elapsed);
+      }
+    }
+
+    for (const [date, ms] of dateMap) {
+      result.push({ date, ms });
+    }
+    return result;
+  }
+
+  private dateCutoff(days: number): string {
+    const d = new Date();
+    d.setDate(d.getDate() - days);
+    return formatDate(d) + 'T00:00:00';
   }
 
   /** Number of cards due on each of the next N days. */

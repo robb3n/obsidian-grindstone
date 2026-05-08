@@ -36,10 +36,18 @@ export interface MaturityDistribution {
   mature: number;     // interval >= 21
 }
 
+export interface ReviewLog {
+  cardId: string;
+  rating: Rating;
+  timestamp: string;    // ISO datetime, e.g. "2026-05-08T14:30:00"
+  elapsed: number;      // milliseconds from card display to rating click
+}
+
 export interface PluginData {
   version: number;
   settings: GrindstoneSettings;
   cards: Record<string, CardData>;
+  reviewLogs: ReviewLog[];
 }
 
 export interface GrindstoneSettings {
@@ -60,4 +68,5 @@ export const DEFAULT_DATA: PluginData = {
   version: 1,
   settings: { ...DEFAULT_SETTINGS },
   cards: {},
+  reviewLogs: [],
 };

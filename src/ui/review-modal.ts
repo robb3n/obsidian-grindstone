@@ -57,12 +57,12 @@ export class ReviewModal extends Modal {
       app: this.app,
       component: this.component,
       cardManager: this.cardManager,
-      onRate: (rating) => this.handleRating(id, card, rating),
+      onRate: (rating, elapsed) => this.handleRating(id, card, rating, elapsed),
       onClose: () => this.close(),
     });
   }
 
-  private async handleRating(id: string, card: CardData, rating: Rating): Promise<void> {
+  private async handleRating(id: string, card: CardData, rating: Rating, elapsed: number): Promise<void> {
     const newState = schedule(
       { interval: card.interval, ease: card.ease, reviewCount: card.reviewCount },
       rating,
@@ -80,6 +80,12 @@ export class ReviewModal extends Modal {
 
     this.store.setCard(id, card);
     await this.store.save();
+    await this.store.addReviewLog({
+      cardId: id,
+      rating,
+      timestamp: today.toISOString().slice(0, 19),
+      elapsed,
+    });
     await this.cardManager.writeStarsBack(card, rating);
 
     this.currentIndex++;

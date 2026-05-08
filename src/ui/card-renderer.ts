@@ -9,7 +9,7 @@ export interface RenderParams {
   app: App;
   component: Component;
   cardManager: CardManager;
-  onRate: (rating: Rating) => Promise<void>;
+  onRate: (rating: Rating, elapsed: number) => Promise<void>;
   onClose?: () => void;
 }
 
@@ -101,7 +101,8 @@ export async function renderCardView(params: RenderParams): Promise<void> {
     if (onClose) onClose();
   });
 
-  // Rating buttons
+  // Rating buttons — track elapsed time from card display
+  const cardDisplayedAt = Date.now();
   const ratingRow = container.createDiv({ cls: 'grindstone-ratings' });
   for (const [label, rating, cls] of [
     ['Hard', 'hard', 'grindstone-btn-hard'],
@@ -112,7 +113,7 @@ export async function renderCardView(params: RenderParams): Promise<void> {
       text: label,
       cls: `grindstone-btn grindstone-btn-rating ${cls}`,
     });
-    btn.addEventListener('click', () => onRate(rating));
+    btn.addEventListener('click', () => onRate(rating, Date.now() - cardDisplayedAt));
   }
 }
 

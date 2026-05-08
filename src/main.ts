@@ -3,6 +3,7 @@ import { DataStore } from './storage/data-store';
 import { CardManager } from './card/card-manager';
 import { ReviewModal } from './ui/review-modal';
 import { GrindstoneSidebarView, SIDEBAR_VIEW_TYPE } from './ui/sidebar-view';
+import { GrindstoneOverviewView, OVERVIEW_VIEW_TYPE } from './ui/overview-view';
 import { addRibbonIcon } from './ui/ribbon';
 import { GrindstoneSettingTab } from './settings/settings-tab';
 
@@ -16,10 +17,14 @@ export default class GrindstonePlugin extends Plugin {
 
     this.cardManager = new CardManager(this.app, this.store);
 
-    // Register sidebar view
+    // Register views
     this.registerView(
       SIDEBAR_VIEW_TYPE,
       (leaf) => new GrindstoneSidebarView(leaf, this.cardManager, this.store),
+    );
+    this.registerView(
+      OVERVIEW_VIEW_TYPE,
+      (leaf) => new GrindstoneOverviewView(leaf, this.store, () => this.startReviewModal()),
     );
 
     // Full scan once layout is ready
@@ -72,6 +77,13 @@ export default class GrindstonePlugin extends Plugin {
       callback: () => this.activateSidebar(),
     });
 
+    // Command: Open Overview
+    this.addCommand({
+      id: 'open-overview',
+      name: 'Open Overview',
+      callback: () => this.activateOverview(),
+    });
+
     // Ribbon icon → modal
     addRibbonIcon(
       this,
@@ -107,6 +119,19 @@ export default class GrindstonePlugin extends Plugin {
       await leaf.setViewState({ type: SIDEBAR_VIEW_TYPE, active: true });
       this.app.workspace.revealLeaf(leaf);
     }
+  }
+
+  private async activateOverview(): Promise<void> {
+    const existing = this.app.workspace.getLeavesOfType(OVERVIEW_VIEW_TYPE);
+    if (existing.length > 0) {
+      this.app.workspace.revealLeaf(existing[0]);
+      (existing[0].view as GrindstoneOverviewView).refresh();
+      return;
+    }
+
+    const leaf = this.app.workspace.getLeaf('tab');
+    await leaf.setViewState({ type: OVERVIEW_VIEW_TYPE, active: true });
+    this.app.workspace.revealLeaf(leaf);
   }
 
   async onunload(): Promise<void> {

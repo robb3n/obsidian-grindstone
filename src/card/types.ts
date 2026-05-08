@@ -20,6 +20,22 @@ export interface CardState {
 
 export type Rating = 'hard' | 'good' | 'easy';
 
+export type Maturity = 'new' | 'learning' | 'mature';
+
+export interface StoreStats {
+  total: number;
+  active: number;
+  disabled: number;
+  dueToday: number;
+  reviewedToday: number;
+}
+
+export interface MaturityDistribution {
+  new: number;        // reviewCount === 0
+  learning: number;   // interval < 21
+  mature: number;     // interval >= 21
+}
+
 export interface PluginData {
   version: number;
   settings: GrindstoneSettings;

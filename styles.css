@@ -1,0 +1,129 @@
+.grindstone-review-modal .modal-content {
+  padding: 0;
+}
+
+.grindstone-header {
+  display: flex;
+  justify-content: flex-end;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.grindstone-counter {
+  font-size: 0.85em;
+  color: var(--text-muted);
+}
+
+.grindstone-front {
+  padding: 24px;
+  text-align: center;
+}
+
+.grindstone-title {
+  margin: 0 0 8px 0;
+  font-size: 1.5em;
+}
+
+.grindstone-file {
+  color: var(--text-muted);
+  font-size: 0.85em;
+  margin-bottom: 12px;
+  cursor: pointer;
+}
+
+.grindstone-file:hover {
+  color: var(--text-normal);
+}
+
+.grindstone-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+}
+
+.grindstone-tag {
+  background: var(--background-secondary);
+  border-radius: 12px;
+  padding: 2px 10px;
+  font-size: 0.8em;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.grindstone-tag:hover {
+  color: var(--text-normal);
+  background: var(--background-modifier-hover);
+}
+
+.grindstone-content {
+  padding: 16px 24px;
+  border-top: 1px solid var(--background-modifier-border);
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.grindstone-actions {
+  display: flex;
+  gap: 8px;
+  padding: 12px 24px;
+  justify-content: center;
+}
+
+.grindstone-ratings {
+  display: flex;
+  gap: 8px;
+  padding: 12px 24px;
+  justify-content: center;
+  border-top: 1px solid var(--background-modifier-border);
+}
+
+.grindstone-btn {
+  padding: 6px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9em;
+}
+
+.grindstone-btn-hard {
+  background: var(--background-modifier-error);
+  color: var(--text-on-accent);
+}
+
+.grindstone-btn-good {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+}
+
+.grindstone-btn-easy {
+  background: var(--background-modifier-success);
+  color: var(--text-on-accent);
+}
+
+.grindstone-complete {
+  padding: 48px 24px;
+  text-align: center;
+}
+
+.grindstone-complete h2 {
+  margin-bottom: 12px;
+}
+
+/* Sidebar */
+.grindstone-sidebar-content {
+  padding: 0;
+}
+
+.grindstone-sidebar-content .grindstone-front {
+  padding: 16px;
+}
+
+.grindstone-sidebar-content .grindstone-content {
+  padding: 12px 16px;
+  max-height: 300px;
+}
+
+.grindstone-sidebar-content .grindstone-actions,
+.grindstone-sidebar-content .grindstone-ratings {
+  padding: 8px 16px;
+}

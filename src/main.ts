@@ -4,6 +4,7 @@ import { CardManager } from './card/card-manager';
 import { ReviewModal } from './ui/review-modal';
 import { GrindstoneSidebarView, SIDEBAR_VIEW_TYPE } from './ui/sidebar-view';
 import { GrindstoneOverviewView, OVERVIEW_VIEW_TYPE } from './ui/overview-view';
+import { GrindstoneBrowserView, BROWSER_VIEW_TYPE } from './ui/browser-view';
 import { addRibbonIcon } from './ui/ribbon';
 import { GrindstoneSettingTab } from './settings/settings-tab';
 
@@ -25,6 +26,10 @@ export default class GrindstonePlugin extends Plugin {
     this.registerView(
       OVERVIEW_VIEW_TYPE,
       (leaf) => new GrindstoneOverviewView(leaf, this.store, () => this.startReviewModal()),
+    );
+    this.registerView(
+      BROWSER_VIEW_TYPE,
+      (leaf) => new GrindstoneBrowserView(leaf, this.store),
     );
 
     // Full scan once layout is ready
@@ -84,6 +89,13 @@ export default class GrindstonePlugin extends Plugin {
       callback: () => this.activateOverview(),
     });
 
+    // Command: Open Card Browser
+    this.addCommand({
+      id: 'open-browser',
+      name: 'Open Card Browser',
+      callback: () => this.activateBrowser(),
+    });
+
     // Ribbon icon → modal
     addRibbonIcon(
       this,
@@ -131,6 +143,19 @@ export default class GrindstonePlugin extends Plugin {
 
     const leaf = this.app.workspace.getLeaf('tab');
     await leaf.setViewState({ type: OVERVIEW_VIEW_TYPE, active: true });
+    this.app.workspace.revealLeaf(leaf);
+  }
+
+  private async activateBrowser(): Promise<void> {
+    const existing = this.app.workspace.getLeavesOfType(BROWSER_VIEW_TYPE);
+    if (existing.length > 0) {
+      this.app.workspace.revealLeaf(existing[0]);
+      (existing[0].view as GrindstoneBrowserView).refresh();
+      return;
+    }
+
+    const leaf = this.app.workspace.getLeaf('tab');
+    await leaf.setViewState({ type: BROWSER_VIEW_TYPE, active: true });
     this.app.workspace.revealLeaf(leaf);
   }
 

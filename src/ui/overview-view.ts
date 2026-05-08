@@ -179,6 +179,11 @@ export class GrindstoneOverviewView extends ItemView {
 
     for (const [tag, count] of sorted) {
       const row = tagList.createDiv({ cls: 'gs-tag-row' });
+      row.addEventListener('click', () => {
+        // Trigger Obsidian's global tag search (same as clicking a tag in a note)
+        (this.app as any).internalPlugins?.getPluginById('global-search')
+          ?.instance?.openGlobalSearch(`tag:${tag}`);
+      });
       const nameEl = row.createSpan({ cls: 'gs-tag-name' });
       const lastSlash = tag.lastIndexOf('/');
       if (lastSlash > 0) {

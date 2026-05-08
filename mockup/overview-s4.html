@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grindstone — Overview S4</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@300;400;500&family=Noto+Sans+SC:wght@300;400;500;600&family=Noto+Serif+SC:wght@400;500;600&display=swap');
+
+  :root {
+    --bg: #1d1e20;
+    --bg-card: #2e2e33;
+    --bg-code: #37383e;
+    --border: #333;
+    --text: #dadadb;
+    --text-secondary: #9b9c9d;
+    --text-faint: #5a5b5c;
+    --accent: #0066ff;
+    --accent-dim: #0044aa;
+    --accent-hover: #3388ff;
+    --hard: #e05050;
+    --good: #0066ff;
+    --easy: #40b060;
+    --font-body: 'IBM Plex Sans', 'Noto Sans SC', -apple-system, sans-serif;
+    --font-heading: 'Noto Serif SC', Georgia, serif;
+    --font-mono: 'IBM Plex Mono', Menlo, monospace;
+    --radius: 8px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .overview {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 36px 24px 80px;
+  }
+
+  /* ── Header ── */
+  .header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 32px;
+  }
+
+  .header h1 {
+    font-family: var(--font-heading);
+    font-size: 20px;
+    font-weight: 500;
+    color: var(--text);
+    letter-spacing: 0.02em;
+  }
+
+  .header .tagline {
+    font-size: 12px;
+    color: var(--text-faint);
+  }
+
+  /* ── Today Card ── */
+  .today-card {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    padding: 28px 32px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+  }
+
+  .today-stats {
+    display: flex;
+    gap: 36px;
+  }
+
+  .stat {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .stat-val {
+    font-family: var(--font-mono);
+    font-size: 32px;
+    font-weight: 400;
+    line-height: 1;
+    color: var(--text);
+  }
+
+  .stat:first-child .stat-val {
+    color: var(--accent);
+  }
+
+  .stat-lbl {
+    font-size: 12px;
+    color: var(--text-faint);
+  }
+
+  .btn-review {
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 500;
+    color: #fff;
+    background: var(--accent);
+    border: none;
+    border-radius: 6px;
+    padding: 10px 24px;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+
+  .btn-review:hover {
+    background: var(--accent-hover);
+    transform: translateY(-1px);
+  }
+
+  /* ── Grid ── */
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .card {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    padding: 22px 24px;
+  }
+
+  .card-title {
+    font-size: 12px;
+    color: var(--text-faint);
+    margin-bottom: 16px;
+    font-weight: 400;
+  }
+
+  /* ── Bar Chart ── */
+  .bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+    height: 88px;
+  }
+
+  .bc {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    height: 100%;
+    justify-content: flex-end;
+    cursor: default;
+  }
+
+  .b {
+    width: 100%;
+    border-radius: 3px 3px 1px 1px;
+    transition: filter 0.15s;
+    animation: rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .bc:nth-child(1) .b { animation-delay: 0.03s; }
+  .bc:nth-child(2) .b { animation-delay: 0.06s; }
+  .bc:nth-child(3) .b { animation-delay: 0.09s; }
+  .bc:nth-child(4) .b { animation-delay: 0.12s; }
+  .bc:nth-child(5) .b { animation-delay: 0.15s; }
+  .bc:nth-child(6) .b { animation-delay: 0.18s; }
+  .bc:nth-child(7) .b { animation-delay: 0.21s; }
+
+  @keyframes rise {
+    from { height: 0 !important; opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .b-blue { background: var(--accent); opacity: 0.7; }
+  .b-blue-soft { background: var(--accent); opacity: 0.4; }
+
+  .bc:hover .b { filter: brightness(1.3); }
+
+  .b-tip {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--text-faint);
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+
+  .bc:hover .b-tip { opacity: 1; }
+
+  .b-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--text-faint);
+  }
+
+  /* ── Maturity ── */
+  .mat-track {
+    display: flex;
+    height: 24px;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 14px;
+    background: var(--bg);
+    gap: 2px;
+  }
+
+  .mat-seg {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text);
+    border-radius: 3px;
+    min-width: 28px;
+  }
+
+  .mat-new { background: var(--accent); opacity: 0.6; }
+  .mat-learn { background: #5a6a7a; }
+  .mat-mature { background: var(--easy); opacity: 0.5; }
+
+  .mat-legend {
+    display: flex;
+    gap: 18px;
+  }
+
+  .mat-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+
+  .mat-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+  }
+
+  .mat-dot.new { background: var(--accent); opacity: 0.6; }
+  .mat-dot.learn { background: #5a6a7a; }
+  .mat-dot.mature { background: var(--easy); opacity: 0.5; }
+
+  .mat-count {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-faint);
+  }
+
+  /* ── Rating ── */
+  .rat-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .rat-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .rat-lbl {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    width: 34px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  .rat-lbl.hard { color: var(--hard); }
+  .rat-lbl.good { color: var(--good); }
+  .rat-lbl.easy { color: var(--easy); }
+
+  .rat-track {
+    flex: 1;
+    height: 16px;
+    background: var(--bg);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .rat-fill {
+    height: 100%;
+    border-radius: 3px;
+    animation: expand 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  @keyframes expand { from { width: 0 !important; } }
+
+  .rat-fill.hard { background: var(--hard); opacity: 0.65; animation-delay: 0.06s; }
+  .rat-fill.good { background: var(--good); opacity: 0.6; animation-delay: 0.12s; }
+  .rat-fill.easy { background: var(--easy); opacity: 0.55; animation-delay: 0.18s; }
+
+  .rat-pct {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-faint);
+    width: 30px;
+    flex-shrink: 0;
+  }
+
+  /* ── Tags ── */
+  .tags-card {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    padding: 22px 24px;
+  }
+
+  .tag-list {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .tag-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 8px;
+    border-radius: 4px;
+    transition: background 0.12s;
+    cursor: default;
+  }
+
+  .tag-row:hover {
+    background: var(--bg-code);
+  }
+
+  .tag-name {
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 0;
+  }
+
+  .tag-prefix {
+    color: var(--text-faint);
+  }
+
+  .tag-leaf {
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  .tag-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .tag-bar-track {
+    width: 56px;
+    height: 4px;
+    background: var(--bg);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .tag-bar-fill {
+    height: 100%;
+    background: var(--accent);
+    opacity: 0.4;
+    border-radius: 2px;
+    transition: width 0.4s ease;
+  }
+
+  .tag-row:hover .tag-bar-fill {
+    opacity: 0.7;
+  }
+
+  .tag-count {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-faint);
+    min-width: 20px;
+    text-align: right;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 640px) {
+    .grid { grid-template-columns: 1fr; }
+    .today-card { flex-direction: column; align-items: flex-start; }
+    .stat-val { font-size: 26px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="overview">
+
+  <div class="header">
+    <h1>Grindstone</h1>
+    <span class="tagline">磨刀不误砍柴工</span>
+  </div>
+
+  <!-- Today -->
+  <div class="today-card">
+    <div class="today-stats">
+      <div class="stat">
+        <span class="stat-val">12</span>
+        <span class="stat-lbl">到期</span>
+      </div>
+      <div class="stat">
+        <span class="stat-val">7</span>
+        <span class="stat-lbl">已复习</span>
+      </div>
+      <div class="stat">
+        <span class="stat-val">5</span>
+        <span class="stat-lbl">剩余</span>
+      </div>
+    </div>
+    <button class="btn-review">开始复习</button>
+  </div>
+
+  <!-- Grid -->
+  <div class="grid">
+
+    <!-- Next 7 Days -->
+    <div class="card">
+      <div class="card-title">未来 7 天到期</div>
+      <div class="bars">
+        <div class="bc"><span class="b-tip">5</span><div class="b b-blue" style="height:42%"></div><span class="b-label">08</span></div>
+        <div class="bc"><span class="b-tip">8</span><div class="b b-blue" style="height:67%"></div><span class="b-label">09</span></div>
+        <div class="bc"><span class="b-tip">3</span><div class="b b-blue" style="height:25%"></div><span class="b-label">10</span></div>
+        <div class="bc"><span class="b-tip">12</span><div class="b b-blue" style="height:100%"></div><span class="b-label">11</span></div>
+        <div class="bc"><span class="b-tip">6</span><div class="b b-blue" style="height:50%"></div><span class="b-label">12</span></div>
+        <div class="bc"><span class="b-tip">2</span><div class="b b-blue" style="height:17%"></div><span class="b-label">13</span></div>
+        <div class="bc"><span class="b-tip">9</span><div class="b b-blue" style="height:75%"></div><span class="b-label">14</span></div>
+      </div>
+    </div>
+
+    <!-- Maturity -->
+    <div class="card">
+      <div class="card-title">卡片成熟度</div>
+      <div class="mat-track">
+        <div class="mat-seg mat-new" style="flex-basis:27.3%">15</div>
+        <div class="mat-seg mat-learn" style="flex-basis:58.2%">32</div>
+        <div class="mat-seg mat-mature" style="flex-basis:14.5%">8</div>
+      </div>
+      <div class="mat-legend">
+        <div class="mat-item"><div class="mat-dot new"></div>新<span class="mat-count">15</span></div>
+        <div class="mat-item"><div class="mat-dot learn"></div>学习中<span class="mat-count">32</span></div>
+        <div class="mat-item"><div class="mat-dot mature"></div>已熟练<span class="mat-count">8</span></div>
+      </div>
+    </div>
+
+    <!-- Rating -->
+    <div class="card">
+      <div class="card-title">评分分布</div>
+      <div class="rat-rows">
+        <div class="rat-row">
+          <span class="rat-lbl hard">Hard</span>
+          <div class="rat-track"><div class="rat-fill hard" style="width:23%"></div></div>
+          <span class="rat-pct">23%</span>
+        </div>
+        <div class="rat-row">
+          <span class="rat-lbl good">Good</span>
+          <div class="rat-track"><div class="rat-fill good" style="width:58%"></div></div>
+          <span class="rat-pct">58%</span>
+        </div>
+        <div class="rat-row">
+          <span class="rat-lbl easy">Easy</span>
+          <div class="rat-track"><div class="rat-fill easy" style="width:19%"></div></div>
+          <span class="rat-pct">19%</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Study Time -->
+    <div class="card">
+      <div class="card-title">每日学习时长</div>
+      <div class="bars">
+        <div class="bc"><span class="b-tip">45m</span><div class="b b-blue-soft" style="height:75%"></div><span class="b-label">02</span></div>
+        <div class="bc"><span class="b-tip">30m</span><div class="b b-blue-soft" style="height:50%"></div><span class="b-label">03</span></div>
+        <div class="bc"><span class="b-tip">60m</span><div class="b b-blue-soft" style="height:100%"></div><span class="b-label">04</span></div>
+        <div class="bc"><span class="b-tip">25m</span><div class="b b-blue-soft" style="height:42%"></div><span class="b-label">05</span></div>
+        <div class="bc"><span class="b-tip">50m</span><div class="b b-blue-soft" style="height:83%"></div><span class="b-label">06</span></div>
+        <div class="bc"><span class="b-tip">35m</span><div class="b b-blue-soft" style="height:58%"></div><span class="b-label">07</span></div>
+        <div class="bc"><span class="b-tip">40m</span><div class="b b-blue-soft" style="height:67%"></div><span class="b-label">08</span></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Tags -->
+  <div class="tags-card">
+    <div class="card-title">标签概览</div>
+    <div class="tag-list">
+      <div class="tag-row">
+        <span class="tag-name"><span class="tag-prefix">#考研数学/</span><span class="tag-leaf">高数</span></span>
+        <div class="tag-right">
+          <div class="tag-bar-track"><div class="tag-bar-fill" style="width:100%"></div></div>
+          <span class="tag-count">28</span>
+        </div>
+      </div>
+      <div class="tag-row">
+        <span class="tag-name"><span class="tag-prefix">#考研408/</span><span class="tag-leaf">数据结构</span></span>
+        <div class="tag-right">
+          <div class="tag-bar-track"><div class="tag-bar-fill" style="width:79%"></div></div>
+          <span class="tag-count">22</span>
+        </div>
+      </div>
+      <div class="tag-row">
+        <span class="tag-name"><span class="tag-prefix">#考研数学/</span><span class="tag-leaf">线代</span></span>
+        <div class="tag-right">
+          <div class="tag-bar-track"><div class="tag-bar-fill" style="width:54%"></div></div>
+          <span class="tag-count">15</span>
+        </div>
+      </div>
+      <div class="tag-row">
+        <span class="tag-name"><span class="tag-prefix">#考研408/</span><span class="tag-leaf">操作系统</span></span>
+        <div class="tag-right">
+          <div class="tag-bar-track"><div class="tag-bar-fill" style="width:39%"></div></div>
+          <span class="tag-count">11</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grindstone — Overview S2 Minimal</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&family=Noto+Sans+SC:wght@300;400;500&display=swap');
+
+  :root {
+    --bg: #1e1e1e;
+    --bg-card: #252525;
+    --border: #333;
+    --text: #ccc;
+    --text-dim: #777;
+    --text-faint: #4a4a4a;
+    --accent: #b0b0b0;
+    --due: #d4a054;
+    --hard: #b05050;
+    --good: #7090a8;
+    --easy: #609068;
+    --font-mono: 'IBM Plex Mono', monospace;
+    --font-body: 'Noto Sans SC', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    min-height: 100vh;
+  }
+
+  .overview {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 48px 24px 80px;
+  }
+
+  /* ── Header ── */
+  .header {
+    margin-bottom: 48px;
+  }
+
+  .header h1 {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 400;
+    color: var(--text-faint);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  /* ── Today ── */
+  .today {
+    display: flex;
+    align-items: baseline;
+    gap: 48px;
+    margin-bottom: 56px;
+    padding-bottom: 32px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .today-number {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .today-number .val {
+    font-family: var(--font-mono);
+    font-size: 48px;
+    font-weight: 300;
+    line-height: 1;
+    color: var(--text);
+  }
+
+  .today-number:first-child .val {
+    color: var(--due);
+  }
+
+  .today-number .lbl {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-faint);
+    letter-spacing: 0.1em;
+  }
+
+  .today-action {
+    margin-left: auto;
+  }
+
+  .btn {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 400;
+    color: var(--text-dim);
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 8px 20px;
+    cursor: pointer;
+    letter-spacing: 0.05em;
+    transition: all 0.15s;
+  }
+
+  .btn:hover {
+    color: var(--text);
+    border-color: var(--text-dim);
+  }
+
+  /* ── Section ── */
+  .section {
+    margin-bottom: 48px;
+  }
+
+  .section-title {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-faint);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+
+  /* ── Bar Chart ── */
+  .bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 4px;
+    height: 80px;
+  }
+
+  .bar-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    height: 100%;
+    justify-content: flex-end;
+  }
+
+  .bar {
+    width: 100%;
+    background: var(--text-faint);
+    border-radius: 1px;
+    transition: background 0.15s;
+    animation: rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .bar-col:nth-child(1) .bar { animation-delay: 0s; }
+  .bar-col:nth-child(2) .bar { animation-delay: 0.04s; }
+  .bar-col:nth-child(3) .bar { animation-delay: 0.08s; }
+  .bar-col:nth-child(4) .bar { animation-delay: 0.12s; }
+  .bar-col:nth-child(5) .bar { animation-delay: 0.16s; }
+  .bar-col:nth-child(6) .bar { animation-delay: 0.2s; }
+  .bar-col:nth-child(7) .bar { animation-delay: 0.24s; }
+
+  @keyframes rise {
+    from { height: 0 !important; opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .bar-col:hover .bar {
+    background: var(--text-dim);
+  }
+
+  .bar-day {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--text-faint);
+  }
+
+  .bars-due .bar { background: var(--due); opacity: 0.5; }
+  .bars-due .bar-col:hover .bar { opacity: 0.8; }
+
+  .bars-time .bar { background: var(--good); opacity: 0.4; }
+  .bars-time .bar-col:hover .bar { opacity: 0.7; }
+
+  /* ── Two Column ── */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 48px;
+  }
+
+  /* ── Maturity ── */
+  .maturity-bar {
+    display: flex;
+    height: 6px;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 16px;
+    background: var(--bg-card);
+  }
+
+  .m-seg {
+    height: 100%;
+    transition: flex-basis 0.5s ease;
+  }
+
+  .m-new { background: var(--due); opacity: 0.6; }
+  .m-learn { background: var(--good); opacity: 0.5; }
+  .m-mature { background: var(--easy); opacity: 0.5; }
+
+  .m-legend {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .m-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .m-label {
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+
+  .m-val {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-faint);
+  }
+
+  /* ── Rating ── */
+  .r-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .r-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .r-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    width: 32px;
+    text-align: right;
+    color: var(--text-faint);
+  }
+
+  .r-track {
+    flex: 1;
+    height: 6px;
+    background: var(--bg-card);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .r-fill {
+    height: 100%;
+    border-radius: 3px;
+    animation: expand 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  @keyframes expand {
+    from { width: 0 !important; }
+  }
+
+  .r-fill.hard { background: var(--hard); opacity: 0.6; animation-delay: 0.05s; }
+  .r-fill.good { background: var(--good); opacity: 0.5; animation-delay: 0.1s; }
+  .r-fill.easy { background: var(--easy); opacity: 0.5; animation-delay: 0.15s; }
+
+  .r-pct {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-faint);
+    width: 28px;
+  }
+
+  /* ── Tags ── */
+  .tag-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .tag-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 7px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .tag-row:last-child {
+    border-bottom: none;
+  }
+
+  .tag-name {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+
+  .tag-count {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-faint);
+  }
+
+  @media (max-width: 600px) {
+    .today { gap: 32px; flex-wrap: wrap; }
+    .today-number .val { font-size: 36px; }
+    .two-col { grid-template-columns: 1fr; gap: 40px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="overview">
+
+  <div class="header">
+    <h1>Grindstone</h1>
+  </div>
+
+  <div class="today">
+    <div class="today-number">
+      <span class="val">12</span>
+      <span class="lbl">到期</span>
+    </div>
+    <div class="today-number">
+      <span class="val">7</span>
+      <span class="lbl">已复习</span>
+    </div>
+    <div class="today-number">
+      <span class="val">5</span>
+      <span class="lbl">剩余</span>
+    </div>
+    <div class="today-action">
+      <button class="btn">开始复习</button>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">未来 7 天到期</div>
+    <div class="bars bars-due">
+      <div class="bar-col"><div class="bar" style="height:42%"></div><span class="bar-day">08</span></div>
+      <div class="bar-col"><div class="bar" style="height:67%"></div><span class="bar-day">09</span></div>
+      <div class="bar-col"><div class="bar" style="height:25%"></div><span class="bar-day">10</span></div>
+      <div class="bar-col"><div class="bar" style="height:100%"></div><span class="bar-day">11</span></div>
+      <div class="bar-col"><div class="bar" style="height:50%"></div><span class="bar-day">12</span></div>
+      <div class="bar-col"><div class="bar" style="height:17%"></div><span class="bar-day">13</span></div>
+      <div class="bar-col"><div class="bar" style="height:75%"></div><span class="bar-day">14</span></div>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <div class="section">
+      <div class="section-title">成熟度</div>
+      <div class="maturity-bar">
+        <div class="m-seg m-new" style="flex-basis:27.3%"></div>
+        <div class="m-seg m-learn" style="flex-basis:58.2%"></div>
+        <div class="m-seg m-mature" style="flex-basis:14.5%"></div>
+      </div>
+      <div class="m-legend">
+        <div class="m-row"><span class="m-label">新</span><span class="m-val">15</span></div>
+        <div class="m-row"><span class="m-label">学习中</span><span class="m-val">32</span></div>
+        <div class="m-row"><span class="m-label">已熟练</span><span class="m-val">8</span></div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title">评分分布</div>
+      <div class="r-rows">
+        <div class="r-row">
+          <span class="r-label">Hard</span>
+          <div class="r-track"><div class="r-fill hard" style="width:23%"></div></div>
+          <span class="r-pct">23%</span>
+        </div>
+        <div class="r-row">
+          <span class="r-label">Good</span>
+          <div class="r-track"><div class="r-fill good" style="width:58%"></div></div>
+          <span class="r-pct">58%</span>
+        </div>
+        <div class="r-row">
+          <span class="r-label">Easy</span>
+          <div class="r-track"><div class="r-fill easy" style="width:19%"></div></div>
+          <span class="r-pct">19%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">每日学习时长</div>
+    <div class="bars bars-time">
+      <div class="bar-col"><div class="bar" style="height:75%"></div><span class="bar-day">02</span></div>
+      <div class="bar-col"><div class="bar" style="height:50%"></div><span class="bar-day">03</span></div>
+      <div class="bar-col"><div class="bar" style="height:100%"></div><span class="bar-day">04</span></div>
+      <div class="bar-col"><div class="bar" style="height:42%"></div><span class="bar-day">05</span></div>
+      <div class="bar-col"><div class="bar" style="height:83%"></div><span class="bar-day">06</span></div>
+      <div class="bar-col"><div class="bar" style="height:58%"></div><span class="bar-day">07</span></div>
+      <div class="bar-col"><div class="bar" style="height:67%"></div><span class="bar-day">08</span></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">标签</div>
+    <div class="tag-list">
+      <div class="tag-row"><span class="tag-name">#考研数学/高数</span><span class="tag-count">28</span></div>
+      <div class="tag-row"><span class="tag-name">#考研408/数据结构</span><span class="tag-count">22</span></div>
+      <div class="tag-row"><span class="tag-name">#考研数学/线代</span><span class="tag-count">15</span></div>
+      <div class="tag-row"><span class="tag-name">#考研408/操作系统</span><span class="tag-count">11</span></div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

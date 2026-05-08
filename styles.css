@@ -467,7 +467,7 @@
 }
 
 .gs-tag-row:last-child { border-bottom: none; }
-.gs-tag-row:hover { background: var(--background-modifier-hover); }
+.gs-tag-row:hover { background: var(--background-modifier-hover); cursor: pointer; }
 
 .gs-tag-name { font-size: 13px; }
 .gs-tag-prefix { color: var(--text-faint); }

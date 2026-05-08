@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grindstone — Overview S3 Chinese</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;500;600;700&family=LXGW+WenKai+TC:wght@300;400;700&display=swap');
+
+  :root {
+    --bg: #171411;
+    --bg-card: #1f1b17;
+    --bg-raised: #272220;
+    --border: #332e28;
+    --border-accent: #4a3e30;
+
+    --ink: #d6cfc4;
+    --ink-dim: #8a8070;
+    --ink-faint: #50483e;
+
+    --vermilion: #c04030;
+    --vermilion-dim: #6a2820;
+    --cinnabar: #b83820;
+    --gold: #c0a050;
+    --gold-dim: #7a6830;
+    --jade: #4a8a60;
+    --jade-dim: #2a5a38;
+    --ink-wash: #6080a0;
+    --ink-wash-dim: #3a5068;
+
+    --font-serif: 'Noto Serif SC', 'Songti SC', serif;
+    --font-kai: 'LXGW WenKai TC', 'Kaiti SC', serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-serif);
+    min-height: 100vh;
+  }
+
+  .overview {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 40px 28px 80px;
+  }
+
+  /* ── Header ── */
+  .header {
+    text-align: center;
+    margin-bottom: 40px;
+    padding-bottom: 24px;
+    position: relative;
+  }
+
+  .header::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border-accent), transparent);
+  }
+
+  .header h1 {
+    font-family: var(--font-kai);
+    font-size: 22px;
+    font-weight: 400;
+    letter-spacing: 0.3em;
+    color: var(--ink);
+  }
+
+  .header .sub {
+    font-family: var(--font-serif);
+    font-size: 11px;
+    color: var(--ink-faint);
+    margin-top: 6px;
+    letter-spacing: 0.1em;
+  }
+
+  /* ── Today ── */
+  .today {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 32px;
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .today::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent 10%, var(--vermilion-dim) 30%, var(--vermilion) 50%, var(--vermilion-dim) 70%, transparent 90%);
+  }
+
+  .today-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .today-stats {
+    display: flex;
+    gap: 48px;
+  }
+
+  .stat {
+    text-align: center;
+  }
+
+  .stat .num {
+    font-family: var(--font-kai);
+    font-size: 42px;
+    font-weight: 300;
+    line-height: 1;
+    display: block;
+  }
+
+  .stat:first-child .num {
+    color: var(--vermilion);
+  }
+
+  .stat .lbl {
+    font-size: 12px;
+    color: var(--ink-faint);
+    margin-top: 6px;
+    display: block;
+    letter-spacing: 0.15em;
+  }
+
+  .seal-btn {
+    font-family: var(--font-kai);
+    font-size: 14px;
+    color: var(--vermilion);
+    background: none;
+    border: 1px solid var(--vermilion-dim);
+    border-radius: 2px;
+    padding: 10px 28px;
+    cursor: pointer;
+    letter-spacing: 0.2em;
+    transition: all 0.2s;
+    position: relative;
+  }
+
+  .seal-btn:hover {
+    background: var(--vermilion-dim);
+    color: var(--ink);
+    border-color: var(--vermilion);
+  }
+
+  /* ── Panels ── */
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .panel {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 24px;
+  }
+
+  .panel-title {
+    font-family: var(--font-kai);
+    font-size: 13px;
+    color: var(--ink-dim);
+    letter-spacing: 0.1em;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* ── Bar Chart ── */
+  .bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+    height: 90px;
+  }
+
+  .bc {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    height: 100%;
+    justify-content: flex-end;
+  }
+
+  .b {
+    width: 100%;
+    border-radius: 2px 2px 0 0;
+    animation: grow 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .bc:nth-child(1) .b { animation-delay: 0.05s; }
+  .bc:nth-child(2) .b { animation-delay: 0.1s; }
+  .bc:nth-child(3) .b { animation-delay: 0.15s; }
+  .bc:nth-child(4) .b { animation-delay: 0.2s; }
+  .bc:nth-child(5) .b { animation-delay: 0.25s; }
+  .bc:nth-child(6) .b { animation-delay: 0.3s; }
+  .bc:nth-child(7) .b { animation-delay: 0.35s; }
+
+  @keyframes grow {
+    from { height: 0 !important; opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .b-vermilion { background: linear-gradient(to top, var(--vermilion-dim), var(--vermilion)); }
+  .b-jade { background: linear-gradient(to top, var(--ink-wash-dim), var(--ink-wash)); }
+
+  .b-day {
+    font-size: 10px;
+    color: var(--ink-faint);
+  }
+
+  /* ── Maturity ── */
+  .mat-track {
+    display: flex;
+    height: 20px;
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: 16px;
+    background: var(--bg);
+  }
+
+  .mat-seg {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    color: var(--ink);
+    min-width: 28px;
+  }
+
+  .mat-new { background: var(--vermilion-dim); }
+  .mat-learn { background: var(--ink-wash-dim); }
+  .mat-mature { background: var(--gold-dim); }
+
+  .mat-legend {
+    display: flex;
+    gap: 16px;
+  }
+
+  .mat-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--ink-dim);
+  }
+
+  .mat-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 1px;
+  }
+
+  .mat-dot.d-new { background: var(--vermilion-dim); }
+  .mat-dot.d-learn { background: var(--ink-wash-dim); }
+  .mat-dot.d-mature { background: var(--gold-dim); }
+
+  .mat-n {
+    font-size: 11px;
+    color: var(--ink-faint);
+  }
+
+  /* ── Rating ── */
+  .rat-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .rat-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .rat-label {
+    font-size: 11px;
+    width: 32px;
+    text-align: right;
+    color: var(--ink-faint);
+  }
+
+  .rat-track {
+    flex: 1;
+    height: 14px;
+    background: var(--bg);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .rat-fill {
+    height: 100%;
+    border-radius: 2px;
+    animation: widen 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  @keyframes widen {
+    from { width: 0 !important; }
+  }
+
+  .rat-fill.hard { background: var(--vermilion); opacity: 0.7; animation-delay: 0.1s; }
+  .rat-fill.good { background: var(--ink-wash); opacity: 0.6; animation-delay: 0.15s; }
+  .rat-fill.easy { background: var(--jade); opacity: 0.6; animation-delay: 0.2s; }
+
+  .rat-pct {
+    font-size: 11px;
+    color: var(--ink-faint);
+    width: 30px;
+  }
+
+  /* ── Tags ── */
+  .tag-panel {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 24px;
+  }
+
+  .tag-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .tag-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 9px 8px;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+  }
+
+  .tag-row:last-child { border-bottom: none; }
+  .tag-row:hover { background: var(--bg-raised); }
+
+  .tag-name {
+    font-size: 13px;
+  }
+
+  .tag-name .prefix {
+    color: var(--ink-faint);
+  }
+
+  .tag-name .leaf {
+    color: var(--ink);
+    font-family: var(--font-kai);
+  }
+
+  .tag-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .tag-bar {
+    width: 50px;
+    height: 3px;
+    background: var(--bg);
+    border-radius: 1px;
+    overflow: hidden;
+  }
+
+  .tag-fill {
+    height: 100%;
+    background: var(--gold-dim);
+    border-radius: 1px;
+  }
+
+  .tag-count {
+    font-size: 12px;
+    color: var(--ink-faint);
+    min-width: 18px;
+    text-align: right;
+  }
+
+  /* ── Colophon ── */
+  .colophon {
+    text-align: center;
+    margin-top: 48px;
+    color: var(--ink-faint);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+  }
+
+  @media (max-width: 600px) {
+    .grid { grid-template-columns: 1fr; }
+    .today-inner { flex-direction: column; gap: 24px; }
+    .today-stats { gap: 32px; }
+    .stat .num { font-size: 32px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="overview">
+
+  <div class="header">
+    <h1>磨 石</h1>
+    <div class="sub">GRINDSTONE</div>
+  </div>
+
+  <div class="today">
+    <div class="today-inner">
+      <div class="today-stats">
+        <div class="stat">
+          <span class="num">12</span>
+          <span class="lbl">到期</span>
+        </div>
+        <div class="stat">
+          <span class="num">7</span>
+          <span class="lbl">已复习</span>
+        </div>
+        <div class="stat">
+          <span class="num">5</span>
+          <span class="lbl">剩余</span>
+        </div>
+      </div>
+      <button class="seal-btn">开始复习</button>
+    </div>
+  </div>
+
+  <div class="grid">
+
+    <div class="panel">
+      <div class="panel-title">未来七日到期</div>
+      <div class="bars">
+        <div class="bc"><div class="b b-vermilion" style="height:42%"></div><span class="b-day">初八</span></div>
+        <div class="bc"><div class="b b-vermilion" style="height:67%"></div><span class="b-day">初九</span></div>
+        <div class="bc"><div class="b b-vermilion" style="height:25%"></div><span class="b-day">初十</span></div>
+        <div class="bc"><div class="b b-vermilion" style="height:100%"></div><span class="b-day">十一</span></div>
+        <div class="bc"><div class="b b-vermilion" style="height:50%"></div><span class="b-day">十二</span></div>
+        <div class="bc"><div class="b b-vermilion" style="height:17%"></div><span class="b-day">十三</span></div>
+        <div class="bc"><div class="b b-vermilion" style="height:75%"></div><span class="b-day">十四</span></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">卡片成熟度</div>
+      <div class="mat-track">
+        <div class="mat-seg mat-new" style="flex-basis:27.3%">15</div>
+        <div class="mat-seg mat-learn" style="flex-basis:58.2%">32</div>
+        <div class="mat-seg mat-mature" style="flex-basis:14.5%">8</div>
+      </div>
+      <div class="mat-legend">
+        <div class="mat-item"><div class="mat-dot d-new"></div>新<span class="mat-n">15</span></div>
+        <div class="mat-item"><div class="mat-dot d-learn"></div>习<span class="mat-n">32</span></div>
+        <div class="mat-item"><div class="mat-dot d-mature"></div>熟<span class="mat-n">8</span></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">评分分布</div>
+      <div class="rat-rows">
+        <div class="rat-row">
+          <span class="rat-label">Hard</span>
+          <div class="rat-track"><div class="rat-fill hard" style="width:23%"></div></div>
+          <span class="rat-pct">23%</span>
+        </div>
+        <div class="rat-row">
+          <span class="rat-label">Good</span>
+          <div class="rat-track"><div class="rat-fill good" style="width:58%"></div></div>
+          <span class="rat-pct">58%</span>
+        </div>
+        <div class="rat-row">
+          <span class="rat-label">Easy</span>
+          <div class="rat-track"><div class="rat-fill easy" style="width:19%"></div></div>
+          <span class="rat-pct">19%</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">每日用功</div>
+      <div class="bars">
+        <div class="bc"><div class="b b-jade" style="height:75%"></div><span class="b-day">02</span></div>
+        <div class="bc"><div class="b b-jade" style="height:50%"></div><span class="b-day">03</span></div>
+        <div class="bc"><div class="b b-jade" style="height:100%"></div><span class="b-day">04</span></div>
+        <div class="bc"><div class="b b-jade" style="height:42%"></div><span class="b-day">05</span></div>
+        <div class="bc"><div class="b b-jade" style="height:83%"></div><span class="b-day">06</span></div>
+        <div class="bc"><div class="b b-jade" style="height:58%"></div><span class="b-day">07</span></div>
+        <div class="bc"><div class="b b-jade" style="height:67%"></div><span class="b-day">08</span></div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="tag-panel">
+    <div class="panel-title">标签总览</div>
+    <div class="tag-list">
+      <div class="tag-row">
+        <span class="tag-name"><span class="prefix">#考研数学/</span><span class="leaf">高数</span></span>
+        <div class="tag-right">
+          <div class="tag-bar"><div class="tag-fill" style="width:100%"></div></div>
+          <span class="tag-count">28</span>
+        </div>
+      </div>
+      <div class="tag-row">
+        <span class="tag-name"><span class="prefix">#考研408/</span><span class="leaf">数据结构</span></span>
+        <div class="tag-right">
+          <div class="tag-bar"><div class="tag-fill" style="width:79%"></div></div>
+          <span class="tag-count">22</span>
+        </div>
+      </div>
+      <div class="tag-row">
+        <span class="tag-name"><span class="prefix">#考研数学/</span><span class="leaf">线代</span></span>
+        <div class="tag-right">
+          <div class="tag-bar"><div class="tag-fill" style="width:54%"></div></div>
+          <span class="tag-count">15</span>
+        </div>
+      </div>
+      <div class="tag-row">
+        <span class="tag-name"><span class="prefix">#考研408/</span><span class="leaf">操作系统</span></span>
+        <div class="tag-right">
+          <div class="tag-bar"><div class="tag-fill" style="width:39%"></div></div>
+          <span class="tag-count">11</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="colophon">磨 刀 不 误 砍 柴 工</div>
+
+</div>
+
+</body>
+</html>

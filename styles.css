@@ -171,6 +171,7 @@
 }
 
 .gs-header h1 {
+
   font-size: 26px;
   font-weight: 400;
   letter-spacing: 0.3em;
@@ -222,6 +223,7 @@
 }
 
 .gs-stat-num {
+
   font-size: 42px;
   font-weight: 300;
   line-height: 1;
@@ -234,6 +236,7 @@
 }
 
 .gs-stat-lbl {
+
   font-size: 12px;
   color: var(--text-faint);
   margin-top: 6px;
@@ -242,6 +245,7 @@
 }
 
 .gs-btn-review {
+
   font-size: 14px;
   color: var(--gs-vermilion);
   background: none;
@@ -275,6 +279,7 @@
 }
 
 .gs-panel-title {
+
   font-size: 12px;
   color: var(--text-muted);
   letter-spacing: 0.1em;
@@ -505,6 +510,7 @@
 
 /* Colophon */
 .gs-colophon {
+
   text-align: center;
   margin-top: 32px;
   color: var(--text-faint);

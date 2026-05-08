@@ -55,6 +55,7 @@ export interface GrindstoneSettings {
   excludeTags: string[];
   prefixMatch: boolean;
   writeStarsBack: boolean;
+  autoShowTags: string[];
 }
 
 export const DEFAULT_SETTINGS: GrindstoneSettings = {
@@ -62,6 +63,7 @@ export const DEFAULT_SETTINGS: GrindstoneSettings = {
   excludeTags: [],
   prefixMatch: true,
   writeStarsBack: true,
+  autoShowTags: ['#Grind'],
 };
 
 export const DEFAULT_DATA: PluginData = {

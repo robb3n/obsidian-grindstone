@@ -73,6 +73,10 @@ export class GrindstoneSidebarView extends ItemView {
     }
 
     const { id, card } = this.queue[this.currentIndex];
+    const autoShowTags = this.store.getSettings().autoShowTags;
+    const autoShow = card.tags.some((t) =>
+      autoShowTags.some((ast) => t === ast || t.startsWith(ast + '/')),
+    );
 
     renderCardView({
       container: this.contentEl,
@@ -82,6 +86,7 @@ export class GrindstoneSidebarView extends ItemView {
       component: this.component,
       cardManager: this.cardManager,
       onRate: (rating, elapsed) => this.handleRating(id, card, rating, elapsed),
+      autoShow,
       // No onClose for sidebar – jump-to-source doesn't close the panel
     });
   }

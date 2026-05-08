@@ -11,10 +11,11 @@ export interface RenderParams {
   cardManager: CardManager;
   onRate: (rating: Rating, elapsed: number) => Promise<void>;
   onClose?: () => void;
+  autoShow?: boolean;
 }
 
 export async function renderCardView(params: RenderParams): Promise<void> {
-  const { container, card, position, app, component, cardManager, onRate, onClose } = params;
+  const { container, card, position, app, component, cardManager, onRate, onClose, autoShow } = params;
   container.empty();
 
   // Header: card count
@@ -56,15 +57,23 @@ export async function renderCardView(params: RenderParams): Promise<void> {
   }
   renderTags();
 
-  // Content area (hidden by default)
-  const contentArea = container.createDiv({ cls: 'grindstone-content' });
-  contentArea.style.display = 'none';
+  // Content area
+  const contentCls = autoShow ? 'grindstone-content grindstone-content-full' : 'grindstone-content';
+  const contentArea = container.createDiv({ cls: contentCls });
+
+  if (autoShow) {
+    // Auto-expand: load and show content immediately
+    const blockContent = await cardManager.getBlockContent(card);
+    await MarkdownRenderer.render(app, blockContent, contentArea, card.file, component);
+  } else {
+    contentArea.style.display = 'none';
+  }
 
   // Action buttons
   const actions = container.createDiv({ cls: 'grindstone-actions' });
 
   const showBtn = actions.createEl('button', {
-    text: '显示内容',
+    text: autoShow ? '隐藏内容' : '显示内容',
     cls: 'grindstone-btn grindstone-btn-show',
   });
   showBtn.addEventListener('click', async () => {
@@ -73,6 +82,7 @@ export async function renderCardView(params: RenderParams): Promise<void> {
       contentArea.empty();
       await MarkdownRenderer.render(app, blockContent, contentArea, card.file, component);
       contentArea.style.display = 'block';
+      contentArea.addClass('grindstone-content-full');
       showBtn.setText('隐藏内容');
     } else {
       contentArea.style.display = 'none';

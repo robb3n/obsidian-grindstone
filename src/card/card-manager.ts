@@ -100,12 +100,12 @@ export class CardManager {
     // Match by startLine first, then by title
     for (const block of blocks) {
       if (block.startLine === card.blockStartLine) {
-        return lines.slice(block.startLine, block.endLine).join('\n');
+        return lines.slice(block.startLine + 1, block.endLine).join('\n');
       }
     }
     for (const block of blocks) {
       if (block.title === card.blockTitle) {
-        return lines.slice(block.startLine, block.endLine).join('\n');
+        return lines.slice(block.startLine + 1, block.endLine).join('\n');
       }
     }
 

@@ -64,5 +64,20 @@ export class GrindstoneSettingTab extends PluginSettingTab {
           await this.plugin.store.updateSettings({ writeStarsBack: value });
         });
       });
+
+    new Setting(containerEl)
+      .setName('默认显示内容的标签')
+      .setDesc('包含这些标签的卡片在复习时自动展开全部内容。每行一个标签。')
+      .addTextArea((text) => {
+        text
+          .setPlaceholder('#Grind')
+          .setValue(settings.autoShowTags.join('\n'))
+          .onChange(async (value) => {
+            const tags = value.split('\n').map((t) => t.trim()).filter((t) => t.length > 0);
+            await this.plugin.store.updateSettings({ autoShowTags: tags });
+          });
+        text.inputEl.rows = 3;
+        text.inputEl.cols = 30;
+      });
   }
 }

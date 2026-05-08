@@ -1,4 +1,4 @@
-import { ItemView, WorkspaceLeaf, TFile } from 'obsidian';
+import { ItemView, WorkspaceLeaf, TFile, Component, MarkdownRenderer } from 'obsidian';
 import { DataStore } from '../storage/data-store';
 import { CardData, Maturity } from '../card/types';
 
@@ -11,10 +11,12 @@ export class GrindstoneBrowserView extends ItemView {
   private searchQuery = '';
   private selectedTags = new Set<string>();
   private sortBy: SortKey = 'due';
+  private component: Component;
 
   constructor(leaf: WorkspaceLeaf, store: DataStore) {
     super(leaf);
     this.store = store;
+    this.component = new Component();
   }
 
   getViewType(): string {
@@ -30,7 +32,12 @@ export class GrindstoneBrowserView extends ItemView {
   }
 
   async onOpen(): Promise<void> {
+    this.component.load();
     this.render();
+  }
+
+  async onClose(): Promise<void> {
+    this.component.unload();
   }
 
   refresh(): void {
@@ -125,8 +132,9 @@ export class GrindstoneBrowserView extends ItemView {
       // Main content
       const main = row.createDiv({ cls: 'gs-card-main' });
 
-      // Title (clickable)
-      const title = main.createDiv({ cls: 'gs-card-title', text: card.blockTitle || '(untitled)' });
+      // Title (clickable, supports LaTeX)
+      const title = main.createDiv({ cls: 'gs-card-title' });
+      MarkdownRenderer.render(this.app, card.blockTitle || '(untitled)', title, card.file, this.component);
       title.addEventListener('click', async () => {
         const file = this.app.vault.getAbstractFileByPath(card.file);
         if (file instanceof TFile) {

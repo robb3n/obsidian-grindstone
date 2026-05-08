@@ -49,6 +49,10 @@ export class ReviewModal extends Modal {
     }
 
     const { id, card } = this.queue[this.currentIndex];
+    const autoShowTags = this.store.getSettings().autoShowTags;
+    const autoShow = card.tags.some((t) =>
+      autoShowTags.some((ast) => t === ast || t.startsWith(ast + '/')),
+    );
 
     renderCardView({
       container: this.contentEl,
@@ -59,6 +63,7 @@ export class ReviewModal extends Modal {
       cardManager: this.cardManager,
       onRate: (rating, elapsed) => this.handleRating(id, card, rating, elapsed),
       onClose: () => this.close(),
+      autoShow,
     });
   }
 

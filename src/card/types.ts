@@ -56,6 +56,8 @@ export interface GrindstoneSettings {
   prefixMatch: boolean;
   writeStarsBack: boolean;
   autoShowTags: string[];
+  /** Workspace theme: 'light' | 'dark' | undefined (follow Obsidian). */
+  gsTheme?: 'light' | 'dark';
 }
 
 export const DEFAULT_SETTINGS: GrindstoneSettings = {

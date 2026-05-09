@@ -1,35 +1,31 @@
 import { Plugin, TFile, TAbstractFile } from 'obsidian';
 import { DataStore } from './storage/data-store';
 import { CardManager } from './card/card-manager';
+import { GrindstoneStore } from './store/GrindstoneStore';
 import { ReviewModal } from './ui/review-modal';
-import { GrindstoneSidebarView, SIDEBAR_VIEW_TYPE } from './ui/sidebar-view';
-import { GrindstoneOverviewView, OVERVIEW_VIEW_TYPE } from './ui/overview-view';
-import { GrindstoneBrowserView, BROWSER_VIEW_TYPE } from './ui/browser-view';
+import { GrindstoneWorkspaceView, WORKSPACE_VIEW_TYPE } from './view/WorkspaceView';
 import { addRibbonIcon } from './ui/ribbon';
 import { GrindstoneSettingTab } from './settings/settings-tab';
 
 export default class GrindstonePlugin extends Plugin {
   store!: DataStore;
+  gsStore!: GrindstoneStore;
   cardManager!: CardManager;
 
   async onload(): Promise<void> {
     this.store = new DataStore(this);
     await this.store.load();
 
+    this.gsStore = new GrindstoneStore(this.store);
     this.cardManager = new CardManager(this.app, this.store);
 
-    // Register views
+    // Register workspace view
     this.registerView(
-      SIDEBAR_VIEW_TYPE,
-      (leaf) => new GrindstoneSidebarView(leaf, this.cardManager, this.store),
-    );
-    this.registerView(
-      OVERVIEW_VIEW_TYPE,
-      (leaf) => new GrindstoneOverviewView(leaf, this.store, () => this.startReviewModal()),
-    );
-    this.registerView(
-      BROWSER_VIEW_TYPE,
-      (leaf) => new GrindstoneBrowserView(leaf, this.store),
+      WORKSPACE_VIEW_TYPE,
+      (leaf) => new GrindstoneWorkspaceView(
+        leaf, this.gsStore, this.cardManager,
+        (tag?: string) => this.startReviewModal(tag),
+      ),
     );
 
     // Full scan once layout is ready
@@ -75,36 +71,49 @@ export default class GrindstonePlugin extends Plugin {
       callback: () => this.startReviewModal(),
     });
 
-    // Command: Open Sidebar
+    // Command: Open Workspace
     this.addCommand({
-      id: 'open-sidebar',
-      name: 'Open Review Sidebar',
-      callback: () => this.activateSidebar(),
+      id: 'open-workspace',
+      name: 'Open Workspace',
+      callback: () => this.activateWorkspace(),
     });
 
-    // Command: Open Overview
-    this.addCommand({
-      id: 'open-overview',
-      name: 'Open Overview',
-      callback: () => this.activateOverview(),
-    });
-
-    // Command: Open Card Browser
-    this.addCommand({
-      id: 'open-browser',
-      name: 'Open Card Browser',
-      callback: () => this.activateBrowser(),
-    });
-
-    // Ribbon icon → modal
+    // Ribbon icon → open workspace
     addRibbonIcon(
       this,
       () => this.getDueCount(),
-      () => this.startReviewModal(),
+      () => this.activateWorkspace(),
     );
 
     // Settings tab
     this.addSettingTab(new GrindstoneSettingTab(this.app, this));
+
+    // Load user fonts
+    this.app.workspace.onLayoutReady(() => this.loadUserFonts());
+  }
+
+  /** Scan fonts-user/ directory and register any found fonts as Grindstone-User. */
+  private async loadUserFonts(): Promise<void> {
+    const fontDir = `${this.manifest.dir}/fonts-user`;
+    if (!(await this.app.vault.adapter.exists(fontDir))) return;
+    const list = await this.app.vault.adapter.list(fontDir);
+    const fontFiles = list.files.filter(f => /\.(woff2?|ttf|otf)$/i.test(f));
+    if (fontFiles.length === 0) return;
+
+    // Remove previously injected style if any
+    document.getElementById('grindstone-user-fonts')?.remove();
+
+    const style = document.createElement('style');
+    style.id = 'grindstone-user-fonts';
+    style.textContent = fontFiles.map(path => `
+      @font-face {
+        font-family: 'Grindstone-User';
+        src: url('app://obsidian.md/${path}');
+        font-display: swap;
+      }
+    `).join('\n');
+    document.head.appendChild(style);
+    console.log(`[Grindstone] Loaded ${fontFiles.length} user font(s)`);
   }
 
   private getDueCount(): number {
@@ -112,51 +121,31 @@ export default class GrindstonePlugin extends Plugin {
     return this.store.getDueCards(today).length;
   }
 
-  private startReviewModal(): void {
-    const today = formatDate(new Date());
-    const queue = this.store.getDueCards(today);
+  private startReviewModal(tag?: string): void {
+    let queue;
+    if (tag) {
+      queue = this.gsStore.getDueCardsByTag(tag);
+    } else {
+      const today = formatDate(new Date());
+      queue = this.store.getDueCards(today);
+    }
     new ReviewModal(this.app, queue, this.cardManager, this.store).open();
   }
 
-  private async activateSidebar(): Promise<void> {
-    const existing = this.app.workspace.getLeavesOfType(SIDEBAR_VIEW_TYPE);
+  private async activateWorkspace(): Promise<void> {
+    const existing = this.app.workspace.getLeavesOfType(WORKSPACE_VIEW_TYPE);
     if (existing.length > 0) {
       this.app.workspace.revealLeaf(existing[0]);
-      (existing[0].view as GrindstoneSidebarView).refresh();
-      return;
-    }
-
-    const leaf = this.app.workspace.getRightLeaf(false);
-    if (leaf) {
-      await leaf.setViewState({ type: SIDEBAR_VIEW_TYPE, active: true });
+      (existing[0].view as GrindstoneWorkspaceView).refresh();
+    } else {
+      const leaf = this.app.workspace.getLeaf('tab');
+      await leaf.setViewState({ type: WORKSPACE_VIEW_TYPE, active: true });
       this.app.workspace.revealLeaf(leaf);
     }
-  }
 
-  private async activateOverview(): Promise<void> {
-    const existing = this.app.workspace.getLeavesOfType(OVERVIEW_VIEW_TYPE);
-    if (existing.length > 0) {
-      this.app.workspace.revealLeaf(existing[0]);
-      (existing[0].view as GrindstoneOverviewView).refresh();
-      return;
-    }
-
-    const leaf = this.app.workspace.getLeaf('tab');
-    await leaf.setViewState({ type: OVERVIEW_VIEW_TYPE, active: true });
-    this.app.workspace.revealLeaf(leaf);
-  }
-
-  private async activateBrowser(): Promise<void> {
-    const existing = this.app.workspace.getLeavesOfType(BROWSER_VIEW_TYPE);
-    if (existing.length > 0) {
-      this.app.workspace.revealLeaf(existing[0]);
-      (existing[0].view as GrindstoneBrowserView).refresh();
-      return;
-    }
-
-    const leaf = this.app.workspace.getLeaf('tab');
-    await leaf.setViewState({ type: BROWSER_VIEW_TYPE, active: true });
-    this.app.workspace.revealLeaf(leaf);
+    // Collapse Obsidian sidebars to give the workspace full width
+    (this.app.workspace as any).leftSplit?.collapse();
+    (this.app.workspace as any).rightSplit?.collapse();
   }
 
   async onunload(): Promise<void> {

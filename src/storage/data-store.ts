@@ -204,6 +204,11 @@ export class DataStore {
     return formatDate(d) + 'T00:00:00';
   }
 
+  /** Raw review log entries. */
+  getReviewLogs(): ReviewLog[] {
+    return this.data.reviewLogs;
+  }
+
   /** Number of cards due on each of the next N days. */
   getUpcomingDue(days: number): Array<{ date: string; count: number }> {
     const today = new Date();

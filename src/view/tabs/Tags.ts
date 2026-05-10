@@ -1,3 +1,4 @@
+import { MarkdownRenderer, Component } from 'obsidian';
 import { TagTreeNode, CardEntry } from '../../store/GrindstoneStore';
 import { TabContext } from './types';
 
@@ -188,7 +189,8 @@ function renderCardRow(
   path.setAttribute('stroke', 'currentColor'); path.setAttribute('stroke-width', '1.6');
   path.setAttribute('stroke-linecap', 'round'); path.setAttribute('stroke-linejoin', 'round');
   svg.appendChild(path); caretMini.appendChild(svg);
-  front.createSpan({ cls: 'tg-front-text', text: card.blockTitle });
+  const frontText = front.createSpan({ cls: 'tg-front-text' });
+  MarkdownRenderer.render(ctx.app, card.blockTitle, frontText, card.file, new Component());
 
   // Tags
   const tagsDiv = mainDiv.createSpan({ cls: 'tg-c-tags' });
@@ -213,7 +215,15 @@ function renderCardRow(
   // Expanded content
   if (isOpen) {
     const back = row.createDiv({ cls: 'tg-row-back' });
-    back.createDiv({ cls: 'tg-back-l gs-en', text: 'CARD INFO' });
+    back.createDiv({ cls: 'tg-back-l gs-en', text: 'ANSWER' });
+    const answerEl = back.createDiv({ cls: 'tg-back-answer' });
+    ctx.cardManager.getBlockContent(card).then((content) => {
+      if (content) {
+        MarkdownRenderer.render(ctx.app, content, answerEl, card.file, new Component());
+      } else {
+        answerEl.createSpan({ cls: 'gs-placeholder', text: '无内容' });
+      }
+    });
     const meta = back.createDiv({ cls: 'tg-back-meta' });
     meta.innerHTML = `<span class="gs-en">ID</span> <code>${id}</code> <span class="gs-en">REPS</span> <span class="gs-mono">${card.reviewCount}</span> <span class="gs-en">DUE</span> <span class="gs-mono">${card.due}</span> <span class="gs-en">FILE</span> <span class="gs-mono">${card.file}</span>`;
   }

@@ -803,7 +803,7 @@ body.theme-dark .grindstone-workspace:not(.gs-force-light) .gs-rail-item-on,
    Tags Tab
    ══════════════════════════════════════ */
 
-.grindstone-workspace .tg-page { flex: 1; min-height: 0; min-width: 0; display: grid; grid-template-columns: 240px 1fr; overflow: hidden; }
+.grindstone-workspace .tg-page { flex: 1; min-height: 0; min-width: 0; display: grid; grid-template-columns: 200px 1fr; overflow: hidden; }
 .grindstone-workspace .tg-search { display: flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 8px; background: var(--gs-card); border: 1px solid var(--gs-line); color: var(--gs-ink-3); transition: all .15s; }
 .grindstone-workspace .tg-search:focus-within { border-color: var(--gs-green); color: var(--gs-ink); }
 .grindstone-workspace .tg-search input { border: 0; background: transparent; outline: none; font: 500 12px var(--gs-font-zh); color: var(--gs-ink); width: 140px; }

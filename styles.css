@@ -206,7 +206,7 @@ body.theme-dark .grindstone-workspace:not(.gs-force-light),
 .grindstone-workspace .gs-rail-section { font-size: 9px; letter-spacing: 0.22em; color: var(--gs-ink-3); padding: 6px 10px 4px; font-weight: 600; }
 .grindstone-workspace .gs-rail-nav { display: flex; flex-direction: column; gap: 1px; }
 .grindstone-workspace .gs-rail-item {
-  display: flex; align-items: center; gap: 10px;
+  display: flex; align-items: center; justify-content: flex-start; gap: 10px; width: 100%;
   padding: 8px 10px; border: 0; background: transparent;
   font: 500 13px var(--gs-font-zh); color: var(--gs-ink-2);
   border-radius: 8px; cursor: pointer; text-align: left;

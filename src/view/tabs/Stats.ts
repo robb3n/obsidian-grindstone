@@ -1,4 +1,5 @@
 import { TabContext } from './types';
+import { countUp } from '../anim';
 
 export function renderStats(container: HTMLElement, ctx: TabContext): void {
   let range = 30;
@@ -61,7 +62,8 @@ function addKPI(parent: HTMLElement, en: string, zh: string, value: number, unit
   tile.createDiv({ cls: 'st-kpi-eyebrow gs-en', text: en });
   tile.createDiv({ cls: 'st-kpi-zh', text: zh });
   const num = tile.createDiv({ cls: 'st-kpi-num gs-mono' });
-  num.createSpan({ text: value.toLocaleString() });
+  const valSpan = num.createSpan();
+  countUp(valSpan, value, 900, delay, (n) => n.toLocaleString());
   num.createSpan({ cls: 'st-kpi-unit', text: unit });
 
   if (delta !== null) {

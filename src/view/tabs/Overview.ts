@@ -1,4 +1,5 @@
 import { TabContext } from './types';
+import { countUp } from '../anim';
 
 const MOTIVATIONAL = [
   { zh: '不积跬步，无以至千里', en: 'A journey of a thousand miles begins with a single step.' },
@@ -49,12 +50,12 @@ export function renderOverview(container: HTMLElement, ctx: TabContext): void {
 
   // ── Stat Strip ──
   const strip = page.createDiv({ cls: 'ov-strip' });
-  addStat(strip, 'DUE', '到期', stats.due, undefined, true);
-  addStat(strip, 'DONE', '已复习', stats.done);
-  addStat(strip, 'LEFT', '剩余', stats.remaining);
-  addStat(strip, 'STREAK', '连续打卡', stats.streak, 'd');
-  addStat(strip, 'WEEK', '本周用功', stats.weekMinutes, 'm');
-  addStat(strip, 'TAGS', '标签', stats.tagCount);
+  addStat(strip, 'DUE', '到期', stats.due, undefined, true, 0);
+  addStat(strip, 'DONE', '已复习', stats.done, undefined, false, 60);
+  addStat(strip, 'LEFT', '剩余', stats.remaining, undefined, false, 120);
+  addStat(strip, 'STREAK', '连续打卡', stats.streak, 'd', false, 180);
+  addStat(strip, 'WEEK', '本周用功', stats.weekMinutes, 'm', false, 240);
+  addStat(strip, 'TAGS', '标签', stats.tagCount, undefined, false, 300);
 
   // ── Tile Grid ──
   const grid = page.createDiv({ cls: 'ov-grid' });
@@ -80,13 +81,14 @@ export function renderOverview(container: HTMLElement, ctx: TabContext): void {
 
 // ── Stat Strip Item ──
 
-function addStat(parent: HTMLElement, en: string, zh: string, value: number, suffix?: string, accent?: boolean): void {
+function addStat(parent: HTMLElement, en: string, zh: string, value: number, suffix?: string, accent?: boolean, delay = 0): void {
   const stat = parent.createDiv({ cls: 'ov-stat' });
   const top = stat.createDiv({ cls: 'ov-stat-top' });
   top.createSpan({ cls: 'ov-stat-en gs-en', text: en });
   top.createSpan({ cls: 'ov-stat-zh', text: zh });
   const numEl = stat.createDiv({ cls: `ov-stat-num gs-mono gs-tabular${accent ? ' ov-stat-accent' : ''}` });
-  numEl.textContent = String(value);
+  const valSpan = numEl.createSpan();
+  countUp(valSpan, value, 900, delay);
   if (suffix) {
     numEl.createSpan({ cls: 'ov-stat-suffix', text: suffix });
   }

@@ -146,7 +146,8 @@
   --gs-font-serif: "Source Serif 4", "Source Han Serif SC", "Songti SC", serif;
 }
 
-.grindstone-workspace .gs-dark {
+body.theme-dark .grindstone-workspace:not(.gs-force-light),
+.grindstone-workspace.gs-force-dark {
   --gs-paper: #0f1311;
   --gs-paper-2: #161a17;
   --gs-ink: #e6e6df;
@@ -214,7 +215,8 @@
 }
 .grindstone-workspace .gs-rail-item:hover { background: var(--gs-card); color: var(--gs-ink); }
 .grindstone-workspace .gs-rail-item-on { background: var(--gs-green-soft); color: var(--gs-green); font-weight: 600; }
-.grindstone-workspace .gs-dark .gs-rail-item-on { color: var(--gs-green-2); }
+body.theme-dark .grindstone-workspace:not(.gs-force-light) .gs-rail-item-on,
+.grindstone-workspace.gs-force-dark .gs-rail-item-on { color: var(--gs-green-2); }
 .grindstone-workspace .gs-rail-item-badge {
   margin-left: auto; padding: 1px 7px; border-radius: 999px;
   background: var(--gs-clay); color: #fff;

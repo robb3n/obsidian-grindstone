@@ -50,9 +50,9 @@ export class GrindstoneWorkspaceView extends ItemView {
     container.empty();
     container.addClass('grindstone-workspace');
 
-    // Root element with theme attribute
+    // Root element
     this.rootEl = container.createDiv({ cls: 'gs-app gs-root' });
-    this.applyTheme();
+    this.applyThemeOverride();
 
     // Sidebar rail
     this.sidebarEl = this.rootEl.createEl('aside', { cls: 'gs-rail' });
@@ -88,6 +88,7 @@ export class GrindstoneWorkspaceView extends ItemView {
       dueCount: this.store.getDueCards().length,
       streak: this.store.getOverviewStats().streak,
       onToggleTheme: () => this.toggleTheme(),
+      themeMode: this.store.getRawStore().getSettings().gsTheme,
       isDark: this.isDark(),
     });
   }
@@ -133,19 +134,21 @@ export class GrindstoneWorkspaceView extends ItemView {
     const settings = this.store.getRawStore().getSettings();
     if (settings.gsTheme === 'light') return false;
     if (settings.gsTheme === 'dark') return true;
-    // Default: follow Obsidian
     return document.body.classList.contains('theme-dark');
   }
 
-  private applyTheme(): void {
-    this.rootEl.classList.toggle('gs-dark', this.isDark());
+  private applyThemeOverride(): void {
+    const mode = this.store.getRawStore().getSettings().gsTheme;
+    this.contentEl.classList.toggle('gs-force-dark', mode === 'dark');
+    this.contentEl.classList.toggle('gs-force-light', mode === 'light');
   }
 
   private toggleTheme(): void {
-    const current = this.isDark();
-    const next = current ? 'light' : 'dark';
-    this.store.getRawStore().updateSettings({ gsTheme: next });
-    this.applyTheme();
+    const current = this.store.getRawStore().getSettings().gsTheme;
+    // Cycle: auto → dark → light → auto
+    const next = !current ? 'dark' : current === 'dark' ? 'light' : undefined;
+    this.store.getRawStore().updateSettings({ gsTheme: next as any });
+    this.applyThemeOverride();
     this.renderSidebar();
   }
 }

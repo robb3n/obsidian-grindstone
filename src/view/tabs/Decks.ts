@@ -17,6 +17,11 @@ export function renderDecks(container: HTMLElement, ctx: TabContext): void {
   headR.createSpan({ cls: 'gs-pill gs-pill-clay', text: `${totalDue} 待复习` });
 
   // ── Page Body ──
+  renderDeckTable(container, ctx);
+}
+
+export function renderDeckTable(container: HTMLElement, ctx: TabContext): void {
+  const tree = ctx.store.getDeckTree();
   const page = container.createDiv({ cls: 'gs-page dk-page' });
 
   // Table header

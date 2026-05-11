@@ -10,8 +10,6 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { id: 'overview', zh: '概览', en: 'Overview',
     iconPath: 'M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z' },
-  { id: 'decks', zh: '卡组', en: 'Decks',
-    iconPath: 'M3 6a2 2 0 012-2h14a2 2 0 012 2v13H3V6zM3 10h18M9 14h6' },
   { id: 'review', zh: '复习', en: 'Review',
     iconPath: 'M21 12a9 9 0 11-3-6.7M21 4v5h-5' },
   { id: 'stats', zh: '统计', en: 'Stats',

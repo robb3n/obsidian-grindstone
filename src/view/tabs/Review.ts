@@ -1,11 +1,11 @@
 import { TabContext } from './types';
+import { renderDeckTable } from './Decks';
 
 export function renderReview(container: HTMLElement, ctx: TabContext): void {
   const dueCards = ctx.store.getDueCards();
   const dueCount = dueCards.length;
   const newCount = ctx.store.getDueNewCount();
   const streak = ctx.store.getOverviewStats().streak;
-  const forecast = ctx.store.getForecast7D();
   const sessions = ctx.store.getRecentSessions(7);
 
   // ── Page Head ──
@@ -27,7 +27,7 @@ export function renderReview(container: HTMLElement, ctx: TabContext): void {
 
   const SECTIONS = [
     { id: 'launch', zh: '启动', en: 'PRE-FLIGHT' },
-    { id: 'history', zh: '历史', en: 'HISTORY' },
+    { id: 'decks', zh: '卡组', en: 'DECKS' },
     { id: 'debrief', zh: '复盘', en: 'DEBRIEF' },
   ];
 
@@ -44,8 +44,8 @@ export function renderReview(container: HTMLElement, ctx: TabContext): void {
 
   const renderSection = () => {
     sectionWrap.empty();
-    if (activeTab === 'launch') renderLaunch(sectionWrap, dueCount, newCount, forecast, sessions, ctx);
-    else if (activeTab === 'history') renderHistory(sectionWrap, sessions);
+    if (activeTab === 'launch') renderLaunch(sectionWrap, dueCount, newCount, ctx);
+    else if (activeTab === 'decks') renderDeckTable(sectionWrap, ctx);
     else if (activeTab === 'debrief') renderDebrief(sectionWrap, sessions, ctx);
   };
 
@@ -58,7 +58,6 @@ export function renderReview(container: HTMLElement, ctx: TabContext): void {
 function renderLaunch(
   parent: HTMLElement,
   dueCount: number, newCount: number,
-  forecast: any[], sessions: any[],
   ctx: TabContext,
 ): void {
   const launch = parent.createDiv({ cls: 'rv-launch' });
@@ -101,47 +100,12 @@ function renderLaunch(
   kbds.createSpan({ text: '\u00B7' });
   kbds.createSpan({ text: 'ESC 暂停' });
 
-  // Right sidebar
-  const right = launch.createDiv({ cls: 'rv-launch-r' });
-
-  // Forecast mini
-  const foreCard = right.createDiv({ cls: 'rv-launch-card' });
-  foreCard.createDiv({ cls: 'rv-launch-card-h', text: '即将到来' });
-  renderForecastMini(foreCard, forecast);
-
-  // Recent sessions
-  const recentCard = right.createDiv({ cls: 'rv-launch-card' });
-  recentCard.createDiv({ cls: 'rv-launch-card-h', text: '最近会话' });
-  const recentList = recentCard.createEl('ul', { cls: 'rv-launch-recent' });
-  for (const s of sessions.slice(0, 4)) {
-    const li = recentList.createEl('li', { cls: s.cards === 0 ? 'rv-launch-recent-skip' : '' });
-    li.createSpan({ cls: 'rv-launch-recent-d gs-mono', text: s.date.slice(5) });
-    if (s.cards > 0) {
-      li.createSpan({ cls: 'rv-launch-recent-n gs-mono', text: String(s.cards) });
-      li.createSpan({ cls: 'rv-launch-recent-m gs-mono', text: `${s.minutes}m` });
-    } else {
-      li.createSpan({ cls: 'gs-en', text: '\u2014 rest day \u2014' });
-    }
-  }
 }
 
 function addAutoCell(parent: HTMLElement, value: string, label: string): void {
   const cell = parent.createDiv({ cls: 'rv-auto-cell' });
   cell.createDiv({ cls: 'rv-auto-num gs-mono', text: value });
   cell.createDiv({ cls: 'rv-auto-cap', text: label });
-}
-
-function renderForecastMini(parent: HTMLElement, forecast: any[]): void {
-  const max = Math.max(...forecast.map((f: any) => f.count), 1);
-  const mini = parent.createDiv({ cls: 'rv-fmini' });
-  for (const f of forecast) {
-    const col = mini.createDiv({ cls: 'rv-fmini-col' });
-    const barWrap = col.createDiv({ cls: 'rv-fmini-bar-wrap' });
-    const bar = barWrap.createDiv({ cls: `rv-fmini-bar${f.isToday ? ' rv-fmini-today' : ''}` });
-    bar.style.height = `${Math.max(2, (f.count / max) * 100)}%`;
-    col.createDiv({ cls: `rv-fmini-d gs-mono${f.isToday ? ' rv-fmini-d-today' : ''}`, text: f.label });
-    col.createDiv({ cls: 'rv-fmini-n gs-mono', text: String(f.count) });
-  }
 }
 
 // ── History ──
@@ -262,6 +226,9 @@ function renderDebrief(parent: HTMLElement, sessions: any[], ctx: TabContext): v
   btnOverview.addEventListener('click', () => ctx.onNavigate('overview'));
   const btnStats = actions.createEl('button', { cls: 'gs-btn gs-btn-primary', text: '查看完整统计 →' });
   btnStats.addEventListener('click', () => ctx.onNavigate('stats'));
+
+  // History (merged below debrief)
+  renderHistory(debrief, sessions);
 }
 
 function addDebriefRate(parent: HTMLElement, label: string, zh: string, key: string, value: number, total: number, color: string): void {

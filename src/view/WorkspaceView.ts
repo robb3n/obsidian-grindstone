@@ -3,14 +3,13 @@ import { GrindstoneStore } from '../store/GrindstoneStore';
 import { CardManager } from '../card/card-manager';
 import { renderSidebar } from './Sidebar';
 import { renderOverview } from './tabs/Overview';
-import { renderDecks } from './tabs/Decks';
 import { renderReview } from './tabs/Review';
 import { renderStats } from './tabs/Stats';
 import { renderTags } from './tabs/Tags';
 
 export const WORKSPACE_VIEW_TYPE = 'grindstone-workspace';
 
-export type TabId = 'overview' | 'decks' | 'review' | 'stats' | 'tags';
+export type TabId = 'overview' | 'review' | 'stats' | 'tags';
 
 export class GrindstoneWorkspaceView extends ItemView {
   private store: GrindstoneStore;
@@ -114,7 +113,6 @@ export class GrindstoneWorkspaceView extends ItemView {
     try {
       switch (this.activeTab) {
         case 'overview': renderOverview(this.mainEl, ctx); break;
-        case 'decks':    renderDecks(this.mainEl, ctx); break;
         case 'review':   renderReview(this.mainEl, ctx); break;
         case 'stats':    renderStats(this.mainEl, ctx); break;
         case 'tags':     renderTags(this.mainEl, ctx); break;

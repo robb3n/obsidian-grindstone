@@ -908,6 +908,32 @@ body.theme-dark .grindstone-workspace:not(.gs-force-light) .gs-rail-item-on,
 .grindstone-workspace .tg-bc-seg:hover { background: var(--gs-paper-2); }
 .grindstone-workspace .tg-bc-seg:last-of-type { color: var(--gs-green); font-weight: 600; }
 .grindstone-workspace .tg-bc-sep { color: var(--gs-ink-3); }
+
+/* ── Filter Bar ── */
+.grindstone-workspace .tg-filter-bar { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; padding: 6px 0; font-size: 12px; position: relative; }
+.grindstone-workspace .tg-filter-chip { display: inline-flex; align-items: center; gap: 4px; background: var(--gs-green-soft); color: var(--gs-green); font: 500 11px var(--gs-font-zh); padding: 3px 6px 3px 9px; border-radius: 6px; cursor: default; transition: background .12s; }
+.grindstone-workspace .tg-filter-chip-search { background: var(--gs-paper-2); color: var(--gs-ink-2); }
+.grindstone-workspace .tg-filter-chip-label { white-space: nowrap; max-width: 160px; overflow: hidden; text-overflow: ellipsis; }
+.grindstone-workspace .tg-filter-chip-x { display: inline-flex; align-items: center; justify-content: center; width: 14px; height: 14px; border-radius: 3px; cursor: pointer; color: var(--gs-green); opacity: .6; transition: all .12s; }
+.grindstone-workspace .tg-filter-chip-x:hover { opacity: 1; background: rgba(31,77,58,.12); }
+.grindstone-workspace .tg-filter-chip-search .tg-filter-chip-x { color: var(--gs-ink-3); }
+.grindstone-workspace .tg-filter-chip-search .tg-filter-chip-x:hover { color: var(--gs-ink); background: var(--gs-line); }
+.grindstone-workspace .tg-filter-and { font-size: 9px; font-weight: 700; letter-spacing: .06em; color: var(--gs-ink-3); }
+.grindstone-workspace .tg-filter-paren { font-size: 14px; font-weight: 300; color: var(--gs-ink-3); line-height: 1; }
+.grindstone-workspace .tg-filter-sep { color: var(--gs-ink-3); }
+.grindstone-workspace .tg-filter-add { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border: 1px dashed var(--gs-line); border-radius: 6px; background: transparent; color: var(--gs-ink-3); cursor: pointer; transition: all .15s; }
+.grindstone-workspace .tg-filter-add:hover { border-color: var(--gs-green); color: var(--gs-green); background: var(--gs-green-soft); }
+.grindstone-workspace .tg-filter-clear { border: 0; background: transparent; color: var(--gs-ink-3); font: 600 9px var(--gs-font-mono); letter-spacing: .08em; cursor: pointer; padding: 3px 6px; border-radius: 4px; margin-left: auto; transition: all .12s; }
+.grindstone-workspace .tg-filter-clear:hover { background: var(--gs-paper-2); color: var(--gs-ink); }
+
+/* ── Tag Picker Dropdown ── */
+.grindstone-workspace .tg-picker { position: absolute; top: 100%; left: 0; z-index: 100; width: 240px; max-height: 260px; background: var(--gs-card); border: 1px solid var(--gs-line); border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,.12); display: flex; flex-direction: column; overflow: hidden; }
+.grindstone-workspace .tg-picker-input { border: 0; border-bottom: 1px solid var(--gs-line); background: transparent; padding: 8px 12px; font: 500 12px var(--gs-font-zh); color: var(--gs-ink); outline: none; }
+.grindstone-workspace .tg-picker-input::placeholder { color: var(--gs-ink-3); }
+.grindstone-workspace .tg-picker-list { overflow-y: auto; flex: 1; padding: 4px; }
+.grindstone-workspace .tg-picker-item { padding: 5px 10px; border-radius: 6px; font: 500 12px var(--gs-font-zh); color: var(--gs-ink-2); cursor: pointer; transition: background .1s; }
+.grindstone-workspace .tg-picker-item:hover { background: var(--gs-green-soft); color: var(--gs-green); }
+.grindstone-workspace .tg-picker-empty { padding: 12px; text-align: center; color: var(--gs-ink-3); font-size: 11px; }
 .grindstone-workspace .tg-bc-pill { margin-left: auto; }
 .grindstone-workspace .tg-bc-acc { font: 600 11px var(--gs-font-zh); padding: 3px 9px; border-radius: 999px; }
 .grindstone-workspace .tg-bc-acc-green { background: var(--gs-green-soft); color: var(--gs-green); }

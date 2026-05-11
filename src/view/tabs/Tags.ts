@@ -3,7 +3,7 @@ import { TagTreeNode, CardEntry } from '../../store/GrindstoneStore';
 import { TabContext } from './types';
 
 export function renderTags(container: HTMLElement, ctx: TabContext, initialTag?: string): void {
-  let selected: string | null = initialTag ?? null;
+  const selectedTags = new Set<string>(initialTag ? [initialTag] : []);
   let search = '';
   const expanded: Record<string, boolean> = {};
 
@@ -11,10 +11,17 @@ export function renderTags(container: HTMLElement, ctx: TabContext, initialTag?:
   // Auto-expand top-level
   for (const node of tree) expanded[node.path] = true;
 
+  // Collect flat tag list for picker
+  const allTagPaths: string[] = [];
+  const collectTags = (nodes: TagTreeNode[]) => {
+    for (const n of nodes) { allTagPaths.push(n.path); collectTags(n.children); }
+  };
+  collectTags(tree);
+
   // ── Page Head ──
   const head = container.createDiv({ cls: 'gs-pagehead' });
   const headL = head.createDiv({ cls: 'gs-pagehead-l' });
-  headL.createDiv({ cls: 'gs-pagehead-eyebrow gs-en', text: 'WORKSPACE \u00B7 TAGS' });
+  headL.createDiv({ cls: 'gs-pagehead-eyebrow gs-en', text: 'WORKSPACE · TAGS' });
   headL.createEl('h1', { cls: 'gs-pagehead-title', text: '标签' });
 
   const headR = head.createDiv({ cls: 'gs-pagehead-r' });
@@ -24,26 +31,198 @@ export function renderTags(container: HTMLElement, ctx: TabContext, initialTag?:
   const searchBox = headR.createDiv({ cls: 'tg-search' });
   searchBox.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>`;
   const searchInput = searchBox.createEl('input', { placeholder: '搜索卡片...' });
-  searchInput.addEventListener('input', () => { search = searchInput.value; renderMain(); });
+  searchInput.addEventListener('input', () => { search = searchInput.value; renderFilterBar(); renderMain(); });
 
   // ── Page Body (tree + main) ──
   const page = container.createDiv({ cls: 'tg-page' });
   const treeSidebar = page.createEl('aside', { cls: 'tg-tree' });
   const main = page.createEl('section', { cls: 'tg-main' });
 
+  // ── Tag selection helpers ──
+  const toggleTag = (tag: string, multi: boolean) => {
+    if (multi) {
+      if (selectedTags.has(tag)) {
+        selectedTags.delete(tag);
+      } else {
+        // Remove sibling/parent/child tags (same dimension) before adding
+        const topLevel = tag.split('/')[0];
+        for (const t of [...selectedTags]) {
+          if (t.split('/')[0] === topLevel) selectedTags.delete(t);
+        }
+        selectedTags.add(tag);
+      }
+    } else {
+      selectedTags.clear();
+      selectedTags.add(tag);
+    }
+    renderTree();
+    renderFilterBar();
+    renderMain();
+  };
+
+  const clearAll = () => {
+    selectedTags.clear();
+    renderTree();
+    renderFilterBar();
+    renderMain();
+  };
+
+  // ── Filter Condition Bar ──
+  const filterBarEl = main.createDiv({ cls: 'tg-filter-bar' });
+
+  const renderFilterBar = () => {
+    filterBarEl.empty();
+    const hasFilters = selectedTags.size > 0 || search.length > 0;
+    if (!hasFilters) {
+      filterBarEl.style.display = 'none';
+      return;
+    }
+    filterBarEl.style.display = '';
+
+    // Wrap tags in parens when both tags and search are present
+    const needParens = selectedTags.size > 1 && search.length > 0;
+
+    if (needParens) filterBarEl.createSpan({ cls: 'tg-filter-paren gs-en', text: '(' });
+
+    // Selected tag chips
+    for (const tag of selectedTags) {
+      const chip = filterBarEl.createDiv({ cls: 'tg-filter-chip' });
+      const label = '#' + (tag.split('/').pop()?.replace(/^#/, '') || tag);
+      chip.createSpan({ cls: 'tg-filter-chip-label', text: label });
+      chip.title = tag;
+      const removeBtn = chip.createSpan({ cls: 'tg-filter-chip-x' });
+      removeBtn.innerHTML = `<svg width="8" height="8" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 2l6 6M8 2l-6 6"/></svg>`;
+      removeBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        selectedTags.delete(tag);
+        renderTree();
+        renderFilterBar();
+        renderMain();
+      });
+
+      // Show AND separator between tags
+      if ([...selectedTags].indexOf(tag) < selectedTags.size - 1) {
+        filterBarEl.createSpan({ cls: 'tg-filter-and gs-en', text: 'AND' });
+      }
+    }
+
+    if (needParens) filterBarEl.createSpan({ cls: 'tg-filter-paren gs-en', text: ')' });
+
+    // Search keyword chip
+    if (search.length > 0) {
+      if (selectedTags.size > 0) {
+        filterBarEl.createSpan({ cls: 'tg-filter-and gs-en', text: 'AND' });
+      }
+      const chip = filterBarEl.createDiv({ cls: 'tg-filter-chip tg-filter-chip-search' });
+      chip.createSpan({ cls: 'tg-filter-chip-label', text: `"${search}"` });
+      const removeBtn = chip.createSpan({ cls: 'tg-filter-chip-x' });
+      removeBtn.innerHTML = `<svg width="8" height="8" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 2l6 6M8 2l-6 6"/></svg>`;
+      removeBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        search = '';
+        searchInput.value = '';
+        renderFilterBar();
+        renderMain();
+      });
+    }
+
+    // Tag picker (+) button
+    const addBtn = filterBarEl.createEl('button', { cls: 'tg-filter-add' });
+    addBtn.innerHTML = `<svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M5 1v8M1 5h8"/></svg>`;
+    addBtn.title = '添加标签筛选';
+    addBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openTagPicker(addBtn);
+    });
+
+    // Accuracy pill (when exactly 1 tag selected)
+    if (selectedTags.size === 1) {
+      const tag = [...selectedTags][0];
+      const acc = ctx.store.getAccuracyForTag(tag);
+      if (acc !== null) {
+        const pill = filterBarEl.createSpan({ cls: 'tg-bc-pill' });
+        const tone = acc >= 85 ? 'green' : acc >= 70 ? 'gold' : 'clay';
+        pill.createSpan({ cls: `tg-bc-acc tg-bc-acc-${tone}`, text: `准确率 ${acc}%` });
+      }
+    }
+
+    // Clear all button
+    if (selectedTags.size > 1 || (selectedTags.size > 0 && search.length > 0)) {
+      const clearBtn = filterBarEl.createEl('button', { cls: 'tg-filter-clear gs-en', text: 'CLEAR' });
+      clearBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        search = '';
+        searchInput.value = '';
+        clearAll();
+      });
+    }
+  };
+
+  // ── Tag Picker Dropdown ──
+  let pickerEl: HTMLElement | null = null;
+
+  const closeTagPicker = () => {
+    if (pickerEl) { pickerEl.remove(); pickerEl = null; }
+    document.removeEventListener('click', onDocClick);
+  };
+
+  const onDocClick = () => closeTagPicker();
+
+  const openTagPicker = (anchor: HTMLElement) => {
+    if (pickerEl) { closeTagPicker(); return; }
+
+    pickerEl = filterBarEl.createDiv({ cls: 'tg-picker' });
+    pickerEl.addEventListener('click', (e) => e.stopPropagation());
+
+    const pickerInput = pickerEl.createEl('input', { cls: 'tg-picker-input', placeholder: '搜索标签...' });
+    const pickerList = pickerEl.createDiv({ cls: 'tg-picker-list' });
+
+    const renderPickerList = (query: string) => {
+      pickerList.empty();
+      const q = query.toLowerCase();
+      const matches = allTagPaths.filter((t) => {
+        if (selectedTags.has(t)) return false; // hide already selected
+        return q === '' || t.toLowerCase().includes(q);
+      });
+      if (matches.length === 0) {
+        pickerList.createDiv({ cls: 'tg-picker-empty', text: '无匹配标签' });
+        return;
+      }
+      for (const tag of matches.slice(0, 30)) {
+        const item = pickerList.createDiv({ cls: 'tg-picker-item' });
+        item.textContent = tag.replace(/^#/, '');
+        item.addEventListener('click', () => {
+          selectedTags.add(tag);
+          closeTagPicker();
+          renderTree();
+          renderFilterBar();
+          renderMain();
+        });
+      }
+    };
+
+    renderPickerList('');
+    pickerInput.addEventListener('input', () => renderPickerList(pickerInput.value));
+    setTimeout(() => {
+      pickerInput.focus();
+      document.addEventListener('click', onDocClick);
+    }, 0);
+  };
+
+  // ── Tree ──
   const renderTree = () => {
     treeSidebar.empty();
     treeSidebar.createDiv({ cls: 'tg-tree-head' }).innerHTML = `<span class="gs-en">TAG TREE</span>`;
 
     // "All cards" row
-    const allRow = treeSidebar.createDiv({ cls: `tg-tree-row tg-tree-all${selected === null ? ' tg-tree-row-on' : ''}` });
+    const allRow = treeSidebar.createDiv({ cls: `tg-tree-row tg-tree-all${selectedTags.size === 0 ? ' tg-tree-row-on' : ''}` });
     allRow.style.paddingLeft = '8px';
     const allIcon = allRow.createSpan({ cls: 'tg-tree-all-icon' });
     allIcon.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>`;
     const allNameBtn = allRow.createDiv({ cls: 'tg-tree-namebtn' });
     allNameBtn.createSpan({ cls: 'tg-tree-name', text: '全部卡片' });
     allNameBtn.createSpan({ cls: 'tg-tree-n gs-mono', text: String(ctx.store.getTotalActiveCards()) });
-    allNameBtn.addEventListener('click', () => { selected = null; renderTree(); renderMain(); });
+    allNameBtn.addEventListener('click', () => clearAll());
 
     for (const node of tree) {
       renderTreeNode(treeSidebar, node, 0);
@@ -53,7 +232,7 @@ export function renderTags(container: HTMLElement, ctx: TabContext, initialTag?:
   const renderTreeNode = (parent: HTMLElement, node: TagTreeNode, level: number) => {
     const has = node.children.length > 0;
     const isOpen = expanded[node.path] ?? false;
-    const isSel = selected === node.path;
+    const isSel = selectedTags.has(node.path);
 
     const row = parent.createDiv({ cls: `tg-tree-row${isSel ? ' tg-tree-row-on' : ''}` });
     row.style.paddingLeft = `${8 + level * 14}px`;
@@ -75,63 +254,55 @@ export function renderTags(container: HTMLElement, ctx: TabContext, initialTag?:
       caret.createSpan({ cls: 'tg-tree-bullet' });
     }
 
-    // Name button (use div to avoid Obsidian auto-tooltip on <button>)
+    // Name button — normal click replaces, Cmd/Ctrl+click toggles
     const nameBtn = row.createDiv({ cls: 'tg-tree-namebtn' });
     nameBtn.createSpan({ cls: 'tg-tree-name', text: node.name.replace(/^#/, '') });
     nameBtn.createSpan({ cls: 'tg-tree-n gs-mono', text: String(node.count) });
-    nameBtn.addEventListener('click', () => { selected = node.path; renderTree(); renderMain(); });
+    nameBtn.addEventListener('click', (e) => {
+      toggleTag(node.path, e.metaKey || e.ctrlKey);
+    });
 
     if (has && isOpen) {
       for (const child of node.children) renderTreeNode(parent, child, level + 1);
     }
   };
 
+  // ── Main content ──
   const renderMain = () => {
-    main.empty();
-    const cards = ctx.store.getCardsByTag(selected, search);
+    // Preserve the filter bar, clear everything else
+    while (main.children.length > 1) main.removeChild(main.lastChild!);
+
+    const cards = ctx.store.getCardsByTags(selectedTags, search || undefined);
 
     tagCountPill.textContent = `${tree.length} 个标签`;
     matchPill.textContent = `${cards.length} 张匹配`;
 
     // autoShow detection
     const autoShowTags = ctx.store.getRawStore().getSettings().autoShowTags;
-    const sel = selected;
-    const isAutoShowTag = sel !== null && autoShowTags.some((ast: string) =>
-      sel === ast || sel.startsWith(ast + '/') || ast.startsWith(sel + '/'),
-    );
+    const isAutoShowTag = selectedTags.size === 1 && (() => {
+      const sel = [...selectedTags][0];
+      return autoShowTags.some((ast: string) =>
+        sel === ast || sel.startsWith(ast + '/') || ast.startsWith(sel + '/'),
+      );
+    })();
     let expandAll = false;
     const openRows = new Set<string>();
 
-    // Breadcrumb
-    if (selected) {
-      const bc = main.createDiv({ cls: 'tg-breadcrumb' });
-      const segs = selected.split('/');
-      for (let i = 0; i < segs.length; i++) {
-        if (i > 0) bc.createSpan({ cls: 'tg-bc-sep', text: '/' });
-        const segBtn = bc.createEl('button', { cls: 'tg-bc-seg', text: segs[i].replace(/^#/, '') });
-        const path = segs.slice(0, i + 1).join('/');
-        segBtn.addEventListener('click', () => { selected = path; renderTree(); renderMain(); });
-      }
-      const acc = ctx.store.getAccuracyForTag(selected);
-      if (acc !== null) {
-        const pill = bc.createSpan({ cls: 'tg-bc-pill' });
-        const tone = acc >= 85 ? 'green' : acc >= 70 ? 'gold' : 'clay';
-        pill.createSpan({ cls: `tg-bc-acc tg-bc-acc-${tone}`, text: `准确率 ${acc}%` });
-      }
-      if (isAutoShowTag) {
-        const toggleBtn = bc.createEl('button', { cls: 'gs-pill tg-bc-toggle', text: '全部展开' });
-        toggleBtn.addEventListener('click', () => {
-          expandAll = !expandAll;
-          toggleBtn.textContent = expandAll ? '逐张查看' : '全部展开';
-          toggleBtn.classList.toggle('gs-pill-green', expandAll);
-          if (expandAll) {
-            cards.forEach(c => openRows.add(c.id));
-          } else {
-            openRows.clear();
-          }
-          renderCards();
-        });
-      }
+    // Expand-all toggle (for autoShow tags) — inject into filter bar
+    if (isAutoShowTag) {
+      const toggleBtn = filterBarEl.createEl('button', { cls: 'gs-pill tg-bc-toggle', text: '全部展开' });
+      filterBarEl.style.display = ''; // ensure visible even if no other filters
+      toggleBtn.addEventListener('click', () => {
+        expandAll = !expandAll;
+        toggleBtn.textContent = expandAll ? '逐张查看' : '全部展开';
+        toggleBtn.classList.toggle('gs-pill-green', expandAll);
+        if (expandAll) {
+          cards.forEach(c => openRows.add(c.id));
+        } else {
+          openRows.clear();
+        }
+        renderCards();
+      });
     }
 
     // Table
@@ -170,7 +341,9 @@ export function renderTags(container: HTMLElement, ctx: TabContext, initialTag?:
       const loadPromises: Promise<void>[] = [];
       let scrollRow: HTMLElement | null = null;
       for (const entry of slice) {
-        const selectTag = (tag: string) => { selected = tag; renderTree(); renderMain(); };
+        const selectTag = (tag: string, e: MouseEvent) => {
+          toggleTag(tag, e.metaKey || e.ctrlKey);
+        };
         const { row, loadPromise } = renderCardRow(table, entry, openRows, expandAll, renderCards, selectTag, ctx);
         if (loadPromise) loadPromises.push(loadPromise);
         if (scrollTo === entry.id) scrollRow = row;
@@ -190,13 +363,14 @@ export function renderTags(container: HTMLElement, ctx: TabContext, initialTag?:
   };
 
   renderTree();
+  renderFilterBar();
   renderMain();
 }
 
 function renderCardRow(
   parent: HTMLElement, entry: CardEntry,
   openRows: Set<string>, expandAll: boolean, rerender: (scrollTo?: string) => void,
-  onSelectTag: (tag: string) => void, ctx: TabContext,
+  onSelectTag: (tag: string, e: MouseEvent) => void, ctx: TabContext,
 ): { row: HTMLElement; loadPromise: Promise<void> | null } {
   const { id, card } = entry;
   const isOpen = openRows.has(id);
@@ -240,7 +414,7 @@ function renderCardRow(
     const chip = tagsDiv.createEl('button', { cls: 'tg-tag-chip' });
     chip.textContent = (tag.split('/').pop() || '').replace(/^#/, '');
     chip.title = tag;
-    chip.addEventListener('click', (e) => { e.stopPropagation(); onSelectTag(tag); });
+    chip.addEventListener('click', (e) => { e.stopPropagation(); onSelectTag(tag, e); });
   }
 
   // Interval, EF, Due

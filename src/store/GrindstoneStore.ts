@@ -716,6 +716,37 @@ export class GrindstoneStore {
     return entries;
   }
 
+  /** Get cards matching ALL given tags (AND logic). Each tag uses prefix match for sub-tags. */
+  getCardsByTags(tags: Set<string>, search?: string): CardEntry[] {
+    let entries: CardEntry[];
+    if (tags.size === 0) {
+      entries = Object.entries(this.dataStore.getAllCards())
+        .filter(([, c]) => !c.disabled)
+        .map(([id, card]) => ({ id, card }));
+    } else {
+      // Start with all active cards, then intersect
+      entries = Object.entries(this.dataStore.getAllCards())
+        .filter(([, c]) => !c.disabled)
+        .map(([id, card]) => ({ id, card }))
+        .filter((e) =>
+          [...tags].every((tag) =>
+            e.card.tags.some((t) => t === tag || t.startsWith(tag + '/'))
+          )
+        );
+    }
+
+    if (search) {
+      const q = search.toLowerCase();
+      entries = entries.filter(
+        (e) =>
+          e.card.blockTitle.toLowerCase().includes(q) ||
+          e.card.tags.some((t) => t.toLowerCase().includes(q))
+      );
+    }
+
+    return entries;
+  }
+
   /** Accuracy for a tag, aggregating all sub-tags if it's a parent node. */
   getAccuracyForTag(tag: string): number | null {
     const all = this.getAccuracyByTag();

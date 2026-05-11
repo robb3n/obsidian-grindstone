@@ -33,7 +33,17 @@ export function renderTags(container: HTMLElement, ctx: TabContext): void {
 
   const renderTree = () => {
     treeSidebar.empty();
-    treeSidebar.createDiv({ cls: 'tg-tree-head' }).innerHTML = `<span class="gs-en">TAG TREE</span><span class="tg-tree-total gs-en">${ctx.store.getTotalActiveCards()}</span>`;
+    treeSidebar.createDiv({ cls: 'tg-tree-head' }).innerHTML = `<span class="gs-en">TAG TREE</span>`;
+
+    // "All cards" row
+    const allRow = treeSidebar.createDiv({ cls: `tg-tree-row tg-tree-all${selected === null ? ' tg-tree-row-on' : ''}` });
+    allRow.style.paddingLeft = '8px';
+    const allIcon = allRow.createSpan({ cls: 'tg-tree-all-icon' });
+    allIcon.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>`;
+    const allNameBtn = allRow.createDiv({ cls: 'tg-tree-namebtn' });
+    allNameBtn.createSpan({ cls: 'tg-tree-name', text: '全部卡片' });
+    allNameBtn.createSpan({ cls: 'tg-tree-n gs-mono', text: String(ctx.store.getTotalActiveCards()) });
+    allNameBtn.addEventListener('click', () => { selected = null; renderTree(); renderMain(); });
 
     for (const node of tree) {
       renderTreeNode(treeSidebar, node, 0);
@@ -65,8 +75,8 @@ export function renderTags(container: HTMLElement, ctx: TabContext): void {
       caret.createSpan({ cls: 'tg-tree-bullet' });
     }
 
-    // Name button
-    const nameBtn = row.createEl('button', { cls: 'tg-tree-namebtn' });
+    // Name button (use div to avoid Obsidian auto-tooltip on <button>)
+    const nameBtn = row.createDiv({ cls: 'tg-tree-namebtn' });
     nameBtn.createSpan({ cls: 'tg-tree-name', text: node.name.replace(/^#/, '') });
     nameBtn.createSpan({ cls: 'tg-tree-n gs-mono', text: String(node.count) });
     nameBtn.addEventListener('click', () => { selected = node.path; renderTree(); renderMain(); });

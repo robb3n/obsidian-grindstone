@@ -891,6 +891,8 @@ body.theme-dark .grindstone-workspace:not(.gs-force-light) .gs-rail-item-on,
 .grindstone-workspace .tg-tree-row:hover { background: var(--gs-paper-2); color: var(--gs-ink); }
 .grindstone-workspace .tg-tree-row-on { background: var(--gs-green-soft); color: var(--gs-green); font-weight: 600; }
 .grindstone-workspace .tg-tree-all { padding-left: 8px; }
+.grindstone-workspace .tg-tree-all-icon { width: 14px; height: 14px; display: flex; align-items: center; justify-content: center; color: var(--gs-ink-3); flex-shrink: 0; }
+.grindstone-workspace .tg-tree-row-on .tg-tree-all-icon { color: var(--gs-green); }
 .grindstone-workspace .tg-tree-caret { width: 14px; height: 14px; border: 0; background: transparent; display: flex; align-items: center; justify-content: center; color: var(--gs-ink-3); cursor: pointer; border-radius: 3px; flex-shrink: 0; }
 .grindstone-workspace .tg-tree-caret:hover { background: var(--gs-line); color: var(--gs-ink); }
 .grindstone-workspace .tg-tree-bullet { width: 4px; height: 4px; border-radius: 50%; background: currentColor; opacity: .35; }

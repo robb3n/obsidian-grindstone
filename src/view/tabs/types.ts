@@ -8,7 +8,7 @@ export interface TabContext {
   store: GrindstoneStore;
   cardManager: CardManager;
   app: App;
-  onNavigate: (tab: TabId) => void;
+  onNavigate: (tab: TabId, opts?: { tag?: string }) => void;
   startReviewModal: (tag?: string) => void;
   /** Start inline review in the workspace Review tab. */
   startInlineReview: (tag?: string) => void;

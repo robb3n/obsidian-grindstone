@@ -288,7 +288,7 @@ function renderTagsTile(grid: HTMLElement, tags: Array<{ path: string; count: nu
 
   for (const t of tags) {
     const btn = list.createEl('button', { cls: 'ov-tag' });
-    btn.addEventListener('click', () => ctx.onNavigate('tags'));
+    btn.addEventListener('click', () => ctx.onNavigate('tags', { tag: t.path }));
     btn.createSpan({ cls: 'ov-tag-path', text: t.path });
     const meter = btn.createSpan({ cls: 'ov-tag-meter' });
     const fill = meter.createSpan();

@@ -22,6 +22,7 @@ export class GrindstoneWorkspaceView extends ItemView {
   private mainEl!: HTMLElement;
   private sidebarEl!: HTMLElement;
   private reviewEngine: ReviewEngine | null = null;
+  private pendingTag: string | null = null;
 
   constructor(
     leaf: WorkspaceLeaf,
@@ -79,12 +80,12 @@ export class GrindstoneWorkspaceView extends ItemView {
     this.renderActiveTab();
   }
 
-  navigateTo(tab: TabId): void {
-    if (this.activeTab === tab) return;
-    // End inline review when navigating away from review tab
+  navigateTo(tab: TabId, opts?: { tag?: string }): void {
+    if (this.activeTab === tab && !opts?.tag) return;
     if (this.activeTab === 'review' && this.reviewEngine) {
       this.reviewEngine = null;
     }
+    this.pendingTag = opts?.tag ?? null;
     this.activeTab = tab;
     this.renderSidebar();
     this.renderActiveTab();
@@ -112,7 +113,7 @@ export class GrindstoneWorkspaceView extends ItemView {
       store: this.store,
       cardManager: this.cardManager,
       app: this.app,
-      onNavigate: (tab: TabId) => this.navigateTo(tab),
+      onNavigate: (tab: TabId, opts?: { tag?: string }) => this.navigateTo(tab, opts),
       startReviewModal: this.startReviewModal,
       startInlineReview: (tag?: string) => this.doStartInlineReview(tag),
       getReviewEngine: () => this.reviewEngine,
@@ -125,7 +126,12 @@ export class GrindstoneWorkspaceView extends ItemView {
         case 'overview': renderOverview(this.mainEl, ctx); break;
         case 'review':   renderReview(this.mainEl, ctx); break;
         case 'stats':    renderStats(this.mainEl, ctx); break;
-        case 'tags':     renderTags(this.mainEl, ctx); break;
+        case 'tags': {
+          const tag = this.pendingTag;
+          this.pendingTag = null;
+          renderTags(this.mainEl, ctx, tag ?? undefined);
+          break;
+        }
       }
     } catch (err) {
       console.error('[Grindstone] Tab render error:', err);

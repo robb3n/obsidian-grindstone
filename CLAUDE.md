@@ -11,7 +11,7 @@ Any feature that writes to vault files (e.g. star writeback) must have a toggle 
 Build and copy artifacts to the user's Obsidian vault after every code change:
 
 ```bash
-npm run build && cp main.js styles.css ~/Documents/Obsidian/CSNote/.obsidian/plugins/obsidian-grindstone/
+npm run build && cp main.js styles.css manifest.json ~/Documents/Obsidian/CSNote/.obsidian/plugins/obsidian-grindstone/
 ```
 
 User reloads Obsidian manually to pick up changes.

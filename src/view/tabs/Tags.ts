@@ -2,8 +2,8 @@ import { MarkdownRenderer, Component } from 'obsidian';
 import { TagTreeNode, CardEntry } from '../../store/GrindstoneStore';
 import { TabContext } from './types';
 
-export function renderTags(container: HTMLElement, ctx: TabContext): void {
-  let selected: string | null = null;
+export function renderTags(container: HTMLElement, ctx: TabContext, initialTag?: string): void {
+  let selected: string | null = initialTag ?? null;
   let search = '';
   const expanded: Record<string, boolean> = {};
 

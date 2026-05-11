@@ -1,7 +1,33 @@
+import { Component, MarkdownRenderer, TFile } from 'obsidian';
+import { Rating } from '../../card/types';
+import { ReviewEngine, formatInterval } from '../../review/review-engine';
 import { TabContext } from './types';
 import { renderDeckTable } from './Decks';
 
+const RATING_DEFS: { rating: Rating; zh: string; en: string; key: string; cls: string }[] = [
+  { rating: 'again', zh: '重来', en: 'Again', key: '1', cls: 'rv-live-r-again' },
+  { rating: 'hard',  zh: '难',   en: 'Hard',  key: '2', cls: 'rv-live-r-hard' },
+  { rating: 'good',  zh: '可',   en: 'Good',  key: '3', cls: 'rv-live-r-good' },
+  { rating: 'easy',  zh: '易',   en: 'Easy',  key: '4', cls: 'rv-live-r-easy' },
+];
+
 export function renderReview(container: HTMLElement, ctx: TabContext): void {
+  const engine = ctx.getReviewEngine();
+
+  if (engine && !engine.isComplete()) {
+    renderLiveReview(container, engine, ctx);
+  } else if (engine && engine.isComplete()) {
+    renderLiveComplete(container, engine, ctx);
+  } else {
+    renderPreFlight(container, ctx);
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// Pre-Flight (original review tab)
+// ═══════════════════════════════════════════════════════
+
+function renderPreFlight(container: HTMLElement, ctx: TabContext): void {
   const dueCards = ctx.store.getDueCards();
   const dueCount = dueCards.length;
   const newCount = ctx.store.getDueNewCount();
@@ -84,13 +110,13 @@ function renderLaunch(
 
   autoCard.createDiv({ cls: 'rv-auto-foot gs-en', text: 'Again / Hard / Good / Easy 的评分会写回卡片，决定下次到期时间。' });
 
-  // CTA button
+  // CTA button — starts inline review
   const cta = left.createEl('button', { cls: 'rv-launch-cta' });
   cta.createSpan({ cls: 'rv-launch-cta-zh', text: '开始今日复习' });
   const ctaMeta = cta.createSpan({ cls: 'rv-launch-cta-meta gs-mono' });
   ctaMeta.textContent = `${dueCount} cards \u00B7 ~${Math.round(dueCount * 1.4)}m \u00B7 tracked`;
   cta.innerHTML += `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>`;
-  cta.addEventListener('click', () => ctx.startReviewModal());
+  cta.addEventListener('click', () => ctx.startInlineReview());
 
   // Keyboard hints
   const kbds = left.createDiv({ cls: 'rv-launch-kbds gs-en' });
@@ -99,7 +125,6 @@ function renderLaunch(
   kbds.createSpan({ text: '1\u20144 评分' });
   kbds.createSpan({ text: '\u00B7' });
   kbds.createSpan({ text: 'ESC 暂停' });
-
 }
 
 function addAutoCell(parent: HTMLElement, value: string, label: string): void {
@@ -108,12 +133,237 @@ function addAutoCell(parent: HTMLElement, value: string, label: string): void {
   cell.createDiv({ cls: 'rv-auto-cap', text: label });
 }
 
-// ── History ──
+// ═══════════════════════════════════════════════════════
+// Live Review (master-detail split layout)
+// Left: session context (matches pre-flight style)
+// Right: active card
+// ═══════════════════════════════════════════════════════
+
+function renderLiveReview(container: HTMLElement, engine: ReviewEngine, ctx: TabContext): void {
+  const item = engine.getCurrentItem()!;
+  const pos = engine.getPosition();
+  const autoShow = engine.isAutoShow();
+  const component = new Component();
+  component.load();
+
+  let answerShown = autoShow;
+  let cardDisplayedAt = Date.now();
+
+  const doneCount = pos.current - 1;
+  const remaining = pos.total - pos.current + 1;
+
+  // ── Page Head (same style as pre-flight) ──
+  const head = container.createDiv({ cls: 'gs-pagehead' });
+  const headL = head.createDiv({ cls: 'gs-pagehead-l' });
+  headL.createDiv({ cls: 'gs-pagehead-eyebrow gs-en', text: `IN SESSION \u00B7 ${pos.current} / ${pos.total}` });
+  headL.createEl('h1', { cls: 'gs-pagehead-title', text: '复习' });
+  const headR = head.createDiv({ cls: 'gs-pagehead-r' });
+  headR.createSpan({ cls: 'gs-pill gs-pill-green', text: `${doneCount} 已完成` });
+  headR.createSpan({ cls: 'gs-pill gs-pill-clay', text: `${remaining} 剩余` });
+
+  // Progress bar
+  const progressBar = container.createDiv({ cls: 'rv-live-progress' });
+  progressBar.createDiv({ cls: 'rv-live-progress-fill' }).style.width = `${engine.getProgress() * 100}%`;
+
+  // ── Split layout (same grid as rv-launch) ──
+  const split = container.createDiv({ cls: 'gs-page rv-live-split' });
+
+  // ── LEFT: Session context (mirrors pre-flight style) ──
+  const left = split.createDiv({ cls: 'rv-live-left' });
+
+  // Header (matches rv-launch-h)
+  const hdr = left.createDiv({ cls: 'rv-launch-h' });
+  hdr.createDiv({ cls: 'rv-launch-eyebrow gs-en', text: 'IN SESSION \u00B7 复习中' });
+  hdr.createEl('h2', { cls: 'rv-launch-title', text: '今日复习' });
+  hdr.createEl('p', { cls: 'rv-launch-sub', text: `共 ${pos.total} 张 \u00B7 已完成 ${doneCount} \u00B7 剩余 ${remaining}` });
+
+  // Session stats card (matches rv-auto-card style)
+  const autoCard = left.createDiv({ cls: 'rv-auto-card' });
+  const autoH = autoCard.createDiv({ cls: 'rv-auto-h' });
+  const autoHL = autoH.createDiv({ cls: 'rv-auto-h-l' });
+  autoHL.createSpan({ cls: 'rv-auto-zh', text: '当前进度' });
+  autoHL.createSpan({ cls: 'rv-auto-en gs-en', text: `CARD ${pos.current} OF ${pos.total}` });
+  autoH.createSpan({ cls: 'rv-auto-pill gs-mono', text: `${Math.round(engine.getProgress() * 100)}%` });
+
+  const autoGrid = autoCard.createDiv({ cls: 'rv-auto-grid' });
+  addAutoCell(autoGrid, `${item.card.interval}d`, '间隔 \u00B7 INTERVAL');
+  addAutoCell(autoGrid, item.card.ease.toFixed(2), '难度 \u00B7 EF');
+  addAutoCell(autoGrid, `${item.card.reviewCount}`, '复习 \u00B7 REVIEWS');
+
+  // Keyboard hints (matches rv-launch-kbds style)
+  const kbds = left.createDiv({ cls: 'rv-launch-kbds gs-en' });
+  kbds.createSpan({ text: 'SPACE 翻面' });
+  kbds.createSpan({ text: '\u00B7' });
+  kbds.createSpan({ text: '1\u20144 评分' });
+  kbds.createSpan({ text: '\u00B7' });
+  kbds.createSpan({ text: 'ESC 退出' });
+
+  // Exit link (subtle, not a big button)
+  const exitLink = left.createEl('button', { cls: 'rv-live-exit gs-en', text: '\u2190 EXIT SESSION' });
+  exitLink.addEventListener('click', () => {
+    component.unload();
+    ctx.endInlineReview();
+  });
+
+  // ── RIGHT: Active card ──
+  const right = split.createDiv({ cls: 'rv-live-right' });
+  const card = right.createDiv({ cls: 'rv-live-card gs-card' });
+
+  // Tags (tags already include #, don't add another)
+  const tagRow = card.createDiv({ cls: 'rv-live-tags' });
+  const uniqueTags = [...new Set(item.card.tags)];
+  for (const tag of uniqueTags) {
+    const display = tag.startsWith('#') ? tag : `#${tag}`;
+    tagRow.createSpan({ cls: 'rv-live-tag', text: display });
+  }
+
+  // Question
+  const questionEl = card.createDiv({ cls: 'rv-live-question' });
+  MarkdownRenderer.render(ctx.app, item.card.blockTitle, questionEl, item.card.file, component);
+
+  // Answer area
+  const answerWrap = card.createDiv({ cls: 'rv-live-answer' });
+
+  // Section label row
+  const labelRow = card.createDiv({ cls: 'rv-live-labels' });
+  const labelLeft2 = labelRow.createSpan({ cls: 'rv-live-label-l gs-en' });
+  const labelRight2 = labelRow.createSpan({ cls: 'rv-live-label-r gs-en' });
+
+  const updateLabels = () => {
+    labelLeft2.textContent = answerShown ? 'ANSWER' : 'QUESTION';
+    labelRight2.textContent = answerShown ? '' : 'SPACE 显示答案';
+  };
+  updateLabels();
+
+  if (autoShow) {
+    loadInlineAnswer(answerWrap, item, ctx, component);
+  }
+
+  // ── Action area (inside card) ──
+  const actionArea = card.createDiv({ cls: 'rv-live-action-area' });
+
+  // Show answer button
+  const showAnswerBtn = actionArea.createEl('button', { cls: 'rv-live-show-btn' });
+  showAnswerBtn.createSpan({ text: '显示答案' });
+  showAnswerBtn.createEl('kbd', { cls: 'rv-kbd gs-mono', text: 'SPACE' });
+  if (autoShow) showAnswerBtn.style.display = 'none';
+
+  // Rating buttons
+  const rateRow = actionArea.createDiv({ cls: 'rv-live-ratings' });
+  if (!autoShow) rateRow.style.display = 'none';
+
+  const previews = engine.previewIntervals();
+  for (const def of RATING_DEFS) {
+    const btn = rateRow.createEl('button', { cls: `rv-live-r ${def.cls}` });
+    const topRow = btn.createDiv({ cls: 'rv-live-r-top' });
+    topRow.createSpan({ cls: 'rv-live-r-zh', text: def.zh });
+    topRow.createEl('kbd', { cls: 'rv-kbd gs-mono', text: def.key });
+    btn.createDiv({ cls: 'rv-live-r-en gs-en', text: def.en });
+    btn.createDiv({ cls: 'rv-live-r-interval gs-mono', text: previews[def.rating] });
+    btn.addEventListener('click', () => doRate(def.rating));
+  }
+
+  // Toggle answer
+  const toggleAnswer = async () => {
+    if (!answerShown) {
+      answerShown = true;
+      await loadInlineAnswer(answerWrap, item, ctx, component);
+      showAnswerBtn.style.display = 'none';
+      rateRow.style.display = '';
+      updateLabels();
+    }
+  };
+
+  showAnswerBtn.addEventListener('click', toggleAnswer);
+
+  // Rate handler
+  const doRate = async (rating: Rating) => {
+    const elapsed = Date.now() - cardDisplayedAt;
+    await engine.rate(rating, elapsed);
+    component.unload();
+    ctx.refreshTab();
+  };
+
+  // Keyboard handler
+  const keyHandler = (e: KeyboardEvent) => {
+    if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+
+    if (e.code === 'Space' && !answerShown) {
+      e.preventDefault();
+      toggleAnswer();
+    } else if (answerShown) {
+      const map: Record<string, Rating> = { '1': 'again', '2': 'hard', '3': 'good', '4': 'easy' };
+      const rating = map[e.key];
+      if (rating) {
+        e.preventDefault();
+        doRate(rating);
+      }
+    }
+
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      component.unload();
+      ctx.endInlineReview();
+    }
+  };
+
+  document.addEventListener('keydown', keyHandler);
+  component.register(() => document.removeEventListener('keydown', keyHandler));
+}
+
+async function loadInlineAnswer(
+  container: HTMLElement,
+  item: { id: string; card: { file: string; blockTitle: string; tags: string[] } & Record<string, any> },
+  ctx: TabContext,
+  component: Component,
+): Promise<void> {
+  container.empty();
+  container.createDiv({ cls: 'rv-live-divider' });
+  const md = container.createDiv({ cls: 'rv-live-answer-md' });
+  const blockContent = await ctx.cardManager.getBlockContent(item.card as any, item.id);
+  await MarkdownRenderer.render(ctx.app, blockContent, md, item.card.file, component);
+}
+
+// ═══════════════════════════════════════════════════════
+// Live Complete (session finished)
+// ═══════════════════════════════════════════════════════
+
+function renderLiveComplete(container: HTMLElement, engine: ReviewEngine, ctx: TabContext): void {
+  const pos = engine.getPosition();
+
+  // Header
+  const head = container.createDiv({ cls: 'gs-pagehead' });
+  const headL = head.createDiv({ cls: 'gs-pagehead-l' });
+  headL.createDiv({ cls: 'gs-pagehead-eyebrow gs-en', text: 'SESSION COMPLETE' });
+  headL.createEl('h1', { cls: 'gs-pagehead-title', text: '复习完成' });
+
+  // Progress bar (full)
+  const progressBar = container.createDiv({ cls: 'rv-live-progress' });
+  progressBar.createDiv({ cls: 'rv-live-progress-fill' }).style.width = '100%';
+
+  // Completion content
+  const done = container.createDiv({ cls: 'rv-live-done' });
+  done.createDiv({ cls: 'rv-live-done-eyebrow gs-en', text: 'SESSION COMPLETE' });
+  done.createEl('h2', { cls: 'rv-live-done-title', text: '本次会话完成' });
+  done.createEl('p', { cls: 'rv-live-done-sub', text: `${pos.total} 张 \u00B7 所有到期卡片已复习` });
+
+  const actions = done.createDiv({ cls: 'rv-live-done-actions' });
+  const backBtn = actions.createEl('button', { cls: 'gs-btn', text: '返回复习' });
+  backBtn.addEventListener('click', () => ctx.endInlineReview());
+  const statsBtn = actions.createEl('button', { cls: 'gs-btn gs-btn-primary', text: '查看统计 →' });
+  statsBtn.addEventListener('click', () => {
+    ctx.endInlineReview();
+    ctx.onNavigate('stats');
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+// History & Debrief (unchanged)
+// ═══════════════════════════════════════════════════════
 
 function renderHistory(parent: HTMLElement, sessions: any[]): void {
   const hist = parent.createDiv({ cls: 'rv-history' });
 
-  // KPI strip
   const totalCards = sessions.reduce((a: number, s: any) => a + s.cards, 0);
   const totalMin = sessions.reduce((a: number, s: any) => a + s.minutes, 0);
   const activeDays = sessions.filter((s: any) => s.cards > 0).length;
@@ -124,7 +374,6 @@ function renderHistory(parent: HTMLElement, sessions: any[]): void {
   addHistKPI(strip, '活跃天数', 'ACTIVE', `${activeDays} / 7`);
   addHistKPI(strip, '平均每日', 'AVG / DAY', String(Math.round(totalCards / 7)));
 
-  // Session list
   const list = hist.createEl('ul', { cls: 'rv-history-list' });
   for (const s of sessions) {
     const row = list.createEl('li', { cls: `rv-hist-row${s.cards === 0 ? ' rv-hist-skip' : ''}` });
@@ -142,11 +391,9 @@ function renderHistory(parent: HTMLElement, sessions: any[]): void {
       mSpan.textContent = String(s.minutes);
       mSpan.createSpan({ text: 'm' });
 
-      // Rating bar
       const barDiv = row.createDiv({ cls: 'rv-hist-bar' });
       if (s.ratings) renderRatingBar(barDiv, s.ratings, s.cards);
 
-      // Scope
       row.createDiv({ cls: 'rv-hist-scope gs-mono', text: s.scope?.join(' + ') || '' });
     }
   }
@@ -178,8 +425,6 @@ function renderRatingBar(parent: HTMLElement, ratings: Record<string, number>, t
   }
 }
 
-// ── Debrief ──
-
 function renderDebrief(parent: HTMLElement, sessions: any[], ctx: TabContext): void {
   const last = sessions.find((s: any) => s.cards > 0);
   if (!last) {
@@ -191,7 +436,6 @@ function renderDebrief(parent: HTMLElement, sessions: any[], ctx: TabContext): v
   const r = last.ratings;
   const accuracy = r ? Math.round(((r.good + r.easy) / last.cards) * 100) : 0;
 
-  // Header
   const hdr = debrief.createEl('header', { cls: 'rv-debrief-h' });
   const hdrL = hdr.createDiv();
   hdrL.createDiv({ cls: 'rv-debrief-eyebrow gs-en', text: `DEBRIEF \u00B7 上次会话 \u00B7 ${last.date}` });
@@ -206,7 +450,6 @@ function renderDebrief(parent: HTMLElement, sessions: any[], ctx: TabContext): v
   accLabel.createSpan({ text: '正确率' });
   accLabel.createSpan({ cls: 'gs-en', text: 'ACCURACY' });
 
-  // Rating grid
   if (r) {
     const grid = debrief.createDiv({ cls: 'rv-debrief-grid' });
     addDebriefRate(grid, 'Again', '重来', '1', r.again ?? 0, last.cards, 'var(--gs-clay)');
@@ -215,21 +458,18 @@ function renderDebrief(parent: HTMLElement, sessions: any[], ctx: TabContext): v
     addDebriefRate(grid, 'Easy', '易', '4', r.easy, last.cards, 'var(--gs-green-2)');
   }
 
-  // Distribution bar
   if (r) {
     const barSection = debrief.createDiv({ cls: 'rv-debrief-bar' });
     barSection.createDiv({ cls: 'rv-debrief-bar-h gs-en', text: 'DISTRIBUTION' });
     renderRatingBar(barSection, r, last.cards);
   }
 
-  // Actions
   const actions = debrief.createDiv({ cls: 'rv-debrief-actions' });
   const btnOverview = actions.createEl('button', { cls: 'gs-btn', text: '返回概览' });
   btnOverview.addEventListener('click', () => ctx.onNavigate('overview'));
   const btnStats = actions.createEl('button', { cls: 'gs-btn gs-btn-primary', text: '查看完整统计 →' });
   btnStats.addEventListener('click', () => ctx.onNavigate('stats'));
 
-  // History (merged below debrief)
   renderHistory(debrief, sessions);
 }
 

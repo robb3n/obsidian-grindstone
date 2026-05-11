@@ -1,6 +1,7 @@
 import { ItemView, WorkspaceLeaf } from 'obsidian';
 import { GrindstoneStore } from '../store/GrindstoneStore';
 import { CardManager } from '../card/card-manager';
+import { ReviewEngine } from '../review/review-engine';
 import { renderSidebar } from './Sidebar';
 import { renderOverview } from './tabs/Overview';
 import { renderReview } from './tabs/Review';
@@ -20,6 +21,7 @@ export class GrindstoneWorkspaceView extends ItemView {
   private rootEl!: HTMLElement;
   private mainEl!: HTMLElement;
   private sidebarEl!: HTMLElement;
+  private reviewEngine: ReviewEngine | null = null;
 
   constructor(
     leaf: WorkspaceLeaf,
@@ -79,6 +81,10 @@ export class GrindstoneWorkspaceView extends ItemView {
 
   navigateTo(tab: TabId): void {
     if (this.activeTab === tab) return;
+    // End inline review when navigating away from review tab
+    if (this.activeTab === 'review' && this.reviewEngine) {
+      this.reviewEngine = null;
+    }
     this.activeTab = tab;
     this.renderSidebar();
     this.renderActiveTab();
@@ -108,6 +114,10 @@ export class GrindstoneWorkspaceView extends ItemView {
       app: this.app,
       onNavigate: (tab: TabId) => this.navigateTo(tab),
       startReviewModal: this.startReviewModal,
+      startInlineReview: (tag?: string) => this.doStartInlineReview(tag),
+      getReviewEngine: () => this.reviewEngine,
+      endInlineReview: () => this.doEndInlineReview(),
+      refreshTab: () => this.renderActiveTab(),
     };
 
     try {
@@ -121,6 +131,28 @@ export class GrindstoneWorkspaceView extends ItemView {
       console.error('[Grindstone] Tab render error:', err);
       this.renderErrorState(err);
     }
+  }
+
+  private doStartInlineReview(tag?: string): void {
+    const rawStore = this.store.getRawStore();
+    let queue;
+    if (tag) {
+      queue = this.store.getDueCardsByTag(tag);
+    } else {
+      queue = this.store.getDueCards();
+    }
+    if (queue.length === 0) return;
+
+    this.reviewEngine = new ReviewEngine(queue, rawStore, this.store, this.cardManager);
+    // Navigate to review tab and re-render
+    this.activeTab = 'review';
+    this.renderSidebar();
+    this.renderActiveTab();
+  }
+
+  private doEndInlineReview(): void {
+    this.reviewEngine = null;
+    this.renderActiveTab();
   }
 
   private renderErrorState(err: unknown): void {

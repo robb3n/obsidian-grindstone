@@ -7,7 +7,7 @@
  */
 
 import { DataStore } from '../storage/data-store';
-import { CardData, Rating, ReviewLog, SrsParams } from '../card/types';
+import { CardData, Rating, ReviewLog, SrsParams, DeckResetMode, BUILTIN_PRESETS } from '../card/types';
 
 // ── Shared helpers ──────────────────────────────────────────
 
@@ -84,6 +84,8 @@ export interface DeckNode {
   children: DeckNode[];
   /** ISO date of most recent review for any card in this deck (empty if never). */
   lastReviewed: string;
+  /** Resolved strategy display name for top-level decks. */
+  strategyName?: string;
 }
 
 export interface StatsKPI {
@@ -134,6 +136,8 @@ export interface CardEntry {
 // ── Store ───────────────────────────────────────────────────
 
 export class GrindstoneStore {
+  private primaryDeckCache: Map<string, string> | null = null;
+
   constructor(private dataStore: DataStore) {}
 
   // ── Overview ────────────────────────────────────────────
@@ -334,7 +338,14 @@ export class GrindstoneStore {
       });
     };
 
-    return convert(root);
+    const tree = convert(root);
+
+    // Populate strategy names for top-level decks
+    for (const node of tree) {
+      node.strategyName = this.resolveStrategyName(node.fullTag);
+    }
+
+    return tree;
   }
 
   // ── Stats ───────────────────────────────────────────────
@@ -467,6 +478,122 @@ export class GrindstoneStore {
 
   getSrsParams(): SrsParams {
     return this.dataStore.getSrsParams();
+  }
+
+  /** Resolve SRS params for a specific card based on its primary deck. */
+  getSrsParamsForCard(cardId: string, card: CardData): SrsParams {
+    const overrides = this.dataStore.getDeckSrsOverrides();
+    if (Object.keys(overrides).length === 0) return this.getSrsParams();
+
+    const primaryDeck = this.getPrimaryDeck(cardId, card);
+    const override = overrides[primaryDeck];
+    if (!override) return this.getSrsParams();
+
+    if (typeof override === 'string') return this.resolvePresetParams(override);
+    return override;
+  }
+
+  /** Determine the primary deck (top-level tag) for a card based on review frequency. */
+  getPrimaryDeck(cardId: string, card: CardData): string {
+    if (card.reviewCount === 0) {
+      return card.tags[0]?.split('/')[0] ?? '';
+    }
+    if (!this.primaryDeckCache) {
+      this.primaryDeckCache = this.buildPrimaryDeckCache();
+    }
+    return this.primaryDeckCache.get(cardId) ?? card.tags[0]?.split('/')[0] ?? '';
+  }
+
+  invalidatePrimaryDeckCache(): void {
+    this.primaryDeckCache = null;
+  }
+
+  private buildPrimaryDeckCache(): Map<string, string> {
+    const logs = this.dataStore.getReviewLogs();
+    const cards = this.dataStore.getAllCards();
+
+    const cardTagCounts = new Map<string, Map<string, number>>();
+    for (const log of logs) {
+      const card = cards[log.cardId];
+      if (!card) continue;
+      if (!cardTagCounts.has(log.cardId)) cardTagCounts.set(log.cardId, new Map());
+      const tagMap = cardTagCounts.get(log.cardId)!;
+      for (const tag of card.tags) {
+        const topTag = tag.split('/')[0];
+        tagMap.set(topTag, (tagMap.get(topTag) ?? 0) + 1);
+      }
+    }
+
+    const result = new Map<string, string>();
+    for (const [cardId, tagMap] of cardTagCounts) {
+      let maxTag = '';
+      let maxCount = 0;
+      for (const [tag, count] of tagMap) {
+        if (count > maxCount) { maxCount = count; maxTag = tag; }
+      }
+      if (maxTag) result.set(cardId, maxTag);
+    }
+    return result;
+  }
+
+  private resolvePresetParams(presetId: string): SrsParams {
+    const allPresets = [
+      ...BUILTIN_PRESETS,
+      ...(this.dataStore.getSettings().customPresets ?? []),
+    ];
+    const preset = allPresets.find(p => p.id === presetId);
+    return preset?.params ?? this.getSrsParams();
+  }
+
+  /** Resolve display name for a deck's strategy override. */
+  resolveStrategyName(deckTag: string): string {
+    const overrides = this.dataStore.getDeckSrsOverrides();
+    const override = overrides[deckTag];
+    if (!override) return '全局默认';
+    if (typeof override === 'string') {
+      const allPresets = [...BUILTIN_PRESETS, ...(this.dataStore.getSettings().customPresets ?? [])];
+      return allPresets.find(p => p.id === override)?.name ?? '全局默认';
+    }
+    return '自定义';
+  }
+
+  async setDeckStrategy(deckTag: string, value: string | SrsParams | null): Promise<void> {
+    const overrides = { ...this.dataStore.getDeckSrsOverrides() };
+    if (value === null) {
+      delete overrides[deckTag];
+    } else {
+      overrides[deckTag] = value;
+    }
+    await this.dataStore.updateSettings({ deckSrsOverrides: overrides });
+  }
+
+  async resetDeckCards(deckTag: string, mode: DeckResetMode, newParams: SrsParams): Promise<void> {
+    if (mode === 'gradual') return;
+
+    const cards = this.dataStore.getAllCards();
+    const t = today();
+    const updates: Array<{ id: string; patch: Partial<CardData> }> = [];
+
+    for (const [id, card] of Object.entries(cards)) {
+      if (card.disabled) continue;
+      const primary = this.getPrimaryDeck(id, card);
+      if (primary !== deckTag) continue;
+
+      if (mode === 'reset-ease') {
+        updates.push({ id, patch: { ease: newParams.initialEase } });
+      } else if (mode === 'full-reset') {
+        updates.push({ id, patch: {
+          ease: newParams.initialEase,
+          interval: 0,
+          due: t,
+          reviewCount: 0,
+        }});
+      }
+    }
+
+    this.dataStore.bulkUpdateCards(updates);
+    await this.dataStore.save();
+    this.primaryDeckCache = null;
   }
 
   // ── Review (launch pad) ─────────────────────────────────

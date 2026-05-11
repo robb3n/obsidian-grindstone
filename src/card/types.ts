@@ -171,7 +171,11 @@ export interface GrindstoneSettings {
   customPresets?: SrsPreset[];
   /** Active preset ID ('sm2-default', 'anki-standard', etc. or custom). */
   activePresetId?: string;
+  /** Per-deck SRS strategy overrides. Key = top-level tag. Value = preset ID or custom SrsParams. */
+  deckSrsOverrides?: Record<string, string | SrsParams>;
 }
+
+export type DeckResetMode = 'gradual' | 'reset-ease' | 'full-reset';
 
 export const DEFAULT_SETTINGS: GrindstoneSettings = {
   triggerTags: ['#考研数学', '#408'],

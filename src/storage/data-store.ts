@@ -5,6 +5,7 @@ import {
   SrsParams, DEFAULT_SRS_PARAMS,
 } from '../card/types';
 
+
 export class DataStore {
   private data: PluginData;
   private plugin: Plugin;
@@ -50,6 +51,17 @@ export class DataStore {
 
   getSrsParams(): SrsParams {
     return this.data.settings.srsParams ?? DEFAULT_SRS_PARAMS;
+  }
+
+  getDeckSrsOverrides(): Record<string, string | SrsParams> {
+    return this.data.settings.deckSrsOverrides ?? {};
+  }
+
+  bulkUpdateCards(updates: Array<{ id: string; patch: Partial<CardData> }>): void {
+    for (const { id, patch } of updates) {
+      const card = this.data.cards[id];
+      if (card) Object.assign(card, patch);
+    }
   }
 
   async updateSettings(s: Partial<GrindstoneSettings>): Promise<void> {

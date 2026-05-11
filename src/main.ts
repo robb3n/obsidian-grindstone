@@ -138,7 +138,7 @@ export default class GrindstonePlugin extends Plugin {
       const today = formatDate(new Date());
       queue = this.store.getDueCards(today);
     }
-    new ReviewModal(this.app, queue, this.cardManager, this.store).open();
+    new ReviewModal(this.app, queue, this.cardManager, this.store, this.gsStore).open();
   }
 
   private async activateWorkspace(): Promise<void> {

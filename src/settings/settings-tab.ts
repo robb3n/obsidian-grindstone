@@ -101,8 +101,8 @@ export class GrindstoneSettingTab extends PluginSettingTab {
   private renderSrsSection(containerEl: HTMLElement): void {
     const section = containerEl.createDiv({ cls: 'gs-srs-section' });
     const hdr = section.createDiv({ cls: 'gs-srs-header' });
-    hdr.createEl('h2', { text: 'SRS 策略' });
-    hdr.createDiv({ cls: 'gs-srs-sub gs-en', text: 'ALGORITHM PARAMS · 算法参数与预设模板' });
+    hdr.createEl('h2', { text: 'SRS 策略（全局默认）' });
+    hdr.createDiv({ cls: 'gs-srs-sub gs-en', text: 'GLOBAL DEFAULT · 未绑定策略的卡组使用此参数' });
 
     const settings = this.plugin.store.getSettings();
     let currentParams: SrsParams = { ...(settings.srsParams ?? DEFAULT_SRS_PARAMS) };

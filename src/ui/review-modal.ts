@@ -3,6 +3,7 @@ import { CardData, Rating } from '../card/types';
 import { schedule } from '../srs/sm2';
 import { CardManager } from '../card/card-manager';
 import { DataStore } from '../storage/data-store';
+import { GrindstoneStore } from '../store/GrindstoneStore';
 import { renderCardView, renderCompleteView } from './card-renderer';
 
 interface QueueItem {
@@ -15,6 +16,7 @@ export class ReviewModal extends Modal {
   private currentIndex: number;
   private cardManager: CardManager;
   private store: DataStore;
+  private gsStore: GrindstoneStore;
   private component: Component;
 
   constructor(
@@ -22,12 +24,14 @@ export class ReviewModal extends Modal {
     queue: QueueItem[],
     cardManager: CardManager,
     store: DataStore,
+    gsStore: GrindstoneStore,
   ) {
     super(app);
     this.queue = queue;
     this.currentIndex = 0;
     this.cardManager = cardManager;
     this.store = store;
+    this.gsStore = gsStore;
     this.component = new Component();
   }
 
@@ -72,7 +76,7 @@ export class ReviewModal extends Modal {
     const newState = schedule(
       { interval: card.interval, ease: card.ease, reviewCount: card.reviewCount },
       rating,
-      this.store.getSrsParams(),
+      this.gsStore.getSrsParamsForCard(id, card),
     );
 
     const today = new Date();
@@ -93,6 +97,7 @@ export class ReviewModal extends Modal {
       timestamp: today.toISOString().slice(0, 19),
       elapsed,
     });
+    this.gsStore.invalidatePrimaryDeckCache();
     await this.cardManager.writeStarsBack(card, id, rating);
 
     // Re-queue card for same session when Again produces interval 0

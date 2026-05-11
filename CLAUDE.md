@@ -18,7 +18,7 @@ User reloads Obsidian manually to pick up changes.
 
 ## Release
 
-When the user asks to bump version / commit / tag / push:
+When the user says **"发版"**, execute the full release flow:
 
 1. Bump `version` in **both** `manifest.json` and `package.json` (keep them in sync).
 2. Stage changed files, commit with a descriptive message.

@@ -2,7 +2,7 @@ import { Plugin } from 'obsidian';
 import {
   PluginData, CardData, DEFAULT_DATA, GrindstoneSettings, DEFAULT_SETTINGS,
   StoreStats, MaturityDistribution, ReviewLog, Rating,
-  SrsParams, DEFAULT_SRS_PARAMS,
+  SrsParams, DEFAULT_SRS_PARAMS, BUILTIN_PRESETS,
 } from '../card/types';
 
 
@@ -24,6 +24,16 @@ export class DataStore {
         cards: raw.cards ?? {},
         reviewLogs: raw.reviewLogs ?? [],
       };
+      // One-time fix: Anki Standard preset had step1/step2 swapped
+      if (!this.data.settings._ankiStepFix) {
+        const params = this.data.settings.srsParams;
+        if (params && params.step1Interval > params.step2Interval) {
+          const tmp = params.step1Interval;
+          params.step1Interval = params.step2Interval;
+          params.step2Interval = tmp;
+        }
+        this.data.settings._ankiStepFix = true;
+      }
     }
   }
 

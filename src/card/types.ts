@@ -75,8 +75,8 @@ export const BUILTIN_PRESETS: SrsPreset[] = [
     description: '模拟 Anki 默认参数，适合从 Anki 迁移的用户',
     params: {
       ...DEFAULT_SRS_PARAMS,
-      step1Interval: 6,
-      step2Interval: 4,
+      step1Interval: 4,
+      step2Interval: 6,
     },
     builtin: true,
   },
@@ -173,6 +173,8 @@ export interface GrindstoneSettings {
   activePresetId?: string;
   /** Per-deck SRS strategy overrides. Key = top-level tag. Value = preset ID or custom SrsParams. */
   deckSrsOverrides?: Record<string, string | SrsParams>;
+  /** One-time migration flag: Anki Standard step1/step2 swap fix. */
+  _ankiStepFix?: boolean;
 }
 
 export type DeckResetMode = 'gradual' | 'reset-ease' | 'full-reset';

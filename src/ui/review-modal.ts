@@ -51,7 +51,7 @@ export class ReviewModal extends Modal {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
       if (this.engine.isComplete()) return;
 
-      if (e.code === 'Space' && !this.answerShown) {
+      if (e.code === 'Space') {
         e.preventDefault();
         this.toggleAnswer();
       } else if (this.answerShown) {
@@ -94,10 +94,6 @@ export class ReviewModal extends Modal {
     const headL = head.createDiv({ cls: 'rvm-head-l gs-en' });
     headL.createSpan({ cls: 'rvm-head-eyebrow', text: 'REVIEW SESSION' });
     headL.createSpan({ cls: 'rvm-head-meta gs-mono', text: `${pos.current} / ${pos.total}` });
-    const closeBtn = head.createEl('button', { cls: 'rvm-close' });
-    closeBtn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M6 18L18 6"/></svg>`;
-    closeBtn.addEventListener('click', () => this.close());
-
     // Progress bar
     const progress = this.contentEl.createDiv({ cls: 'rvm-progress' });
     const fill = progress.createDiv({ cls: 'rvm-progress-fill' });
@@ -160,8 +156,8 @@ export class ReviewModal extends Modal {
       this.close();
     });
 
-    // Rating buttons (shown only when answer visible)
-    const rateSection = stage.createDiv({ cls: 'rvm-rate' });
+    // Rating buttons (fixed at bottom, outside stage scroll)
+    const rateSection = this.contentEl.createDiv({ cls: 'rvm-rate' });
     if (!autoShow) rateSection.style.display = 'none';
 
     const previews = this.engine.previewIntervals();
@@ -176,7 +172,7 @@ export class ReviewModal extends Modal {
     }
 
     // Hint
-    const hint = stage.createDiv({ cls: 'rvm-hint gs-en' });
+    const hint = this.contentEl.createDiv({ cls: 'rvm-hint gs-en' });
     if (!autoShow) {
       hint.textContent = 'SPACE 显示答案 · ESC 退出';
     } else {
@@ -214,6 +210,7 @@ export class ReviewModal extends Modal {
       rateSection.style.display = 'none';
       hint.textContent = 'SPACE 显示答案 · ESC 退出';
     }
+    this.modalEl.focus();
   }
 
   private async loadAnswer(container: HTMLElement, item: QueueItem): Promise<void> {

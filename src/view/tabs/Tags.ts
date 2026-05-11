@@ -33,14 +33,7 @@ export function renderTags(container: HTMLElement, ctx: TabContext): void {
 
   const renderTree = () => {
     treeSidebar.empty();
-    treeSidebar.createDiv({ cls: 'tg-tree-head' }).innerHTML = `<span class="gs-en">TAG TREE</span><span class="tg-tree-count gs-mono">${ctx.store.getTotalActiveCards()}</span>`;
-
-    // "All cards" row
-    const allBtn = treeSidebar.createEl('button', { cls: `tg-tree-row tg-tree-all${selected === null ? ' tg-tree-row-on' : ''}` });
-    allBtn.innerHTML = `<span class="tg-tree-icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>`;
-    allBtn.createSpan({ cls: 'tg-tree-name', text: '全部卡片' });
-    allBtn.createSpan({ cls: 'tg-tree-n gs-mono', text: String(ctx.store.getTotalActiveCards()) });
-    allBtn.addEventListener('click', () => { selected = null; renderTree(); renderMain(); });
+    treeSidebar.createDiv({ cls: 'tg-tree-head' }).innerHTML = `<span class="gs-en">TAG TREE</span><span class="tg-tree-total gs-en">${ctx.store.getTotalActiveCards()}</span>`;
 
     for (const node of tree) {
       renderTreeNode(treeSidebar, node, 0);
@@ -74,8 +67,7 @@ export function renderTags(container: HTMLElement, ctx: TabContext): void {
 
     // Name button
     const nameBtn = row.createEl('button', { cls: 'tg-tree-namebtn' });
-    nameBtn.createSpan({ cls: 'tg-tree-icon-t', text: '#' });
-    nameBtn.createSpan({ cls: 'tg-tree-name', text: node.name });
+    nameBtn.createSpan({ cls: 'tg-tree-name', text: node.name.replace(/^#/, '') });
     nameBtn.createSpan({ cls: 'tg-tree-n gs-mono', text: String(node.count) });
     nameBtn.addEventListener('click', () => { selected = node.path; renderTree(); renderMain(); });
 
@@ -91,13 +83,22 @@ export function renderTags(container: HTMLElement, ctx: TabContext): void {
     tagCountPill.textContent = `${tree.length} 个标签`;
     matchPill.textContent = `${cards.length} 张匹配`;
 
+    // autoShow detection
+    const autoShowTags = ctx.store.getRawStore().getSettings().autoShowTags;
+    const sel = selected;
+    const isAutoShowTag = sel !== null && autoShowTags.some((ast: string) =>
+      sel === ast || sel.startsWith(ast + '/') || ast.startsWith(sel + '/'),
+    );
+    let expandAll = false;
+    const openRows = new Set<string>();
+
     // Breadcrumb
     if (selected) {
       const bc = main.createDiv({ cls: 'tg-breadcrumb' });
       const segs = selected.split('/');
       for (let i = 0; i < segs.length; i++) {
         if (i > 0) bc.createSpan({ cls: 'tg-bc-sep', text: '/' });
-        const segBtn = bc.createEl('button', { cls: 'tg-bc-seg', text: segs[i] });
+        const segBtn = bc.createEl('button', { cls: 'tg-bc-seg', text: segs[i].replace(/^#/, '') });
         const path = segs.slice(0, i + 1).join('/');
         segBtn.addEventListener('click', () => { selected = path; renderTree(); renderMain(); });
       }
@@ -106,6 +107,20 @@ export function renderTags(container: HTMLElement, ctx: TabContext): void {
         const pill = bc.createSpan({ cls: 'tg-bc-pill' });
         const tone = acc >= 85 ? 'green' : acc >= 70 ? 'gold' : 'clay';
         pill.createSpan({ cls: `tg-bc-acc tg-bc-acc-${tone}`, text: `准确率 ${acc}%` });
+      }
+      if (isAutoShowTag) {
+        const toggleBtn = bc.createEl('button', { cls: 'gs-pill tg-bc-toggle', text: '全部展开' });
+        toggleBtn.addEventListener('click', () => {
+          expandAll = !expandAll;
+          toggleBtn.textContent = expandAll ? '逐张查看' : '全部展开';
+          toggleBtn.classList.toggle('gs-pill-green', expandAll);
+          if (expandAll) {
+            cards.forEach(c => openRows.add(c.id));
+          } else {
+            openRows.clear();
+          }
+          renderCards();
+        });
       }
     }
 
@@ -131,9 +146,8 @@ export function renderTags(container: HTMLElement, ctx: TabContext): void {
     // Render card rows with load-more for large sets
     const BATCH = 200;
     let shown = 0;
-    const openRows = new Set<string>();
 
-    const renderCards = () => {
+    const renderCards = (scrollTo?: string) => {
       while (table.children.length > 1) table.removeChild(table.lastChild!);
 
       if (cards.length > BATCH) {
@@ -143,8 +157,18 @@ export function renderTags(container: HTMLElement, ctx: TabContext): void {
 
       const slice = cards.slice(0, shown + BATCH);
       shown = slice.length;
+      const loadPromises: Promise<void>[] = [];
+      let scrollRow: HTMLElement | null = null;
       for (const entry of slice) {
-        renderCardRow(table, entry, openRows, renderCards, ctx);
+        const selectTag = (tag: string) => { selected = tag; renderTree(); renderMain(); };
+        const { row, loadPromise } = renderCardRow(table, entry, openRows, expandAll, renderCards, selectTag, ctx);
+        if (loadPromise) loadPromises.push(loadPromise);
+        if (scrollTo === entry.id) scrollRow = row;
+      }
+      if (scrollRow) {
+        Promise.all(loadPromises).then(() => {
+          requestAnimationFrame(() => scrollRow!.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+        });
       }
 
       if (shown < cards.length) {
@@ -161,21 +185,29 @@ export function renderTags(container: HTMLElement, ctx: TabContext): void {
 
 function renderCardRow(
   parent: HTMLElement, entry: CardEntry,
-  openRows: Set<string>, rerender: () => void,
-  ctx: TabContext,
-): void {
+  openRows: Set<string>, expandAll: boolean, rerender: (scrollTo?: string) => void,
+  onSelectTag: (tag: string) => void, ctx: TabContext,
+): { row: HTMLElement; loadPromise: Promise<void> | null } {
   const { id, card } = entry;
   const isOpen = openRows.has(id);
   const dueLabel = formatDue(card.due);
   const dueTone = card.due <= formatToday() ? 'clay' : 'mute';
 
   const row = parent.createDiv({ cls: `tg-row${isOpen ? ' tg-row-open' : ''}` });
+  let loadPromise: Promise<void> | null = null;
 
   // Make the main grid clickable
   const mainDiv = row.createDiv({ cls: 'tg-row-main' });
   mainDiv.addEventListener('click', () => {
-    if (openRows.has(id)) openRows.delete(id); else openRows.add(id);
-    rerender();
+    if (expandAll) return; // In expand-all mode, clicks don't toggle
+    if (openRows.has(id)) {
+      openRows.delete(id);
+      rerender();
+    } else {
+      openRows.clear();
+      openRows.add(id);
+      rerender(id);
+    }
   });
 
   // Question
@@ -196,9 +228,9 @@ function renderCardRow(
   const tagsDiv = mainDiv.createSpan({ cls: 'tg-c-tags' });
   for (const tag of card.tags) {
     const chip = tagsDiv.createEl('button', { cls: 'tg-tag-chip' });
-    chip.textContent = '#' + tag.split('/').pop();
+    chip.textContent = (tag.split('/').pop() || '').replace(/^#/, '');
     chip.title = tag;
-    chip.addEventListener('click', (e) => e.stopPropagation());
+    chip.addEventListener('click', (e) => { e.stopPropagation(); onSelectTag(tag); });
   }
 
   // Interval, EF, Due
@@ -217,7 +249,7 @@ function renderCardRow(
     const back = row.createDiv({ cls: 'tg-row-back' });
     back.createDiv({ cls: 'tg-back-l gs-en', text: 'ANSWER' });
     const answerEl = back.createDiv({ cls: 'tg-back-answer' });
-    ctx.cardManager.getBlockContent(card).then((content) => {
+    loadPromise = ctx.cardManager.getBlockContent(card).then((content) => {
       if (content) {
         MarkdownRenderer.render(ctx.app, content, answerEl, card.file, new Component());
       } else {
@@ -227,6 +259,7 @@ function renderCardRow(
     const meta = back.createDiv({ cls: 'tg-back-meta' });
     meta.innerHTML = `<span class="gs-en">ID</span> <code>${id}</code> <span class="gs-en">REPS</span> <span class="gs-mono">${card.reviewCount}</span> <span class="gs-en">DUE</span> <span class="gs-mono">${card.due}</span> <span class="gs-en">FILE</span> <span class="gs-mono">${card.file}</span>`;
   }
+  return { row, loadPromise };
 }
 
 function formatToday(): string {

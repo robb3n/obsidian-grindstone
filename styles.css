@@ -803,28 +803,32 @@ body.theme-dark .grindstone-workspace:not(.gs-force-light) .gs-rail-item-on,
    Tags Tab
    ══════════════════════════════════════ */
 
-.grindstone-workspace .tg-page { flex: 1; min-height: 0; min-width: 0; display: grid; grid-template-columns: 200px 1fr; overflow: hidden; }
+.grindstone-workspace .tg-page { flex: 1; min-height: 0; min-width: 0; display: grid; grid-template-columns: 240px 1fr; overflow: hidden; }
 .grindstone-workspace .tg-search { display: flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 8px; background: var(--gs-card); border: 1px solid var(--gs-line); color: var(--gs-ink-3); transition: all .15s; }
 .grindstone-workspace .tg-search:focus-within { border-color: var(--gs-green); color: var(--gs-ink); }
 .grindstone-workspace .tg-search input { border: 0; background: transparent; outline: none; font: 500 12px var(--gs-font-zh); color: var(--gs-ink); width: 140px; }
 .grindstone-workspace .tg-search input::placeholder { color: var(--gs-ink-3); }
-.grindstone-workspace .tg-tree { background: var(--gs-paper); border-right: 1px solid var(--gs-line); padding: 10px 8px; overflow: auto; display: flex; flex-direction: column; gap: 1px; }
+.grindstone-workspace .tg-tree { background: var(--gs-paper); border-right: 1px solid var(--gs-line); padding: 10px 8px; overflow: auto; display: flex; flex-direction: column; gap: 1px !important; }
+.grindstone-workspace .tg-tree > * { margin: 0 !important; padding-top: 4px !important; padding-bottom: 4px !important; padding-right: 4px !important; }
+.grindstone-workspace .tg-tree .tg-tree-caret,
+.grindstone-workspace .tg-tree .tg-tree-namebtn { padding: 0 !important; margin: 0 !important; }
+.grindstone-workspace .tg-tree .tg-tree-namebtn { padding: 0 4px !important; }
 .grindstone-workspace .tg-tree-head { display: flex; align-items: center; justify-content: space-between; padding: 6px 10px 8px; font-size: 9px; letter-spacing: 0.22em; color: var(--gs-ink-3); font-weight: 600; }
-.grindstone-workspace .tg-tree-count { color: var(--gs-ink-2); letter-spacing: 0; font-size: 11px; }
-.grindstone-workspace .tg-tree-row { display: flex; align-items: center; gap: 4px; padding: 4px 4px; border-radius: 6px; font-size: 12px; color: var(--gs-ink-2); transition: background .12s; cursor: pointer; border: 0; background: transparent; text-align: left; width: 100%; font-family: inherit; }
+.grindstone-workspace .tg-tree-total { color: var(--gs-ink-2); letter-spacing: 0; }
+.grindstone-workspace .tg-tree-row { display: flex; align-items: center; justify-content: flex-start; gap: 4px; padding: 4px 4px; border-radius: 6px; font-size: 12px; color: var(--gs-ink-2); transition: background .12s; cursor: pointer; border: 0; background: transparent; text-align: left; width: 100%; font-family: inherit; }
 .grindstone-workspace .tg-tree-row:hover { background: var(--gs-paper-2); color: var(--gs-ink); }
 .grindstone-workspace .tg-tree-row-on { background: var(--gs-green-soft); color: var(--gs-green); font-weight: 600; }
 .grindstone-workspace .tg-tree-all { padding-left: 8px; }
 .grindstone-workspace .tg-tree-caret { width: 14px; height: 14px; border: 0; background: transparent; display: flex; align-items: center; justify-content: center; color: var(--gs-ink-3); cursor: pointer; border-radius: 3px; flex-shrink: 0; }
 .grindstone-workspace .tg-tree-caret:hover { background: var(--gs-line); color: var(--gs-ink); }
 .grindstone-workspace .tg-tree-bullet { width: 4px; height: 4px; border-radius: 50%; background: currentColor; opacity: .35; }
-.grindstone-workspace .tg-tree-namebtn { flex: 1; min-width: 0; display: flex; align-items: center; gap: 4px; padding: 0 4px; border: 0; background: transparent; color: inherit; cursor: pointer; text-align: left; font: inherit; }
+.grindstone-workspace .tg-tree-namebtn { flex: 1; min-width: 0; display: flex; align-items: center; justify-content: flex-start; gap: 4px; padding: 0 4px; border: 0; background: transparent; color: inherit; cursor: pointer; text-align: left; font: inherit; }
 .grindstone-workspace .tg-tree-icon-t { font-family: var(--gs-font-mono); color: var(--gs-ink-3); font-weight: 500; opacity: .7; }
 .grindstone-workspace .tg-tree-row-on .tg-tree-icon-t { color: var(--gs-green); opacity: 1; }
 .grindstone-workspace .tg-tree-name { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .grindstone-workspace .tg-tree-n { font-size: 10px; color: var(--gs-ink-3); background: var(--gs-paper-2); padding: 1px 5px; border-radius: 3px; }
 .grindstone-workspace .tg-tree-row-on .tg-tree-n { background: rgba(31,77,58,.16); color: var(--gs-green); }
-.grindstone-workspace .tg-main { overflow: auto; padding: 18px 28px 24px; display: flex; flex-direction: column; gap: 14px; }
+.grindstone-workspace .tg-main { overflow: auto; padding: 18px 28px 24px; display: flex; flex-direction: column; gap: 14px; max-height: calc(100vh - 80px); }
 .grindstone-workspace .tg-breadcrumb { display: flex; align-items: center; gap: 6px; padding: 4px 0; font-size: 12px; }
 .grindstone-workspace .tg-bc-seg { border: 0; background: transparent; color: var(--gs-ink); cursor: pointer; padding: 4px 8px; border-radius: 6px; font-family: inherit; font-size: 13px; font-weight: 500; transition: background .12s; }
 .grindstone-workspace .tg-bc-seg:hover { background: var(--gs-paper-2); }
@@ -835,7 +839,8 @@ body.theme-dark .grindstone-workspace:not(.gs-force-light) .gs-rail-item-on,
 .grindstone-workspace .tg-bc-acc-green { background: var(--gs-green-soft); color: var(--gs-green); }
 .grindstone-workspace .tg-bc-acc-gold { background: rgba(184,149,106,.16); color: var(--gs-gold); }
 .grindstone-workspace .tg-bc-acc-clay { background: rgba(184,83,58,.12); color: var(--gs-clay); }
-.grindstone-workspace .tg-table { background: var(--gs-card); border-radius: 12px; border: 1px solid var(--gs-line); overflow: hidden; }
+.grindstone-workspace .tg-bc-toggle { margin-left: auto; cursor: pointer; transition: all .15s; }
+.grindstone-workspace .tg-table { background: var(--gs-card); border-radius: 12px; border: 1px solid var(--gs-line); max-height: calc(100vh - 180px); overflow: auto; }
 .grindstone-workspace .tg-row { display: grid; grid-template-columns: 2.4fr 2fr 70px 56px 80px 36px; align-items: center; gap: 14px; padding: 10px 16px; border-bottom: 1px solid var(--gs-line); font-size: 13px; transition: background .12s; }
 .grindstone-workspace .tg-row:last-child { border-bottom: 0; }
 .grindstone-workspace .tg-row-head { background: var(--gs-paper); font-size: 9px; letter-spacing: 0.2em; color: var(--gs-ink-3); font-weight: 600; padding: 8px 16px; }
@@ -855,6 +860,7 @@ body.theme-dark .grindstone-workspace:not(.gs-force-light) .gs-rail-item-on,
 .grindstone-workspace .tg-c-act { display: flex; justify-content: flex-end; }
 .grindstone-workspace .tg-row-back { grid-column: 1 / -1; margin-top: 10px; padding: 14px 16px; background: var(--gs-paper-2); border-radius: 8px; display: flex; flex-direction: column; gap: 8px; }
 .grindstone-workspace .tg-back-l { font-size: 9px; letter-spacing: 0.22em; color: var(--gs-ink-3); font-weight: 600; }
+.grindstone-workspace .tg-back-answer { max-height: 40vh; overflow: auto; font-size: 13px; line-height: 1.7; color: var(--gs-ink); }
 .grindstone-workspace .tg-back-meta { display: flex; gap: 16px; flex-wrap: wrap; font-size: 10px; color: var(--gs-ink-3); margin-top: 4px; padding-top: 8px; border-top: 1px solid var(--gs-line); }
 .grindstone-workspace .tg-back-meta .gs-en { letter-spacing: 0.18em; font-weight: 600; }
 .grindstone-workspace .tg-back-meta code { font: 500 11px var(--gs-font-mono); color: var(--gs-ink-2); }

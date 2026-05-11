@@ -91,8 +91,13 @@
   font-size: 0.9em;
 }
 
+.grindstone-btn-again {
+  background: var(--gs-clay, var(--background-modifier-error));
+  color: var(--text-on-accent);
+}
+
 .grindstone-btn-hard {
-  background: var(--background-modifier-error);
+  background: var(--gs-gold, var(--background-modifier-error));
   color: var(--text-on-accent);
 }
 
@@ -937,3 +942,57 @@ body.theme-dark .grindstone-workspace:not(.gs-force-light) .gs-rail-item-on,
 .grindstone-workspace .tg-load-hint { padding: 6px 16px; font-size: 10px; letter-spacing: 0.12em; color: var(--gs-ink-3); background: var(--gs-paper); border-bottom: 1px solid var(--gs-line); }
 .grindstone-workspace .tg-load-more { width: 100%; padding: 12px; border: 0; background: var(--gs-paper); color: var(--gs-green); font: 500 12px var(--gs-font-zh); cursor: pointer; transition: background .15s; }
 .grindstone-workspace .tg-load-more:hover { background: var(--gs-green-soft); }
+
+/* ── SRS Settings Section ──────────────────────────────── */
+.gs-srs-section { margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--background-modifier-border); }
+.gs-srs-header h2 { margin: 0 0 2px; }
+.gs-srs-sub { font-size: 10px; letter-spacing: 0.16em; color: var(--text-muted); margin-bottom: 16px; }
+
+/* Preset grid */
+.gs-preset-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+.gs-preset-card { position: relative; flex: 1 1 180px; min-width: 160px; padding: 10px 12px; border: 1.5px solid var(--background-modifier-border); border-radius: 8px; cursor: pointer; transition: border-color .15s, box-shadow .15s; }
+.gs-preset-card:hover { border-color: var(--interactive-accent); }
+.gs-preset-card-active { border-color: var(--interactive-accent); box-shadow: 0 0 0 2px rgba(var(--interactive-accent-rgb, 0, 122, 255), 0.15); }
+.gs-preset-card-h { display: flex; align-items: baseline; gap: 6px; margin-bottom: 4px; }
+.gs-preset-card-name { font-weight: 600; font-size: 13px; }
+.gs-preset-card-en { font-size: 9px; letter-spacing: 0.12em; color: var(--text-muted); }
+.gs-preset-card-desc { font-size: 11px; color: var(--text-muted); line-height: 1.4; }
+.gs-preset-del { position: absolute; top: 4px; right: 6px; background: none; border: none; color: var(--text-muted); font-size: 14px; cursor: pointer; padding: 2px 4px; line-height: 1; }
+.gs-preset-del:hover { color: var(--text-error); }
+
+/* Param editor */
+.gs-param-wrap { margin-bottom: 20px; }
+.gs-param-group { margin-bottom: 16px; }
+.gs-param-group-h { display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px; font-weight: 600; font-size: 12px; }
+.gs-param-group-h .gs-en { font-size: 9px; letter-spacing: 0.14em; color: var(--text-muted); }
+.gs-param-row { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
+.gs-param-label { flex: 0 0 140px; display: flex; flex-direction: column; }
+.gs-param-label span:first-child { font-size: 12px; }
+.gs-param-en { font-size: 9px; letter-spacing: 0.1em; color: var(--text-muted); }
+.gs-param-control { flex: 1; display: flex; align-items: center; gap: 10px; }
+.gs-param-slider { flex: 1; height: 4px; appearance: none; -webkit-appearance: none; background: var(--background-modifier-border); border-radius: 999px; outline: none; cursor: pointer; }
+.gs-param-slider::-webkit-slider-thumb { appearance: none; -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--interactive-accent); box-shadow: 0 0 0 3px rgba(var(--interactive-accent-rgb, 0, 122, 255), 0.12); cursor: pointer; }
+.gs-param-slider::-moz-range-thumb { width: 16px; height: 16px; border-radius: 50%; background: var(--interactive-accent); border: none; cursor: pointer; }
+.gs-param-val { min-width: 56px; text-align: right; font-size: 12px; color: var(--text-normal); }
+
+/* Visualization */
+.gs-srs-viz-wrap { margin-bottom: 20px; }
+.gs-srs-viz-h { display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px; font-weight: 600; font-size: 12px; }
+.gs-srs-viz-h .gs-en { font-size: 9px; letter-spacing: 0.14em; color: var(--text-muted); }
+.gs-srs-viz { padding: 12px; border: 1px solid var(--background-modifier-border); border-radius: 8px; }
+.gs-srs-chart { display: block; }
+.gs-srs-chart-label { font-size: 9px; fill: var(--text-muted); font-family: var(--font-monospace); }
+.gs-srs-legend { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 10px; font-size: 11px; color: var(--text-muted); }
+.gs-srs-legend-item { display: flex; align-items: center; gap: 4px; }
+.gs-srs-legend-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; }
+.gs-srs-callouts { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 12px; }
+.gs-srs-callout { flex: 1 1 100px; padding: 8px 10px; border: 1px solid var(--background-modifier-border); border-radius: 6px; text-align: center; }
+.gs-srs-callout-val { display: block; font-size: 16px; font-weight: 600; margin-bottom: 2px; }
+.gs-srs-callout-label { display: block; font-size: 10px; color: var(--text-muted); }
+
+/* Action buttons */
+.gs-srs-actions { display: flex; gap: 8px; }
+.gs-srs-actions .gs-btn { padding: 6px 14px; border: 1px solid var(--background-modifier-border); border-radius: 6px; background: var(--background-primary); color: var(--text-normal); font-size: 12px; cursor: pointer; }
+.gs-srs-actions .gs-btn:hover { background: var(--background-secondary); }
+.gs-srs-actions .gs-btn-primary { background: var(--interactive-accent); color: var(--text-on-accent); border-color: var(--interactive-accent); }
+.gs-srs-actions .gs-btn-primary:hover { opacity: 0.9; }

@@ -7,7 +7,7 @@
  */
 
 import { DataStore } from '../storage/data-store';
-import { CardData, Rating, ReviewLog } from '../card/types';
+import { CardData, Rating, ReviewLog, SrsParams } from '../card/types';
 
 // ── Shared helpers ──────────────────────────────────────────
 
@@ -58,9 +58,11 @@ export interface MaturityData {
 }
 
 export interface RatingsData {
+  again: number;
   hard: number;
   good: number;
   easy: number;
+  againPct: number;
   hardPct: number;
   goodPct: number;
   easyPct: number;
@@ -179,14 +181,16 @@ export class GrindstoneStore {
 
   getRatingsDistribution(days?: number): RatingsData {
     const dist = this.dataStore.getRatingDistribution(days);
-    const total = dist.hard + dist.good + dist.easy;
+    const total = dist.again + dist.hard + dist.good + dist.easy;
     if (total === 0) {
-      return { hard: 0, good: 0, easy: 0, hardPct: 0, goodPct: 0, easyPct: 0 };
+      return { again: 0, hard: 0, good: 0, easy: 0, againPct: 0, hardPct: 0, goodPct: 0, easyPct: 0 };
     }
     return {
+      again: dist.again,
       hard: dist.hard,
       good: dist.good,
       easy: dist.easy,
+      againPct: Math.round((dist.again / total) * 100),
       hardPct: Math.round((dist.hard / total) * 100),
       goodPct: Math.round((dist.good / total) * 100),
       easyPct: Math.round((dist.easy / total) * 100),
@@ -371,7 +375,7 @@ export class GrindstoneStore {
       studyTime.reduce((a, s) => a + s.ms, 0) / 60000
     );
     const activeDays = history.filter((h) => h.count > 0).length;
-    const totalRatings = ratings.hard + ratings.good + ratings.easy;
+    const totalRatings = ratings.again + ratings.hard + ratings.good + ratings.easy;
     const accuracy =
       totalRatings === 0
         ? 0
@@ -459,6 +463,12 @@ export class GrindstoneStore {
     }));
   }
 
+  // ── SRS params ──────────────────────────────────────────
+
+  getSrsParams(): SrsParams {
+    return this.dataStore.getSrsParams();
+  }
+
   // ── Review (launch pad) ─────────────────────────────────
 
   getDueCards(): CardEntry[] {
@@ -490,7 +500,7 @@ export class GrindstoneStore {
       if (!sessionMap.has(date)) {
         sessionMap.set(date, {
           count: 0, ms: 0,
-          ratings: { hard: 0, good: 0, easy: 0 },
+          ratings: { again: 0, hard: 0, good: 0, easy: 0 },
           tagCounts: new Map(),
         });
       }

@@ -1,4 +1,5 @@
 import { TabContext } from './types';
+import { RatingsData } from '../../store/GrindstoneStore';
 import { countUp } from '../anim';
 
 const MOTIVATIONAL = [
@@ -205,14 +206,15 @@ function addMatRow(parent: HTMLElement, zh: string, en: string, value: number, t
   row.createSpan({ cls: 'ov-mat-n gs-mono', text: String(value) });
 }
 
-function renderRatingsTile(grid: HTMLElement, ratings: { hard: number; good: number; easy: number; hardPct: number; goodPct: number; easyPct: number }): void {
+function renderRatingsTile(grid: HTMLElement, ratings: RatingsData): void {
   const tile = grid.createDiv({ cls: 'gs-card gs-hoverable ov-tile ov-t-ratings' });
   tileHead(tile, '评分分布', 'RATINGS');
 
-  const total = ratings.hard + ratings.good + ratings.easy;
+  const total = ratings.again + ratings.hard + ratings.good + ratings.easy;
   const rate = tile.createDiv({ cls: 'ov-rate' });
 
-  addRateCircle(rate, 'Hard', ratings.hardPct, 'var(--gs-clay)');
+  addRateCircle(rate, 'Again', ratings.againPct, 'var(--gs-clay)');
+  addRateCircle(rate, 'Hard', ratings.hardPct, 'var(--gs-gold)');
   addRateCircle(rate, 'Good', ratings.goodPct, 'var(--gs-green-2)');
   addRateCircle(rate, 'Easy', ratings.easyPct, 'var(--gs-green)');
 

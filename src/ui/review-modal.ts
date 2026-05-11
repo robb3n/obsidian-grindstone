@@ -72,6 +72,7 @@ export class ReviewModal extends Modal {
     const newState = schedule(
       { interval: card.interval, ease: card.ease, reviewCount: card.reviewCount },
       rating,
+      this.store.getSrsParams(),
     );
 
     const today = new Date();
@@ -93,6 +94,11 @@ export class ReviewModal extends Modal {
       elapsed,
     });
     await this.cardManager.writeStarsBack(card, id, rating);
+
+    // Re-queue card for same session when Again produces interval 0
+    if (newState.interval === 0) {
+      this.queue.push({ id, card });
+    }
 
     this.currentIndex++;
     this.renderCurrent();

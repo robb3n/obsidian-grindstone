@@ -47,7 +47,7 @@ export class GrindstoneOverviewView extends ItemView {
     const settings = this.store.getSettings();
 
     const remaining = stats.dueToday - stats.reviewedToday;
-    const ratingTotal = ratings.hard + ratings.good + ratings.easy;
+    const ratingTotal = (ratings.again ?? 0) + ratings.hard + ratings.good + ratings.easy;
     const matTotal = maturity.new + maturity.learning + maturity.mature;
     const maxDue = Math.max(...upcoming.map((d) => d.count), 1);
     const maxTime = Math.max(...studyTime.map((d) => d.ms), 1);
@@ -138,6 +138,7 @@ export class GrindstoneOverviewView extends ItemView {
       fill.style.width = `${pct}%`;
       row.createEl('span', { text: `${pct}%`, cls: 'gs-rat-pct' });
     };
+    addRating('Again', 'again', ratings.again ?? 0);
     addRating('Hard', 'hard', ratings.hard);
     addRating('Good', 'good', ratings.good);
     addRating('Easy', 'easy', ratings.easy);

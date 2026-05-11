@@ -82,7 +82,7 @@ function renderLaunch(
   addAutoCell(autoGrid, String(newCount), '新卡 \u00B7 NEW');
   addAutoCell(autoGrid, `~${Math.round(dueCount * 1.4)}m`, '预计 \u00B7 ETA');
 
-  autoCard.createDiv({ cls: 'rv-auto-foot gs-en', text: 'Hard / Good / Easy 的评分会写回卡片，决定下次到期时间。' });
+  autoCard.createDiv({ cls: 'rv-auto-foot gs-en', text: 'Again / Hard / Good / Easy 的评分会写回卡片，决定下次到期时间。' });
 
   // CTA button
   const cta = left.createEl('button', { cls: 'rv-launch-cta' });
@@ -96,7 +96,7 @@ function renderLaunch(
   const kbds = left.createDiv({ cls: 'rv-launch-kbds gs-en' });
   kbds.createSpan({ text: 'SPACE 翻面' });
   kbds.createSpan({ text: '\u00B7' });
-  kbds.createSpan({ text: '1\u20134 评分' });
+  kbds.createSpan({ text: '1\u20144 评分' });
   kbds.createSpan({ text: '\u00B7' });
   kbds.createSpan({ text: 'ESC 暂停' });
 
@@ -163,7 +163,8 @@ function addHistKPI(parent: HTMLElement, zh: string, en: string, value: string):
 function renderRatingBar(parent: HTMLElement, ratings: Record<string, number>, total: number): void {
   const bar = parent.createDiv({ cls: 'rv-ratebar' });
   const segs = [
-    { k: 'hard', v: ratings.hard ?? 0, c: 'var(--gs-clay)' },
+    { k: 'again', v: ratings.again ?? 0, c: 'var(--gs-clay)' },
+    { k: 'hard', v: ratings.hard ?? 0, c: 'var(--gs-gold)' },
     { k: 'good', v: ratings.good ?? 0, c: 'var(--gs-green)' },
     { k: 'easy', v: ratings.easy ?? 0, c: 'var(--gs-green-2)' },
   ];
@@ -208,7 +209,8 @@ function renderDebrief(parent: HTMLElement, sessions: any[], ctx: TabContext): v
   // Rating grid
   if (r) {
     const grid = debrief.createDiv({ cls: 'rv-debrief-grid' });
-    addDebriefRate(grid, 'Hard', '难', '2', r.hard, last.cards, 'var(--gs-clay)');
+    addDebriefRate(grid, 'Again', '重来', '1', r.again ?? 0, last.cards, 'var(--gs-clay)');
+    addDebriefRate(grid, 'Hard', '难', '2', r.hard, last.cards, 'var(--gs-gold)');
     addDebriefRate(grid, 'Good', '可', '3', r.good, last.cards, 'var(--gs-green)');
     addDebriefRate(grid, 'Easy', '易', '4', r.easy, last.cards, 'var(--gs-green-2)');
   }

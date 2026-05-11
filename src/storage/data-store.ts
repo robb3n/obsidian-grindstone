@@ -2,6 +2,7 @@ import { Plugin } from 'obsidian';
 import {
   PluginData, CardData, DEFAULT_DATA, GrindstoneSettings, DEFAULT_SETTINGS,
   StoreStats, MaturityDistribution, ReviewLog, Rating,
+  SrsParams, DEFAULT_SRS_PARAMS,
 } from '../card/types';
 
 export class DataStore {
@@ -45,6 +46,10 @@ export class DataStore {
 
   getSettings(): GrindstoneSettings {
     return this.data.settings;
+  }
+
+  getSrsParams(): SrsParams {
+    return this.data.settings.srsParams ?? DEFAULT_SRS_PARAMS;
   }
 
   async updateSettings(s: Partial<GrindstoneSettings>): Promise<void> {
@@ -177,7 +182,7 @@ export class DataStore {
 
   /** Rating distribution. If days is provided, only count logs within that window. */
   getRatingDistribution(days?: number): Record<Rating, number> {
-    const dist: Record<Rating, number> = { hard: 0, good: 0, easy: 0 };
+    const dist: Record<Rating, number> = { again: 0, hard: 0, good: 0, easy: 0 };
     const cutoff = days != null ? this.dateCutoff(days) : null;
 
     for (const log of this.data.reviewLogs) {

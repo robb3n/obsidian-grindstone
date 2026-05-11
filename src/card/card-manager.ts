@@ -216,7 +216,7 @@ export class CardManager {
 
   /**
    * Write star rating back to the source file's trigger line.
-   * Hard = ⭐️⭐️, Good = ⭐️, Easy = no star.
+   * Again = ⭐️⭐️⭐️, Hard = ⭐️⭐️, Good = ⭐️, Easy = no star.
    */
   async writeStarsBack(card: CardData, cardId: string, rating: Rating): Promise<void> {
     if (!this.store.getSettings().writeStarsBack) return;
@@ -251,7 +251,7 @@ export class CardManager {
     rest = rest.replace(/^[\u2B50\uFE0F]+/, '');
 
     // Prepend new stars
-    const starCount = rating === 'hard' ? 2 : rating === 'good' ? 1 : 0;
+    const starCount = rating === 'again' ? 3 : rating === 'hard' ? 2 : rating === 'good' ? 1 : 0;
     const stars = '\u2B50\uFE0F'.repeat(starCount);
     lines[lineIdx] = prefix + stars + rest;
 

@@ -119,6 +119,7 @@ export async function renderCardView(params: RenderParams): Promise<void> {
   const cardDisplayedAt = Date.now();
   const ratingRow = container.createDiv({ cls: 'grindstone-ratings' });
   for (const [label, rating, cls] of [
+    ['Again', 'again', 'grindstone-btn-again'],
     ['Hard', 'hard', 'grindstone-btn-hard'],
     ['Good', 'good', 'grindstone-btn-good'],
     ['Easy', 'easy', 'grindstone-btn-easy'],

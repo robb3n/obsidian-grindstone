@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=DM+Serif+Display&display=swap');
+
 .grindstone-review-modal .modal-content {
   padding: 0;
 }
@@ -193,15 +195,15 @@ body.theme-dark .grindstone-workspace:not(.gs-force-light),
   display: flex; flex-direction: column; gap: 22px;
   min-height: 0;
 }
-.grindstone-workspace .gs-rail-logo { display: flex; align-items: center; gap: 10px; padding: 0 4px; }
+.grindstone-workspace .gs-rail-logo { display: flex; align-items: center; gap: 10px; padding: 0 4px; width: 100%; }
 .grindstone-workspace .gs-rail-mark {
   width: 34px; height: 34px; border-radius: 9px;
   background: var(--gs-green); color: var(--gs-paper);
   display: flex; align-items: center; justify-content: center;
   font: 600 17px var(--gs-font-zh);
 }
-.grindstone-workspace .gs-rail-zh { font-size: 14px; font-weight: 600; color: var(--gs-ink); letter-spacing: 0.1em; }
-.grindstone-workspace .gs-rail-en { font-size: 9px; letter-spacing: 0.18em; color: var(--gs-ink-3); margin-top: 2px; }
+.grindstone-workspace .gs-rail-zh { font-size: 18px; font-weight: 400; color: var(--gs-ink); letter-spacing: 0.1em; font-family: 'Ma Shan Zheng', serif; }
+.grindstone-workspace .gs-rail-en { font-size: 9px; letter-spacing: 0.18em; color: var(--gs-ink-3); margin-top: 2px; font-family: 'DM Serif Display', serif; }
 
 .grindstone-workspace .gs-rail-section { font-size: 9px; letter-spacing: 0.22em; color: var(--gs-ink-3); padding: 6px 10px 4px; font-weight: 600; }
 .grindstone-workspace .gs-rail-nav { display: flex; flex-direction: column; gap: 1px; }
@@ -233,6 +235,71 @@ body.theme-dark .grindstone-workspace:not(.gs-force-light) .gs-rail-item-on,
 .grindstone-workspace .gs-rail-streak-flame { font-size: 18px; }
 .grindstone-workspace .gs-rail-streak-num { font-size: 18px; font-weight: 600; color: var(--gs-ink); font-family: var(--gs-font-mono); line-height: 1; }
 .grindstone-workspace .gs-rail-streak-cap { font-size: 10px; color: var(--gs-ink-3); margin-top: 2px; }
+
+/* ── Rail collapse button ────────────────────── */
+.grindstone-workspace .gs-rail-collapse-btn {
+  margin-left: auto;
+  display: flex; align-items: center; justify-content: center;
+  width: 26px; height: 26px; border: 0; border-radius: 6px;
+  background: transparent; color: var(--gs-ink-2); cursor: pointer;
+  transition: background .15s, color .15s;
+  flex-shrink: 0;
+}
+.grindstone-workspace .gs-rail-collapse-btn svg {
+  stroke: var(--gs-ink-2);
+}
+.grindstone-workspace .gs-rail-collapse-btn:hover {
+  background: var(--gs-card); color: var(--gs-ink);
+}
+.grindstone-workspace .gs-rail-collapse-btn:hover svg {
+  stroke: var(--gs-ink);
+}
+
+/* ── Collapsed rail ──────────────────────────── */
+.grindstone-workspace .gs-app--collapsed { grid-template-columns: 54px 1fr; }
+
+.grindstone-workspace .gs-rail--collapsed {
+  padding: 22px 8px 14px;
+  align-items: center;
+  gap: 16px;
+}
+.grindstone-workspace .gs-rail--collapsed .gs-rail-logo {
+  justify-content: center; padding: 0;
+}
+.grindstone-workspace .gs-rail--collapsed .gs-rail-mark {
+  transition: opacity .15s;
+}
+.grindstone-workspace .gs-rail--collapsed .gs-rail-mark:hover {
+  opacity: 0.8;
+}
+.grindstone-workspace .gs-rail--collapsed .gs-rail-nav {
+  width: 100%; align-items: center;
+}
+.grindstone-workspace .gs-rail--collapsed .gs-rail-item {
+  justify-content: center; padding: 8px; width: 38px; height: 38px;
+}
+.grindstone-workspace .gs-rail-item-dot {
+  position: absolute; top: 4px; right: 4px;
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--gs-green);
+}
+.grindstone-workspace .gs-rail-item-on .gs-rail-item-dot {
+  background: var(--gs-green);
+}
+.grindstone-workspace .gs-rail--collapsed .gs-rail-foot {
+  padding: 0; align-items: center;
+}
+.grindstone-workspace .gs-rail--collapsed .gs-rail-streak {
+  flex-direction: column; gap: 2px;
+  padding: 6px 4px; text-align: center;
+  background: transparent; border: none;
+}
+.grindstone-workspace .gs-rail--collapsed .gs-rail-streak-flame { font-size: 14px; }
+.grindstone-workspace .gs-rail--collapsed .gs-rail-streak-num { font-size: 12px; }
+.grindstone-workspace .gs-rail--collapsed .gs-themetoggle {
+  width: 34px; height: 34px; padding: 0;
+  justify-content: center; border-radius: 8px;
+}
 
 /* ── Main area ────────────────────────────────── */
 .grindstone-workspace .gs-main {

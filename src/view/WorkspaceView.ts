@@ -17,6 +17,7 @@ export class GrindstoneWorkspaceView extends ItemView {
   private cardManager: CardManager;
   private startReviewModal: (tag?: string) => void;
   private activeTab: TabId = 'overview';
+  private sidebarCollapsed = false;
   private rootEl!: HTMLElement;
   private mainEl!: HTMLElement;
   private sidebarEl!: HTMLElement;
@@ -50,9 +51,13 @@ export class GrindstoneWorkspaceView extends ItemView {
     container.empty();
     container.addClass('grindstone-workspace');
 
+    // Restore collapsed state from settings
+    this.sidebarCollapsed = !!this.store.getRawStore().getSettings().gsSidebarCollapsed;
+
     // Root element
     this.rootEl = container.createDiv({ cls: 'gs-app gs-root' });
     this.applyThemeOverride();
+    this.applySidebarCollapsed();
 
     // Sidebar rail
     this.sidebarEl = this.rootEl.createEl('aside', { cls: 'gs-rail' });
@@ -82,6 +87,7 @@ export class GrindstoneWorkspaceView extends ItemView {
 
   private renderSidebar(): void {
     this.sidebarEl.empty();
+    this.sidebarEl.toggleClass('gs-rail--collapsed', this.sidebarCollapsed);
     renderSidebar(this.sidebarEl, {
       activeTab: this.activeTab,
       onNavigate: (tab) => this.navigateTo(tab),
@@ -90,6 +96,8 @@ export class GrindstoneWorkspaceView extends ItemView {
       onToggleTheme: () => this.toggleTheme(),
       themeMode: this.store.getRawStore().getSettings().gsTheme,
       isDark: this.isDark(),
+      collapsed: this.sidebarCollapsed,
+      onToggleCollapse: () => this.toggleSidebarCollapse(),
     });
   }
 
@@ -126,6 +134,19 @@ export class GrindstoneWorkspaceView extends ItemView {
     errorDiv.createDiv({ cls: 'gs-error-sub', text: String(err) });
     const retry = errorDiv.createEl('button', { cls: 'gs-error-retry', text: '重试' });
     retry.addEventListener('click', () => this.renderActiveTab());
+  }
+
+  // ── Sidebar collapse ──────────────────────────────────
+
+  private applySidebarCollapsed(): void {
+    this.rootEl.toggleClass('gs-app--collapsed', this.sidebarCollapsed);
+  }
+
+  private toggleSidebarCollapse(): void {
+    this.sidebarCollapsed = !this.sidebarCollapsed;
+    this.applySidebarCollapsed();
+    this.renderSidebar();
+    this.store.getRawStore().updateSettings({ gsSidebarCollapsed: this.sidebarCollapsed });
   }
 
   // ── Theme ─────────────────────────────────────────────

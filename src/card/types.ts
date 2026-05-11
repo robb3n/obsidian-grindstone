@@ -58,6 +58,8 @@ export interface GrindstoneSettings {
   autoShowTags: string[];
   /** Workspace theme: 'light' | 'dark' | undefined (follow Obsidian). */
   gsTheme?: 'light' | 'dark';
+  /** Whether the sidebar rail is collapsed to icon-only mode. */
+  gsSidebarCollapsed?: boolean;
 }
 
 export const DEFAULT_SETTINGS: GrindstoneSettings = {

@@ -26,7 +26,21 @@ export class DataStore {
   }
 
   async save(): Promise<void> {
-    await this.plugin.saveData(this.data);
+    // Strip runtime-only fields before persisting
+    const cleanCards: Record<string, CardData> = {};
+    for (const [id, card] of Object.entries(this.data.cards)) {
+      const { blockStartLine, ...rest } = card;
+      cleanCards[id] = rest as CardData;
+    }
+    await this.plugin.saveData({ ...this.data, cards: cleanCards });
+  }
+
+  needsMigration(): boolean {
+    return this.data.version < 2;
+  }
+
+  setVersion(v: number): void {
+    this.data.version = v;
   }
 
   getSettings(): GrindstoneSettings {

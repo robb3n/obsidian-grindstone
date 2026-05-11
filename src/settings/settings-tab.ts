@@ -66,6 +66,15 @@ export class GrindstoneSettingTab extends PluginSettingTab {
       });
 
     new Setting(containerEl)
+      .setName('嵌入卡片 ID')
+      .setDesc('在触发标签行末尾嵌入 HTML 注释形式的稳定 ID（推荐）。关闭后退回哈希 ID，文件重命名或标题修改会导致 SRS 数据丢失。')
+      .addToggle((toggle) => {
+        toggle.setValue(settings.embedCardIds ?? true).onChange(async (value) => {
+          await this.plugin.store.updateSettings({ embedCardIds: value });
+        });
+      });
+
+    new Setting(containerEl)
       .setName('默认显示内容的标签')
       .setDesc('包含这些标签的卡片在复习时自动展开全部内容。每行一个标签。')
       .addTextArea((text) => {

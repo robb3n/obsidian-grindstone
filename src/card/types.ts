@@ -1,7 +1,7 @@
 export interface CardData {
   file: string;
   blockTitle: string;
-  blockStartLine: number;
+  blockStartLine?: number;
   tags: string[];
   interval: number;
   ease: number;
@@ -55,6 +55,7 @@ export interface GrindstoneSettings {
   excludeTags: string[];
   prefixMatch: boolean;
   writeStarsBack: boolean;
+  embedCardIds: boolean;
   autoShowTags: string[];
   /** Workspace theme: 'light' | 'dark' | undefined (follow Obsidian). */
   gsTheme?: 'light' | 'dark';
@@ -67,11 +68,12 @@ export const DEFAULT_SETTINGS: GrindstoneSettings = {
   excludeTags: [],
   prefixMatch: true,
   writeStarsBack: true,
+  embedCardIds: true,
   autoShowTags: ['#Grind'],
 };
 
 export const DEFAULT_DATA: PluginData = {
-  version: 1,
+  version: 2,
   settings: { ...DEFAULT_SETTINGS },
   cards: {},
   reviewLogs: [],

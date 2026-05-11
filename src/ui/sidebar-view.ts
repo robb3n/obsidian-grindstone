@@ -81,6 +81,7 @@ export class GrindstoneSidebarView extends ItemView {
     renderCardView({
       container: this.contentEl,
       card,
+      cardId: id,
       position: { current: this.currentIndex + 1, total: this.queue.length },
       app: this.app,
       component: this.component,
@@ -115,7 +116,7 @@ export class GrindstoneSidebarView extends ItemView {
       timestamp: today.toISOString().slice(0, 19),
       elapsed,
     });
-    await this.cardManager.writeStarsBack(card, rating);
+    await this.cardManager.writeStarsBack(card, id, rating);
 
     this.currentIndex++;
     this.renderCurrent();

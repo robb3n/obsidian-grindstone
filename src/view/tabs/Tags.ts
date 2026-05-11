@@ -249,7 +249,7 @@ function renderCardRow(
     const back = row.createDiv({ cls: 'tg-row-back' });
     back.createDiv({ cls: 'tg-back-l gs-en', text: 'ANSWER' });
     const answerEl = back.createDiv({ cls: 'tg-back-answer' });
-    loadPromise = ctx.cardManager.getBlockContent(card).then((content) => {
+    loadPromise = ctx.cardManager.getBlockContent(card, id).then((content) => {
       if (content) {
         MarkdownRenderer.render(ctx.app, content, answerEl, card.file, new Component());
       } else {

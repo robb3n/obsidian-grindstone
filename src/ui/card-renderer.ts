@@ -5,6 +5,7 @@ import { CardManager } from '../card/card-manager';
 export interface RenderParams {
   container: HTMLElement;
   card: CardData;
+  cardId: string;
   position: { current: number; total: number };
   app: App;
   component: Component;
@@ -15,7 +16,7 @@ export interface RenderParams {
 }
 
 export async function renderCardView(params: RenderParams): Promise<void> {
-  const { container, card, position, app, component, cardManager, onRate, onClose, autoShow } = params;
+  const { container, card, cardId, position, app, component, cardManager, onRate, onClose, autoShow } = params;
   container.empty();
 
   // Header: card count
@@ -63,7 +64,7 @@ export async function renderCardView(params: RenderParams): Promise<void> {
 
   if (autoShow) {
     // Auto-expand: load and show content immediately
-    const blockContent = await cardManager.getBlockContent(card);
+    const blockContent = await cardManager.getBlockContent(card, cardId);
     await MarkdownRenderer.render(app, blockContent, contentArea, card.file, component);
   } else {
     contentArea.style.display = 'none';
@@ -78,7 +79,7 @@ export async function renderCardView(params: RenderParams): Promise<void> {
   });
   showBtn.addEventListener('click', async () => {
     if (contentArea.style.display === 'none') {
-      const blockContent = await cardManager.getBlockContent(card);
+      const blockContent = await cardManager.getBlockContent(card, cardId);
       contentArea.empty();
       await MarkdownRenderer.render(app, blockContent, contentArea, card.file, component);
       contentArea.style.display = 'block';
@@ -97,15 +98,18 @@ export async function renderCardView(params: RenderParams): Promise<void> {
   jumpBtn.addEventListener('click', async () => {
     const file = app.vault.getAbstractFileByPath(card.file);
     if (file instanceof TFile) {
+      const startLine = await cardManager.getBlockStartLine(card, cardId);
       const leaf = app.workspace.getLeaf('tab');
       await leaf.openFile(file);
-      const editor = app.workspace.activeEditor?.editor;
-      if (editor) {
-        editor.setCursor({ line: card.blockStartLine, ch: 0 });
-        editor.scrollIntoView(
-          { from: { line: card.blockStartLine, ch: 0 }, to: { line: card.blockStartLine, ch: 0 } },
-          true,
-        );
+      if (startLine != null) {
+        const editor = app.workspace.activeEditor?.editor;
+        if (editor) {
+          editor.setCursor({ line: startLine, ch: 0 });
+          editor.scrollIntoView(
+            { from: { line: startLine, ch: 0 }, to: { line: startLine, ch: 0 } },
+            true,
+          );
+        }
       }
     }
     if (onClose) onClose();

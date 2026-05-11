@@ -1,12 +1,14 @@
 import { CachedMetadata, TagCache, HeadingCache } from 'obsidian';
 import { GrindstoneSettings } from '../card/types';
+import { extractEmbeddedId, GS_ID_STRIP_REGEX } from '../card/card-id';
 
 export interface CardBlock {
-  title: string;        // cleaned title (no stars, no tags, no heading markers)
+  title: string;        // cleaned title (no stars, no tags, no heading markers, no ID comment)
   startLine: number;    // the trigger line itself
   endLine: number;      // exclusive
   tags: string[];       // all tags found within block range
   rawTitleLine: string; // original line text (for star writeback)
+  embeddedId: string | null; // gs:XXXX if present, null otherwise
 }
 
 /**
@@ -87,7 +89,8 @@ export function parseCardBlocks(
       )
       .map((t: TagCache) => t.tag);
 
-    blocks.push({ title, startLine, endLine, tags: blockTags, rawTitleLine });
+    const embeddedId = extractEmbeddedId(rawTitleLine);
+    blocks.push({ title, startLine, endLine, tags: blockTags, rawTitleLine, embeddedId });
   }
 
   return blocks;
@@ -105,6 +108,8 @@ export function extractTitle(line: string): string {
   s = s.replace(/^[\u2B50\uFE0F]+/, '');
   // Strip inline tags (#tag, #tag/sub)
   s = s.replace(/#[^\s]+/g, '');
+  // Strip embedded card ID comment
+  s = s.replace(GS_ID_STRIP_REGEX, '');
   return s.trim();
 }
 

@@ -143,9 +143,10 @@ export class GrindstoneBrowserView extends ItemView {
           const view = leaf.view;
           if ('editor' in view) {
             const editor = (view as any).editor;
-            editor.setCursor({ line: card.blockStartLine, ch: 0 });
+            const line = card.blockStartLine ?? 0;
+            editor.setCursor({ line, ch: 0 });
             editor.scrollIntoView(
-              { from: { line: card.blockStartLine, ch: 0 }, to: { line: card.blockStartLine, ch: 0 } },
+              { from: { line, ch: 0 }, to: { line, ch: 0 } },
               true,
             );
           }

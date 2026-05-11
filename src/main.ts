@@ -28,17 +28,26 @@ export default class GrindstonePlugin extends Plugin {
       ),
     );
 
-    // Full scan once layout is ready
+    // Full scan once layout is ready (with migration if needed)
     this.app.workspace.onLayoutReady(async () => {
+      if (this.store.needsMigration() && this.store.getSettings().embedCardIds) {
+        console.log('[Grindstone] Migrating to embedded card IDs...');
+        const result = await this.cardManager.migrateToEmbeddedIds();
+        this.store.setVersion(2);
+        await this.store.save();
+        console.log(`[Grindstone] Migration complete: ${result.migrated} migrated, ${result.failed} failed`);
+      }
+
       await this.cardManager.fullScan();
       console.log(
         `[Grindstone] Full scan complete. Cards: ${Object.keys(this.store.getAllCards()).length}`,
       );
     });
 
-    // Incremental update on metadata change
+    // Incremental update on metadata change (skip re-entrant scans from ID embedding)
     this.registerEvent(
       this.app.metadataCache.on('changed', async (file: TFile) => {
+        if (this.cardManager.isWritingIds(file.path)) return;
         await this.cardManager.scanFile(file);
         await this.store.save();
       }),

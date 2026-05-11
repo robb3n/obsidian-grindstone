@@ -1,6 +1,6 @@
 {
   "name": "obsidian-grindstone",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Inline-tag-driven spaced repetition for Obsidian",
   "main": "main.js",
   "scripts": {

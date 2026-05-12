@@ -714,8 +714,8 @@ body.theme-dark .grindstone-workspace:not(.gs-force-light) .gs-rail-item-on,
 .grindstone-workspace .rv-section-wrap { padding-top: 6px; }
 
 /* Launch */
-.grindstone-workspace .rv-launch { display: grid; grid-template-columns: 1fr 280px; gap: 24px; align-items: start; }
-.grindstone-workspace .rv-launch-l { display: flex; flex-direction: column; gap: 18px; }
+.grindstone-workspace .rv-launch { display: flex; justify-content: center; width: 100%; }
+.grindstone-workspace .rv-launch-l { display: flex; flex-direction: column; gap: 18px; width: 100%; max-width: 720px; }
 .grindstone-workspace .rv-launch-h { display: flex; flex-direction: column; gap: 4px; }
 .grindstone-workspace .rv-launch-eyebrow { font-size: 9px; letter-spacing: 0.24em; color: var(--gs-ink-3); font-weight: 600; }
 .grindstone-workspace .rv-launch-title { margin: 0; font: 600 26px var(--gs-font-zh); color: var(--gs-ink); letter-spacing: 0.04em; }
@@ -794,6 +794,12 @@ body.theme-dark .grindstone-workspace:not(.gs-force-light) .gs-rail-item-on,
 /* Debrief */
 .grindstone-workspace .rv-debrief { display: flex; flex-direction: column; gap: 18px; }
 .grindstone-workspace .rv-debrief-empty { padding: 60px 20px; text-align: center; color: var(--gs-ink-3); font-size: 13px; }
+
+/* Section headers (上次会话 / 历史与累计) */
+.grindstone-workspace .rv-section-head { display: flex; align-items: baseline; gap: 12px; padding-bottom: 6px; }
+.grindstone-workspace .rv-section-head-2 { margin-top: 14px; padding-top: 18px; border-top: 1px solid var(--gs-line); }
+.grindstone-workspace .rv-section-title { margin: 0; font: 600 18px var(--gs-font-zh); color: var(--gs-ink); letter-spacing: 0.04em; }
+.grindstone-workspace .rv-section-sub { font-size: 11px; color: var(--gs-ink-3); letter-spacing: 0.04em; }
 .grindstone-workspace .rv-debrief-h { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; padding-bottom: 14px; border-bottom: 1px solid var(--gs-line); }
 .grindstone-workspace .rv-debrief-eyebrow { font-size: 9px; letter-spacing: 0.24em; color: var(--gs-ink-3); font-weight: 600; }
 .grindstone-workspace .rv-debrief-title { margin: 4px 0 0; font: 600 24px var(--gs-font-zh); color: var(--gs-ink); letter-spacing: 0.04em; }
@@ -902,6 +908,7 @@ body.theme-dark .grindstone-workspace:not(.gs-force-light) .gs-rail-item-on,
 .grindstone-workspace .tg-tree-name { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .grindstone-workspace .tg-tree-n { font-size: 10px; color: var(--gs-ink-3); background: var(--gs-paper-2); padding: 1px 5px; border-radius: 3px; }
 .grindstone-workspace .tg-tree-row-on .tg-tree-n { background: rgba(31,77,58,.16); color: var(--gs-green); }
+
 .grindstone-workspace .tg-main { overflow: auto; padding: 18px 28px 24px; display: flex; flex-direction: column; gap: 14px; max-height: calc(100vh - 80px); }
 .grindstone-workspace .tg-breadcrumb { display: flex; align-items: center; gap: 6px; padding: 4px 0; font-size: 12px; }
 .grindstone-workspace .tg-bc-seg { border: 0; background: transparent; color: var(--gs-ink); cursor: pointer; padding: 4px 8px; border-radius: 6px; font-family: inherit; font-size: 13px; font-weight: 500; transition: background .12s; }
@@ -971,10 +978,49 @@ body.theme-dark .grindstone-workspace:not(.gs-force-light) .gs-rail-item-on,
 .grindstone-workspace .tg-load-more { width: 100%; padding: 12px; border: 0; background: var(--gs-paper); color: var(--gs-green); font: 500 12px var(--gs-font-zh); cursor: pointer; transition: background .15s; }
 .grindstone-workspace .tg-load-more:hover { background: var(--gs-green-soft); }
 
-/* ── SRS Settings Section ──────────────────────────────── */
+/* ── Settings: Sticky top nav (PDF++ pattern) ────────────── */
+.gs-settings { padding-top: 0 !important; }
+.gs-settings .gs-nav-strip {
+  position: sticky; top: 0; z-index: 10;
+  display: flex; gap: 4px; align-items: center; justify-content: center;
+  padding: 8px 12px;
+  background-color: var(--background-secondary);
+  border-bottom: 1px solid var(--background-modifier-border);
+  margin: 0 -16px 16px;
+}
+.gs-settings .gs-nav-icon { cursor: pointer; }
+.gs-section-anchor { scroll-margin-top: 60px; }
+
+/* ── Settings: Section grouping (h2 + sub) ──────────────────
+   Title is rendered via MarkdownRenderer into a .markdown-rendered wrapper,
+   so the active theme's h2/h3 decorations (Blue Topaz underline etc.) apply. */
+.gs-set-section { margin-top: 28px; padding-top: 18px; border-top: 1px solid var(--background-modifier-border); }
+.gs-set-section:first-of-type { margin-top: 0; padding-top: 0; border-top: 0; }
+.gs-set-header { margin-bottom: 14px; }
+.gs-set-title-md > * { margin: 0; }
+.gs-set-title-md h2 { margin: 0 0 4px !important; }
+.gs-set-sub { font-size: 11px; letter-spacing: 0.14em; color: var(--text-muted); }
+
+/* ── Settings: Subsection (h3 + sub, e.g. 全局默认 / 卡组策略) ── */
+.gs-subsection-header { margin: 26px 0 12px; padding-top: 12px; border-top: 1px dashed var(--background-modifier-border); }
+.gs-subsection-header:first-of-type { margin-top: 8px; padding-top: 0; border-top: 0; }
+.gs-subsection-title-md > * { margin: 0; }
+.gs-subsection-title-md h3 { margin: 0 0 3px !important; }
+.gs-subsection-sub { font-size: 10px; letter-spacing: 0.14em; color: var(--text-muted); }
+
+/* ── SRS Settings (legacy class kept for any inner refs) ── */
 .gs-srs-section { margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--background-modifier-border); }
 .gs-srs-header h2 { margin: 0 0 2px; }
 .gs-srs-sub { font-size: 10px; letter-spacing: 0.16em; color: var(--text-muted); margin-bottom: 16px; }
+
+/* Per-deck strategy list (under 卡组策略 section) */
+.gs-deck-strategy-list { display: flex; flex-direction: column; gap: 6px; }
+.gs-deck-strategy-row { display: flex; align-items: center; gap: 12px; padding: 8px 12px; border: 1px solid var(--background-modifier-border); border-radius: 6px; }
+.gs-deck-strategy-meta { flex: 1; display: flex; align-items: baseline; gap: 10px; min-width: 0; }
+.gs-deck-strategy-name { font-weight: 600; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gs-deck-strategy-count { font-size: 11px; color: var(--text-muted); }
+.gs-deck-strategy-select { padding: 4px 8px; border: 1px solid var(--background-modifier-border); border-radius: 4px; background: var(--background-primary); font-size: 12px; color: var(--text-normal); cursor: pointer; }
+.gs-deck-strategy-empty { padding: 16px; text-align: center; color: var(--text-muted); font-size: 12px; }
 
 /* Preset grid */
 .gs-preset-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }

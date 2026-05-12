@@ -1,9 +1,17 @@
-import { App, PluginSettingTab, Setting } from 'obsidian';
+import { App, PluginSettingTab, Setting, setIcon, setTooltip, MarkdownRenderer } from 'obsidian';
 import type GrindstonePlugin from '../main';
 import {
   SrsParams, DEFAULT_SRS_PARAMS, SrsPreset, BUILTIN_PRESETS,
 } from '../card/types';
 import { renderSrsVisualization } from './srs-visualization';
+import { DeckResetConfirmModal } from '../view/strategy-modals';
+
+type SectionDef = {
+  id: string;
+  zh: string;
+  icon: string;
+  render: (container: HTMLElement) => void;
+};
 
 export class GrindstoneSettingTab extends PluginSettingTab {
   plugin: GrindstonePlugin;
@@ -16,12 +24,75 @@ export class GrindstoneSettingTab extends PluginSettingTab {
   display(): void {
     const { containerEl } = this;
     containerEl.empty();
+    containerEl.addClass('gs-settings');
 
-    containerEl.createEl('h2', { text: 'Grindstone Settings' });
+    const SECTIONS: SectionDef[] = [
+      { id: 'card-id',         zh: '卡片识别', icon: 'tag',        render: this.renderCardIdSection.bind(this) },
+      { id: 'review-behavior', zh: '复习行为', icon: 'book-open',  render: this.renderReviewBehaviorSection.bind(this) },
+      { id: 'srs-strategy',    zh: 'SRS 策略', icon: 'sliders',    render: this.renderSrsStrategySection.bind(this) },
+    ];
+
+    // Maps from section id to nav-icon / section-element. Declared before
+    // listeners that reference them (click handlers fire after both maps are populated).
+    const iconEls = new Map<string, HTMLElement>();
+    const sectionEls = new Map<string, HTMLElement>();
+
+    // ── Sticky top nav strip ──
+    const navStrip = containerEl.createDiv({ cls: 'gs-nav-strip' });
+
+    for (const s of SECTIONS) {
+      const icon = navStrip.createDiv({ cls: 'clickable-icon gs-nav-icon' });
+      setIcon(icon, s.icon);
+      setTooltip(icon, s.zh);
+      icon.addEventListener('click', () => {
+        const target = sectionEls.get(s.id);
+        if (target) {
+          const stripH = navStrip.getBoundingClientRect().height;
+          const rect = target.getBoundingClientRect();
+          const containerRect = containerEl.getBoundingClientRect();
+          containerEl.scrollBy({ top: rect.top - containerRect.top - stripH - 8, behavior: 'smooth' });
+        }
+      });
+      iconEls.set(s.id, icon);
+    }
+
+    // ── Content area: render each section ──
+    for (const s of SECTIONS) {
+      const sectionEl = containerEl.createDiv({ cls: 'gs-section-anchor' });
+      sectionEls.set(s.id, sectionEl);
+      s.render(sectionEl);
+    }
+
+    // ── Scroll-spy: highlight active nav icon based on which section is in viewport ──
+    const updateActive = () => {
+      const stripBottom = navStrip.getBoundingClientRect().bottom;
+      let activeId = SECTIONS[0].id;
+      for (const s of SECTIONS) {
+        const el = sectionEls.get(s.id);
+        if (!el) continue;
+        const top = el.getBoundingClientRect().top;
+        if (top - stripBottom < 24) activeId = s.id;
+      }
+      for (const [id, el] of iconEls) {
+        el.toggleClass('is-active', id === activeId);
+      }
+    };
+
+    containerEl.addEventListener('scroll', updateActive, { passive: true });
+    // Initial state — after a tick so layout is settled.
+    setTimeout(updateActive, 0);
+  }
+
+  // ════════════════════════════════════════════════
+  // Section 1: 卡片识别
+  // ════════════════════════════════════════════════
+  private renderCardIdSection(containerEl: HTMLElement): void {
+    const section = containerEl.createDiv({ cls: 'gs-set-section' });
+    this.sectionHeader(section, '卡片识别', 'CARD IDENTIFICATION · 哪些 tag 行算卡片、ID 怎么生成');
 
     const settings = this.plugin.store.getSettings();
 
-    new Setting(containerEl)
+    new Setting(section)
       .setName('触发标签')
       .setDesc('包含这些标签的行会被识别为复习卡片。每行一个标签,带 # 前缀。')
       .addTextArea((text) => {
@@ -36,7 +107,7 @@ export class GrindstoneSettingTab extends PluginSettingTab {
         text.inputEl.cols = 30;
       });
 
-    new Setting(containerEl)
+    new Setting(section)
       .setName('排除标签')
       .setDesc('包含这些标签的行会被跳过。每行一个标签。')
       .addTextArea((text) => {
@@ -51,7 +122,7 @@ export class GrindstoneSettingTab extends PluginSettingTab {
         text.inputEl.cols = 30;
       });
 
-    new Setting(containerEl)
+    new Setting(section)
       .setName('前缀匹配')
       .setDesc('启用后,配置 #考研数学 将匹配 #考研数学/高数/极限 等子标签。')
       .addToggle((toggle) => {
@@ -60,16 +131,7 @@ export class GrindstoneSettingTab extends PluginSettingTab {
         });
       });
 
-    new Setting(containerEl)
-      .setName('评分回写星号')
-      .setDesc('复习评分后在源文件行首写入星号:Again=⭐️⭐️⭐️, Hard=⭐️⭐️, Good=⭐️, Easy=无。')
-      .addToggle((toggle) => {
-        toggle.setValue(settings.writeStarsBack).onChange(async (value) => {
-          await this.plugin.store.updateSettings({ writeStarsBack: value });
-        });
-      });
-
-    new Setting(containerEl)
+    new Setting(section)
       .setName('嵌入卡片 ID')
       .setDesc('在触发标签行末尾嵌入 HTML 注释形式的稳定 ID（推荐）。关闭后退回哈希 ID，文件重命名或标题修改会导致 SRS 数据丢失。')
       .addToggle((toggle) => {
@@ -77,8 +139,18 @@ export class GrindstoneSettingTab extends PluginSettingTab {
           await this.plugin.store.updateSettings({ embedCardIds: value });
         });
       });
+  }
 
-    new Setting(containerEl)
+  // ════════════════════════════════════════════════
+  // Section 2: 复习行为
+  // ════════════════════════════════════════════════
+  private renderReviewBehaviorSection(containerEl: HTMLElement): void {
+    const section = containerEl.createDiv({ cls: 'gs-set-section' });
+    this.sectionHeader(section, '复习行为', 'REVIEW BEHAVIOR · 复习时的交互与回写');
+
+    const settings = this.plugin.store.getSettings();
+
+    new Setting(section)
       .setName('默认显示内容的标签')
       .setDesc('包含这些标签的卡片在复习时自动展开全部内容。每行一个标签。')
       .addTextArea((text) => {
@@ -93,26 +165,64 @@ export class GrindstoneSettingTab extends PluginSettingTab {
         text.inputEl.cols = 30;
       });
 
-    // ── SRS Strategy Section ──
-
-    this.renderSrsSection(containerEl);
+    new Setting(section)
+      .setName('评分回写星号')
+      .setDesc('复习评分后在源文件行首写入星号:Again=⭐️⭐️⭐️, Hard=⭐️⭐️, Good=⭐️, Easy=无。')
+      .addToggle((toggle) => {
+        toggle.setValue(settings.writeStarsBack).onChange(async (value) => {
+          await this.plugin.store.updateSettings({ writeStarsBack: value });
+        });
+      });
   }
 
-  private renderSrsSection(containerEl: HTMLElement): void {
-    const section = containerEl.createDiv({ cls: 'gs-srs-section' });
-    const hdr = section.createDiv({ cls: 'gs-srs-header' });
-    hdr.createEl('h2', { text: 'SRS 策略（全局默认）' });
-    hdr.createDiv({ cls: 'gs-srs-sub gs-en', text: 'GLOBAL DEFAULT · 未绑定策略的卡组使用此参数' });
+  // ════════════════════════════════════════════════
+  // Section 3: SRS 策略 (h3 sub-sections, flat layout)
+  // ════════════════════════════════════════════════
+  private renderSrsStrategySection(containerEl: HTMLElement): void {
+    const section = containerEl.createDiv({ cls: 'gs-set-section gs-set-section-strategy' });
+    this.sectionHeader(section, 'SRS 策略', 'SRS STRATEGY · 间隔算法与每卡组覆盖');
 
+    // ── 全局默认 ──
+    this.subsectionHeader(section, '全局默认', 'GLOBAL DEFAULT · 未绑定策略的卡组使用此参数');
+    this.renderGlobalDefaultPanel(section);
+
+    // ── 卡组策略 ──
+    this.subsectionHeader(section, '卡组策略', 'PER-DECK · 顶级标签使用不同策略时在此覆盖');
+    this.renderDeckStrategyPanel(section);
+  }
+
+  // ── Helper: subsection header (h3, markdown-rendered for theme inheritance) ──
+  private subsectionHeader(section: HTMLElement, zh: string, enSub: string): void {
+    const hdr = section.createDiv({ cls: 'gs-subsection-header' });
+    const titleWrap = hdr.createDiv({ cls: 'gs-subsection-title-md markdown-rendered' });
+    MarkdownRenderer.render(this.app, `### ${zh}`, titleWrap, '', this.plugin);
+    hdr.createDiv({ cls: 'gs-subsection-sub gs-en', text: enSub });
+  }
+
+  // ── Helper: section header ──
+  // Render the title as real markdown so it inherits the user's theme (Blue Topaz,
+  // Style Settings, etc.) — incl. underline/color decorations that scope to
+  // .markdown-rendered. The settings tab itself isn't in that scope by default.
+  private sectionHeader(section: HTMLElement, zh: string, enSub: string): void {
+    const hdr = section.createDiv({ cls: 'gs-set-header' });
+    const titleWrap = hdr.createDiv({ cls: 'gs-set-title-md markdown-rendered' });
+    MarkdownRenderer.render(this.app, `## ${zh}`, titleWrap, '', this.plugin);
+    hdr.createDiv({ cls: 'gs-set-sub gs-en', text: enSub });
+  }
+
+  // ── 全局默认: preset cards + param editors + visualization (flat layout) ──
+  private renderGlobalDefaultPanel(container: HTMLElement): void {
     const settings = this.plugin.store.getSettings();
     let currentParams: SrsParams = { ...(settings.srsParams ?? DEFAULT_SRS_PARAMS) };
     let activePresetId = settings.activePresetId ?? 'sm2-default';
     const customPresets: SrsPreset[] = [...(settings.customPresets ?? [])];
 
-    // ── Preset selector ──
-    const presetWrap = section.createDiv({ cls: 'gs-preset-grid' });
-
+    const presetWrap = container.createDiv({ cls: 'gs-preset-grid' });
     const allPresets = (): SrsPreset[] => [...BUILTIN_PRESETS, ...customPresets];
+
+    const findPreset = (id: string): SrsPreset => {
+      return allPresets().find(p => p.id === id) ?? BUILTIN_PRESETS[0];
+    };
 
     const renderPresets = () => {
       presetWrap.empty();
@@ -151,12 +261,7 @@ export class GrindstoneSettingTab extends PluginSettingTab {
       }
     };
 
-    const findPreset = (id: string): SrsPreset => {
-      return allPresets().find(p => p.id === id) ?? BUILTIN_PRESETS[0];
-    };
-
-    // ── Parameter editors ──
-    const paramWrap = section.createDiv({ cls: 'gs-param-wrap' });
+    const paramWrap = container.createDiv({ cls: 'gs-param-wrap' });
 
     type ParamDef = {
       key: keyof SrsParams;
@@ -198,7 +303,6 @@ export class GrindstoneSettingTab extends PluginSettingTab {
       },
     ];
 
-    // Slider value references for live update
     const valueEls = new Map<keyof SrsParams, HTMLElement>();
 
     const renderParamEditors = () => {
@@ -234,7 +338,6 @@ export class GrindstoneSettingTab extends PluginSettingTab {
             const v = parseFloat(slider.value);
             (currentParams as unknown as Record<string, number>)[p.key] = v;
             valEl.textContent = fmt(v);
-            // Mark as custom if params diverge from active preset
             clearTimeout(debounceTimer);
             debounceTimer = setTimeout(() => {
               renderViz();
@@ -248,8 +351,7 @@ export class GrindstoneSettingTab extends PluginSettingTab {
       }
     };
 
-    // ── Visualization ──
-    const vizWrap = section.createDiv({ cls: 'gs-srs-viz-wrap' });
+    const vizWrap = container.createDiv({ cls: 'gs-srs-viz-wrap' });
     const vizH = vizWrap.createDiv({ cls: 'gs-srs-viz-h' });
     vizH.createSpan({ text: '间隔增长预览' });
     vizH.createSpan({ cls: 'gs-en', text: 'INTERVAL PROJECTION' });
@@ -259,8 +361,7 @@ export class GrindstoneSettingTab extends PluginSettingTab {
       renderSrsVisualization(vizContainer, currentParams);
     };
 
-    // ── Action buttons ──
-    const actions = section.createDiv({ cls: 'gs-srs-actions' });
+    const actions = container.createDiv({ cls: 'gs-srs-actions' });
 
     const resetBtn = actions.createEl('button', { cls: 'gs-btn', text: '重置为预设' });
     resetBtn.addEventListener('click', async () => {
@@ -287,7 +388,6 @@ export class GrindstoneSettingTab extends PluginSettingTab {
       renderPresets();
     });
 
-    // ── Persistence helper ──
     const persist = async () => {
       await this.plugin.store.updateSettings({
         srsParams: { ...currentParams },
@@ -296,9 +396,73 @@ export class GrindstoneSettingTab extends PluginSettingTab {
       });
     };
 
-    // Initial render
     renderPresets();
     renderParamEditors();
     renderViz();
+  }
+
+  // ── Tab content: 卡组策略 (per-deck override list) ──
+  private renderDeckStrategyPanel(container: HTMLElement): void {
+    const tree = this.plugin.gsStore.getDeckTree();
+
+    if (tree.length === 0) {
+      container.createDiv({
+        cls: 'gs-deck-strategy-empty',
+        text: '暂无卡组。添加触发标签并在笔记中使用后，顶级标签会出现在此处。',
+      });
+      return;
+    }
+
+    const settings = this.plugin.store.getSettings();
+    const customPresets = settings.customPresets ?? [];
+    const allPresets: Array<{ id: string; name: string }> = [
+      { id: '__default__', name: '全局默认' },
+      ...BUILTIN_PRESETS.map(p => ({ id: p.id, name: p.name })),
+      ...customPresets.map(p => ({ id: p.id, name: p.name })),
+    ];
+
+    const list = container.createDiv({ cls: 'gs-deck-strategy-list' });
+
+    for (const deck of tree) {
+      const overrides = this.plugin.store.getSettings().deckSrsOverrides ?? {};
+      const currentValue = overrides[deck.fullTag];
+      const currentId = currentValue === undefined
+        ? '__default__'
+        : (typeof currentValue === 'string' ? currentValue : '__default__');
+
+      const row = list.createDiv({ cls: 'gs-deck-strategy-row' });
+      const meta = row.createDiv({ cls: 'gs-deck-strategy-meta' });
+      meta.createSpan({ cls: 'gs-deck-strategy-name', text: '#' + deck.fullTag });
+      meta.createSpan({ cls: 'gs-deck-strategy-count gs-mono', text: `${deck.count} 张` });
+
+      const select = row.createEl('select', { cls: 'gs-deck-strategy-select dropdown' });
+      for (const preset of allPresets) {
+        const opt = select.createEl('option', { value: preset.id, text: preset.name });
+        if (preset.id === currentId) opt.selected = true;
+      }
+
+      select.addEventListener('change', () => {
+        const newId = select.value;
+        if (newId === currentId) return;
+
+        const targetName = allPresets.find(p => p.id === newId)?.name ?? '全局默认';
+        const newPresetsAll = [...BUILTIN_PRESETS, ...customPresets];
+        const resolvedParams = newId === '__default__'
+          ? this.plugin.gsStore.getSrsParams()
+          : newPresetsAll.find(p => p.id === newId)?.params ?? this.plugin.gsStore.getSrsParams();
+
+        // Revert select visually until user confirms — modal handles the actual write.
+        select.value = currentId;
+
+        new DeckResetConfirmModal(
+          this.app,
+          deck.fullTag,
+          targetName,
+          resolvedParams,
+          this.plugin.gsStore,
+          () => this.display(),
+        ).open();
+      });
+    }
   }
 }

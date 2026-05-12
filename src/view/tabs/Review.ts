@@ -2,7 +2,6 @@ import { Component, MarkdownRenderer, TFile } from 'obsidian';
 import { Rating } from '../../card/types';
 import { ReviewEngine, formatInterval } from '../../review/review-engine';
 import { TabContext } from './types';
-import { renderDeckTable } from './Decks';
 
 const RATING_DEFS: { rating: Rating; zh: string; en: string; key: string; cls: string }[] = [
   { rating: 'again', zh: '重来', en: 'Again', key: '1', cls: 'rv-live-r-again' },
@@ -53,7 +52,6 @@ function renderPreFlight(container: HTMLElement, ctx: TabContext): void {
 
   const SECTIONS = [
     { id: 'launch', zh: '启动', en: 'PRE-FLIGHT' },
-    { id: 'decks', zh: '卡组', en: 'DECKS' },
     { id: 'debrief', zh: '复盘', en: 'DEBRIEF' },
   ];
 
@@ -71,7 +69,6 @@ function renderPreFlight(container: HTMLElement, ctx: TabContext): void {
   const renderSection = () => {
     sectionWrap.empty();
     if (activeTab === 'launch') renderLaunch(sectionWrap, dueCount, newCount, ctx);
-    else if (activeTab === 'decks') renderDeckTable(sectionWrap, ctx);
     else if (activeTab === 'debrief') renderDebrief(sectionWrap, sessions, ctx);
   };
 
@@ -436,9 +433,13 @@ function renderDebrief(parent: HTMLElement, sessions: any[], ctx: TabContext): v
   const r = last.ratings;
   const accuracy = r ? Math.round(((r.good + r.easy) / last.cards) * 100) : 0;
 
+  // ── Section 1: 上次会话 ──
+  const sec1Head = debrief.createDiv({ cls: 'rv-section-head' });
+  sec1Head.createEl('h2', { cls: 'rv-section-title', text: '上次会话' });
+  sec1Head.createDiv({ cls: 'rv-section-sub gs-mono', text: `${last.date} \u00B7 ${last.minutes} 分钟` });
+
   const hdr = debrief.createEl('header', { cls: 'rv-debrief-h' });
   const hdrL = hdr.createDiv();
-  hdrL.createDiv({ cls: 'rv-debrief-eyebrow gs-en', text: `DEBRIEF \u00B7 上次会话 \u00B7 ${last.date}` });
   hdrL.createEl('h2', { cls: 'rv-debrief-title', text: `${last.cards} 张 \u00B7 ${last.minutes} 分钟` });
   hdrL.createEl('p', { cls: 'rv-debrief-scope gs-mono', text: last.scope?.join(' + ') || '' });
 
@@ -469,6 +470,11 @@ function renderDebrief(parent: HTMLElement, sessions: any[], ctx: TabContext): v
   btnOverview.addEventListener('click', () => ctx.onNavigate('overview'));
   const btnStats = actions.createEl('button', { cls: 'gs-btn gs-btn-primary', text: '查看完整统计 →' });
   btnStats.addEventListener('click', () => ctx.onNavigate('stats'));
+
+  // ── Section 2: 历史与累计 ──
+  const sec2Head = debrief.createDiv({ cls: 'rv-section-head rv-section-head-2' });
+  sec2Head.createEl('h2', { cls: 'rv-section-title', text: '历史与累计' });
+  sec2Head.createDiv({ cls: 'rv-section-sub gs-mono', text: '近 7 日 \u00B7 RECENT 7 DAYS' });
 
   renderHistory(debrief, sessions);
 }

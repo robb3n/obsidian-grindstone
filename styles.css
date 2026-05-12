@@ -950,6 +950,10 @@ body.theme-dark .grindstone-workspace:not(.gs-force-light) .gs-rail-item-on,
 .grindstone-workspace .tg-row { display: grid; grid-template-columns: 2.4fr 2fr 70px 56px 80px 36px; align-items: center; gap: 14px; padding: 10px 16px; border-bottom: 1px solid var(--gs-line); font-size: 13px; transition: background .12s; }
 .grindstone-workspace .tg-row:last-child { border-bottom: 0; }
 .grindstone-workspace .tg-row-head { background: var(--gs-paper); font-size: 9px; letter-spacing: 0.2em; color: var(--gs-ink-3); font-weight: 600; padding: 8px 16px; }
+.grindstone-workspace .tg-c-head-sortable { cursor: pointer; user-select: none; transition: color .12s; display: inline-flex; align-items: center; gap: 4px; }
+.grindstone-workspace .tg-c-head-sortable:hover { color: var(--gs-ink-2); }
+.grindstone-workspace .tg-c-head-active { color: var(--gs-ink); }
+.grindstone-workspace .tg-sort-arrow { font-size: 10px; letter-spacing: 0; line-height: 1; }
 .grindstone-workspace .tg-row-main { display: contents; cursor: pointer; }
 .grindstone-workspace .tg-row:not(.tg-row-head):hover { background: var(--gs-paper); }
 .grindstone-workspace .tg-row-open { background: var(--gs-paper); }

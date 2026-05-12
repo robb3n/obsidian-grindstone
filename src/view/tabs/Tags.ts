@@ -2,10 +2,15 @@ import { MarkdownRenderer, Component, setTooltip } from 'obsidian';
 import { TagTreeNode, CardEntry } from '../../store/GrindstoneStore';
 import { TabContext } from './types';
 
+type SortField = 'front' | 'interval' | 'ef' | 'due';
+type SortDir = 'asc' | 'desc';
+
 export function renderTags(container: HTMLElement, ctx: TabContext, initialTag?: string): void {
   const selectedTags = new Set<string>(initialTag ? [initialTag] : []);
   let search = '';
   const expanded: Record<string, boolean> = {};
+  let sortField: SortField = 'ef';
+  let sortDir: SortDir = 'asc';
 
   const tree = ctx.store.getTagTree();
   // Auto-expand top-level
@@ -272,7 +277,7 @@ export function renderTags(container: HTMLElement, ctx: TabContext, initialTag?:
     // Preserve the filter bar, clear everything else
     while (main.children.length > 1) main.removeChild(main.lastChild!);
 
-    const cards = ctx.store.getCardsByTags(selectedTags, search || undefined);
+    const cards = sortCards(ctx.store.getCardsByTags(selectedTags, search || undefined), sortField, sortDir);
 
     tagCountPill.textContent = `${tree.length} 个标签`;
     matchPill.textContent = `${cards.length} 张匹配`;
@@ -310,11 +315,29 @@ export function renderTags(container: HTMLElement, ctx: TabContext, initialTag?:
 
     // Table head
     const headRow = table.createDiv({ cls: 'tg-row tg-row-head gs-en' });
-    headRow.createSpan({ cls: 'tg-c-front', text: 'QUESTION' });
+    const makeSortHead = (cls: string, field: SortField, label: string) => {
+      const isActive = sortField === field;
+      const el = headRow.createSpan({ cls: `${cls} tg-c-head-sortable${isActive ? ' tg-c-head-active' : ''}` });
+      el.createSpan({ cls: 'tg-c-head-label', text: label });
+      if (isActive) {
+        el.createSpan({ cls: 'tg-sort-arrow', text: sortDir === 'asc' ? '↑' : '↓' });
+      }
+      el.addEventListener('click', () => {
+        if (sortField === field) {
+          sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+        } else {
+          sortField = field;
+          sortDir = 'asc';
+        }
+        renderFilterBar();
+        renderMain();
+      });
+    };
+    makeSortHead('tg-c-front', 'front', 'QUESTION');
     headRow.createSpan({ cls: 'tg-c-tags', text: 'TAGS' });
-    headRow.createSpan({ cls: 'tg-c-int', text: 'INTERVAL' });
-    headRow.createSpan({ cls: 'tg-c-ef', text: 'EF' });
-    headRow.createSpan({ cls: 'tg-c-due', text: 'DUE' });
+    makeSortHead('tg-c-int', 'interval', 'INTERVAL');
+    makeSortHead('tg-c-ef', 'ef', 'EF');
+    makeSortHead('tg-c-due', 'due', 'DUE');
     headRow.createSpan({ cls: 'tg-c-act' });
 
     if (cards.length === 0) {
@@ -446,6 +469,23 @@ function renderCardRow(
     meta.innerHTML = `<span class="gs-en">ID</span> <code>${id}</code> <span class="gs-en">REPS</span> <span class="gs-mono">${card.reviewCount}</span> <span class="gs-en">DUE</span> <span class="gs-mono">${card.due}</span> <span class="gs-en">FILE</span> <span class="gs-mono">${card.file}</span>`;
   }
   return { row, loadPromise };
+}
+
+function sortCards(cards: CardEntry[], field: SortField, dir: SortDir): CardEntry[] {
+  const mul = dir === 'asc' ? 1 : -1;
+  const cmp = (a: CardEntry, b: CardEntry): number => {
+    switch (field) {
+      case 'front':
+        return a.card.blockTitle.toLowerCase().localeCompare(b.card.blockTitle.toLowerCase());
+      case 'interval':
+        return a.card.interval - b.card.interval;
+      case 'ef':
+        return a.card.ease - b.card.ease;
+      case 'due':
+        return a.card.due < b.card.due ? -1 : a.card.due > b.card.due ? 1 : 0;
+    }
+  };
+  return [...cards].sort((a, b) => cmp(a, b) * mul);
 }
 
 function scrollRowToOffset(row: HTMLElement, topOffset: number): void {

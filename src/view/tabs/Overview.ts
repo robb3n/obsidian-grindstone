@@ -3,9 +3,12 @@ import { RatingsData } from '../../store/GrindstoneStore';
 import { countUp } from '../anim';
 
 const MOTIVATIONAL = [
-  { zh: '不积跬步，无以至千里', en: 'A journey of a thousand miles begins with a single step.' },
-  { zh: '玉不琢，不成器', en: 'Jade uncut shines not.' },
-  { zh: '日拱一卒，功不唐捐', en: 'A pawn moves daily; effort is never wasted.' },
+  '迈进',
+  '纸上得来终觉浅',
+  '博观约取',
+  '厚积薄发',
+  '等待与希望',
+  '不积跬步，无以至千里',
 ];
 
 export function renderOverview(container: HTMLElement, ctx: TabContext): void {
@@ -31,8 +34,7 @@ export function renderOverview(container: HTMLElement, ctx: TabContext): void {
   // Motivational quote
   const motiv = MOTIVATIONAL[now.getDate() % MOTIVATIONAL.length];
   const quote = headR.createDiv({ cls: 'ov-quote' });
-  quote.createSpan({ text: `「${motiv.zh}」` });
-  quote.createSpan({ cls: 'gs-en', text: motiv.en });
+  quote.createSpan({ text: motiv });
 
   // CTA button
   const cta = headR.createEl('button', { cls: 'gs-btn gs-btn-primary ov-cta' });

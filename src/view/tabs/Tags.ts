@@ -1,4 +1,4 @@
-import { MarkdownRenderer, Component } from 'obsidian';
+import { MarkdownRenderer, Component, setTooltip } from 'obsidian';
 import { TagTreeNode, CardEntry } from '../../store/GrindstoneStore';
 import { TabContext } from './types';
 
@@ -329,6 +329,7 @@ export function renderTags(container: HTMLElement, ctx: TabContext, initialTag?:
     let shown = 0;
 
     const renderCards = (scrollTo?: string) => {
+      table.style.paddingBottom = '';
       while (table.children.length > 1) table.removeChild(table.lastChild!);
 
       if (cards.length > BATCH) {
@@ -350,7 +351,7 @@ export function renderTags(container: HTMLElement, ctx: TabContext, initialTag?:
       }
       if (scrollRow) {
         Promise.all(loadPromises).then(() => {
-          requestAnimationFrame(() => scrollRow!.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+          requestAnimationFrame(() => scrollRowToOffset(scrollRow!, 50));
         });
       }
 
@@ -406,6 +407,7 @@ function renderCardRow(
   path.setAttribute('stroke-linecap', 'round'); path.setAttribute('stroke-linejoin', 'round');
   svg.appendChild(path); caretMini.appendChild(svg);
   const frontText = front.createSpan({ cls: 'tg-front-text' });
+  setTooltip(frontText, card.blockTitle);
   MarkdownRenderer.render(ctx.app, card.blockTitle, frontText, card.file, new Component());
 
   // Tags
@@ -444,6 +446,26 @@ function renderCardRow(
     meta.innerHTML = `<span class="gs-en">ID</span> <code>${id}</code> <span class="gs-en">REPS</span> <span class="gs-mono">${card.reviewCount}</span> <span class="gs-en">DUE</span> <span class="gs-mono">${card.due}</span> <span class="gs-en">FILE</span> <span class="gs-mono">${card.file}</span>`;
   }
   return { row, loadPromise };
+}
+
+function scrollRowToOffset(row: HTMLElement, topOffset: number): void {
+  let scroller: HTMLElement | null = row.parentElement;
+  while (scroller) {
+    const oy = getComputedStyle(scroller).overflowY;
+    if (oy === 'auto' || oy === 'scroll') break;
+    scroller = scroller.parentElement;
+  }
+  if (!scroller) return;
+
+  // Overscroll padding: ensure the row can reach `topOffset` from container top
+  // even when it sits near the bottom of the content.
+  const needed = Math.max(0, scroller.clientHeight - topOffset - row.offsetHeight);
+  scroller.style.paddingBottom = `${needed}px`;
+
+  const rowTop = row.getBoundingClientRect().top;
+  const containerTop = scroller.getBoundingClientRect().top;
+  const diff = rowTop - containerTop - topOffset;
+  scroller.scrollBy({ top: diff, behavior: 'smooth' });
 }
 
 function formatToday(): string {

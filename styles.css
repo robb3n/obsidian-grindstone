@@ -955,7 +955,8 @@ body.theme-dark .grindstone-workspace:not(.gs-force-light) .gs-rail-item-on,
 .grindstone-workspace .tg-row-open { background: var(--gs-paper); }
 .grindstone-workspace .tg-c-front { display: flex; align-items: center; gap: 6px; min-width: 0; }
 .grindstone-workspace .tg-caret-mini { color: var(--gs-ink-3); display: inline-flex; align-items: center; flex-shrink: 0; }
-.grindstone-workspace .tg-front-text { font-weight: 500; color: var(--gs-ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.grindstone-workspace .tg-front-text { font-weight: 500; color: var(--gs-ink); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; word-break: break-word; line-height: 1.4; min-width: 0; }
+.grindstone-workspace .tg-front-text p { margin: 0; display: inline; }
 .grindstone-workspace .tg-c-tags { display: flex; flex-wrap: wrap; gap: 4px; min-width: 0; }
 .grindstone-workspace .tg-tag-chip { border: 0; background: var(--gs-green-soft); color: var(--gs-green); font: 500 10px var(--gs-font-mono); padding: 2px 7px; border-radius: 4px; cursor: pointer; transition: background .12s; white-space: nowrap; max-width: 140px; overflow: hidden; text-overflow: ellipsis; }
 .grindstone-workspace .tg-tag-chip:hover { background: var(--gs-green); color: #fff; }

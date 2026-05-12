@@ -2,6 +2,7 @@ import { Component, MarkdownRenderer, TFile } from 'obsidian';
 import { Rating } from '../../card/types';
 import { ReviewEngine, formatInterval } from '../../review/review-engine';
 import { TabContext } from './types';
+import { countUp } from '../anim';
 
 const RATING_DEFS: { rating: Rating; zh: string; en: string; key: string; cls: string }[] = [
   { rating: 'again', zh: '重来', en: 'Again', key: '1', cls: 'rv-live-r-again' },
@@ -101,9 +102,9 @@ function renderLaunch(
   autoH.createSpan({ cls: 'rv-auto-pill gs-mono', text: '计入统计' });
 
   const autoGrid = autoCard.createDiv({ cls: 'rv-auto-grid' });
-  addAutoCell(autoGrid, String(dueCount), '到期 \u00B7 DUE');
-  addAutoCell(autoGrid, String(newCount), '新卡 \u00B7 NEW');
-  addAutoCell(autoGrid, `~${Math.round(dueCount * 1.4)}m`, '预计 \u00B7 ETA');
+  addAutoCell(autoGrid, dueCount, '到期 \u00B7 DUE', undefined, 0);
+  addAutoCell(autoGrid, newCount, '新卡 \u00B7 NEW', undefined, 60);
+  addAutoCell(autoGrid, Math.round(dueCount * 1.4), '预计 · ETA', (n) => `~${n}m`, 120);
 
   autoCard.createDiv({ cls: 'rv-auto-foot gs-en', text: 'Again / Hard / Good / Easy 的评分会写回卡片，决定下次到期时间。' });
 
@@ -124,9 +125,20 @@ function renderLaunch(
   kbds.createSpan({ text: 'ESC 暂停' });
 }
 
-function addAutoCell(parent: HTMLElement, value: string, label: string): void {
+function addAutoCell(
+  parent: HTMLElement,
+  value: number | string,
+  label: string,
+  format?: (n: number) => string,
+  delay = 0,
+): void {
   const cell = parent.createDiv({ cls: 'rv-auto-cell' });
-  cell.createDiv({ cls: 'rv-auto-num gs-mono', text: value });
+  const num = cell.createDiv({ cls: 'rv-auto-num gs-mono' });
+  if (typeof value === 'number') {
+    countUp(num, value, 900, delay, format);
+  } else {
+    num.textContent = value;
+  }
   cell.createDiv({ cls: 'rv-auto-cap', text: label });
 }
 

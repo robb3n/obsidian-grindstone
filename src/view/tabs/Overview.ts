@@ -31,8 +31,8 @@ export function renderOverview(container: HTMLElement, ctx: TabContext): void {
 
   const headR = head.createDiv({ cls: 'gs-pagehead-r' });
 
-  // Motivational quote
-  const motiv = MOTIVATIONAL[now.getDate() % MOTIVATIONAL.length];
+  // Motivational quote — re-rolled every time Overview renders
+  const motiv = MOTIVATIONAL[Math.floor(Math.random() * MOTIVATIONAL.length)];
   const quote = headR.createDiv({ cls: 'ov-quote' });
   quote.createSpan({ text: motiv });
 
@@ -53,8 +53,8 @@ export function renderOverview(container: HTMLElement, ctx: TabContext): void {
 
   // ── Stat Strip ──
   const strip = page.createDiv({ cls: 'ov-strip' });
-  addStat(strip, 'DUE', '到期', stats.due, undefined, true, 0);
-  addStat(strip, 'DONE', '已复习', stats.done, undefined, false, 60);
+  addStat(strip, 'DUE', '今日目标', stats.due, undefined, true, 0);
+  addStat(strip, 'DONE', '已完成', stats.done, undefined, false, 60);
   addStat(strip, 'LEFT', '剩余', stats.remaining, undefined, false, 120);
   addStat(strip, 'STREAK', '连续打卡', stats.streak, 'd', false, 180);
   addStat(strip, 'WEEK', '本周用功', stats.weekMinutes, 'm', false, 240);
@@ -107,7 +107,7 @@ function tileHead(parent: HTMLElement, title: string, en: string): void {
 
 function renderForecastTile(grid: HTMLElement, forecast: ReturnType<typeof import('../../store/GrindstoneStore').GrindstoneStore.prototype.getForecast7D>): void {
   const tile = grid.createDiv({ cls: 'gs-card gs-hoverable ov-tile ov-t-forecast' });
-  tileHead(tile, '未来七日到期', 'FORECAST \u00B7 7D');
+  tileHead(tile, '未来七日复习量', 'FORECAST \u00B7 7D');
 
   const max = Math.max(...forecast.map(f => f.count), 1);
   const fore = tile.createDiv({ cls: 'ov-fore' });

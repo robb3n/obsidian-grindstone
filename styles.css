@@ -964,7 +964,7 @@ body.theme-dark .grindstone-workspace:not(.gs-force-light) .gs-rail-item-on,
 .grindstone-workspace .tg-c-tags { display: flex; flex-wrap: wrap; gap: 4px; min-width: 0; }
 .grindstone-workspace .tg-tag-chip { border: 0; background: var(--gs-green-soft); color: var(--gs-green); font: 500 10px var(--gs-font-mono); padding: 2px 7px; border-radius: 4px; cursor: pointer; transition: background .12s; white-space: nowrap; max-width: 140px; overflow: hidden; text-overflow: ellipsis; }
 .grindstone-workspace .tg-tag-chip:hover { background: var(--gs-green); color: #fff; }
-.grindstone-workspace .tg-c-int, .grindstone-workspace .tg-c-ef { color: var(--gs-ink-2); font-size: 12px; }
+.grindstone-workspace .tg-row:not(.tg-row-head) .tg-c-int, .grindstone-workspace .tg-row:not(.tg-row-head) .tg-c-ef { color: var(--gs-ink-2); font-size: 12px; }
 .grindstone-workspace .tg-c-due { font-size: 12px; }
 .grindstone-workspace .tg-due-clay { color: var(--gs-clay); font-weight: 600; }
 .grindstone-workspace .tg-due-mute { color: var(--gs-ink-3); }

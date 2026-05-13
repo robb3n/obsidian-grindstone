@@ -177,7 +177,6 @@ body.theme-dark .grindstone-workspace:not(.gs-force-light),
 .grindstone-workspace .gs-root *, .grindstone-workspace .gs-root *::before, .grindstone-workspace .gs-root *::after { box-sizing: border-box; }
 .grindstone-workspace .gs-mono { font-family: var(--gs-font-mono); font-feature-settings: "tnum" 1, "ss01" 1; }
 .grindstone-workspace .gs-en { font-family: var(--gs-font-en); }
-.grindstone-workspace .gs-serif { font-family: var(--gs-font-serif); }
 .grindstone-workspace .gs-tabular { font-variant-numeric: tabular-nums; }
 
 /* ── Shell layout ─────────────────────────────── */
@@ -186,10 +185,8 @@ body.theme-dark .grindstone-workspace:not(.gs-force-light),
   background: var(--gs-paper);
   display: grid; grid-template-columns: 220px 1fr;
   overflow: hidden;
-}
-@media (max-width: 768px) {
-  .grindstone-workspace .gs-app { grid-template-columns: 1fr; }
-  .grindstone-workspace .gs-rail { display: none !important; }
+  container-type: inline-size;
+  container-name: leaf;
 }
 
 /* ── Rail ─────────────────────────────────────── */
@@ -366,7 +363,6 @@ body.theme-dark .grindstone-workspace:not(.gs-force-light) .gs-rail-item-on,
 }
 .grindstone-workspace .gs-pill-green { background: var(--gs-green-soft); color: var(--gs-green); border-color: transparent; }
 .grindstone-workspace .gs-pill-clay { background: rgba(184,83,58,.12); color: var(--gs-clay); border-color: transparent; }
-.grindstone-workspace .gs-pill-gold { background: rgba(184,149,106,.16); color: var(--gs-gold); border-color: transparent; }
 
 .grindstone-workspace .gs-iconbtn {
   width: 30px; height: 30px; border-radius: 8px;
@@ -435,17 +431,6 @@ body.theme-dark .grindstone-workspace:not(.gs-force-light) .gs-rail-item-on,
 }
 .grindstone-workspace .gs-error-retry:hover { opacity: 0.85; }
 
-/* Skeleton loading */
-@keyframes gs-shimmer {
-  0% { background-position: -200px 0; }
-  100% { background-position: calc(200px + 100%) 0; }
-}
-.grindstone-workspace .gs-skeleton {
-  background: linear-gradient(90deg, var(--gs-line) 25%, var(--gs-paper-2) 50%, var(--gs-line) 75%);
-  background-size: 200px 100%;
-  animation: gs-shimmer 1.5s infinite;
-  border-radius: 6px;
-}
 
 /* ── Obsidian container reset ─────────────────── */
 .grindstone-workspace {
@@ -578,117 +563,6 @@ body.theme-dark .grindstone-workspace:not(.gs-force-light) .gs-rail-item-on,
 .grindstone-workspace .ov-tag-more:hover { color: var(--gs-green-2); }
 
 /* ══════════════════════════════════════
-   Decks Tab
-   ══════════════════════════════════════ */
-
-.grindstone-workspace .dk-page { padding: 16px 28px 36px; gap: 12px; }
-
-/* Filter tabs */
-.grindstone-workspace .dk-filter {
-  display: flex; align-items: center; gap: 4px;
-  padding: 4px 0 8px;
-  border-bottom: 1px solid var(--gs-line);
-}
-.grindstone-workspace .dk-filter-tab {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 6px 12px; border: 0; background: transparent;
-  border-radius: 8px; cursor: pointer;
-  font: 500 13px var(--gs-font-zh); color: var(--gs-ink-2);
-  transition: background .12s, color .12s;
-}
-.grindstone-workspace .dk-filter-tab:hover { background: var(--gs-paper-2); color: var(--gs-ink); }
-.grindstone-workspace .dk-filter-tab-on { background: var(--gs-paper-2); color: var(--gs-ink); font-weight: 600; }
-.grindstone-workspace .dk-filter-dot { width: 7px; height: 7px; border-radius: 50%; }
-.grindstone-workspace .dk-filter-en { font-size: 9px; letter-spacing: 0.18em; color: var(--gs-ink-3); font-weight: 600; }
-.grindstone-workspace .dk-filter-n { font-size: 11px; color: var(--gs-ink-3); }
-.grindstone-workspace .dk-filter-rule { width: 1px; height: 18px; background: var(--gs-line); margin: 0 8px; }
-.grindstone-workspace .dk-filter-hint { font-size: 10px; letter-spacing: 0.1em; color: var(--gs-ink-3); }
-
-/* Table */
-.grindstone-workspace .dk-tableHead {
-  display: grid;
-  grid-template-columns: minmax(220px, 2fr) 90px minmax(160px, 1.4fr) 180px 56px 56px 56px 150px;
-  align-items: center; gap: 12px;
-  padding: 10px 12px 8px;
-  border-bottom: 1px solid var(--gs-line);
-  font-size: 9px; letter-spacing: 0.18em; color: var(--gs-ink-3); font-weight: 600;
-}
-.grindstone-workspace .dk-col-num { text-align: right; }
-
-.grindstone-workspace .dk-list { display: flex; flex-direction: column; }
-.grindstone-workspace .dk-row {
-  display: grid;
-  grid-template-columns: minmax(220px, 2fr) 90px minmax(160px, 1.4fr) 180px 56px 56px 56px 150px;
-  align-items: center; gap: 12px;
-  padding: 10px 12px;
-  border-bottom: 1px solid var(--gs-line);
-  font-size: 13px; color: var(--gs-ink);
-  transition: background .12s;
-}
-.grindstone-workspace .dk-row:hover { background: var(--gs-paper-2); }
-.grindstone-workspace .dk-row .dk-col-name { display: flex; align-items: center; gap: 8px; min-width: 0; }
-.grindstone-workspace .dk-caret {
-  width: 18px; height: 18px; border: 0; background: transparent;
-  cursor: pointer; color: var(--gs-ink-3);
-  display: inline-flex; align-items: center; justify-content: center;
-  border-radius: 4px;
-}
-.grindstone-workspace .dk-caret:hover { background: var(--gs-line); color: var(--gs-ink); }
-.grindstone-workspace .dk-caret-blank { cursor: default; }
-.grindstone-workspace .dk-caret-blank:hover { background: transparent; }
-.grindstone-workspace .dk-icon { flex: 0 0 auto; display: inline-flex; }
-.grindstone-workspace .dk-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.grindstone-workspace .dk-name-l0 { font-weight: 600; font-size: 14px; }
-.grindstone-workspace .dk-name-l1 { font-weight: 500; }
-.grindstone-workspace .dk-name-l2 { color: var(--gs-ink-2); }
-.grindstone-workspace .dk-updated {
-  margin-left: 6px; font-size: 10px; color: var(--gs-ink-3);
-  letter-spacing: 0.04em; font-family: var(--gs-font-mono);
-}
-
-/* Mode badge */
-.grindstone-workspace .dk-mode-badge {
-  display: inline-flex; align-items: center; gap: 5px;
-  padding: 2px 7px 3px; border: 1px solid currentColor; border-radius: 999px;
-  background: transparent; font-size: 11px; line-height: 1;
-}
-.grindstone-workspace .dk-mode-zh { font-weight: 600; }
-.grindstone-workspace .dk-mode-en { font-size: 8.5px; letter-spacing: 0.14em; opacity: 0.75; }
-
-/* Source */
-.grindstone-workspace .dk-source {
-  font-size: 11px; display: inline-block; max-width: 100%;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-}
-.grindstone-workspace .dk-source-auto { color: var(--gs-green); }
-
-/* Progress */
-.grindstone-workspace .dk-col-progress { display: flex; align-items: center; gap: 8px; }
-.grindstone-workspace .dk-bar { flex: 1; height: 5px; border-radius: 3px; background: var(--gs-line); overflow: hidden; }
-.grindstone-workspace .dk-bar-fill { height: 100%; background: var(--gs-green); transition: width .8s; }
-.grindstone-workspace .dk-bar-pct { font-size: 11px; color: var(--gs-ink-3); min-width: 28px; text-align: right; }
-
-.grindstone-workspace .dk-num-clay { color: var(--gs-clay); font-weight: 600; }
-.grindstone-workspace .dk-num-green { color: var(--gs-green); font-weight: 600; }
-.grindstone-workspace .dk-num-mute { color: var(--gs-ink-3); }
-.grindstone-workspace .dk-num-total { color: var(--gs-ink); font-weight: 500; }
-
-/* Actions */
-.grindstone-workspace .dk-col-actions { display: flex; align-items: center; gap: 6px; justify-content: flex-end; }
-.grindstone-workspace .dk-review-btn { padding: 6px 12px; font-size: 12px; }
-.grindstone-workspace .dk-action-ghost {
-  padding: 6px 12px; border: 0; background: transparent;
-  font: 500 12px var(--gs-font-zh); color: var(--gs-ink-3);
-  border-radius: 6px; cursor: pointer;
-}
-.grindstone-workspace .dk-action-ghost:hover { color: var(--gs-ink); background: var(--gs-line); }
-
-/* Empty */
-.grindstone-workspace .dk-empty { padding: 60px 12px; text-align: center; }
-.grindstone-workspace .dk-empty-zh { font-size: 14px; color: var(--gs-ink-2); }
-.grindstone-workspace .dk-empty-en { font-size: 10px; letter-spacing: 0.2em; color: var(--gs-ink-3); margin-top: 6px; font-weight: 600; }
-
-/* ══════════════════════════════════════
    Review Tab
    ══════════════════════════════════════ */
 
@@ -720,53 +594,66 @@ body.theme-dark .grindstone-workspace:not(.gs-force-light) .gs-rail-item-on,
 .grindstone-workspace .rv-launch-title { margin: 0; font: 600 26px var(--gs-font-zh); color: var(--gs-ink); letter-spacing: 0.04em; }
 .grindstone-workspace .rv-launch-sub { margin: 0; font-size: 12px; color: var(--gs-ink-3); }
 
-/* Auto card */
-.grindstone-workspace .rv-auto-card { margin-bottom: 18px; padding: 18px 20px; background: var(--gs-green-soft); border-radius: 12px; border: 1px solid transparent; }
-.grindstone-workspace .rv-auto-h { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
-.grindstone-workspace .rv-auto-h-l { display: flex; flex-direction: column; gap: 3px; }
-.grindstone-workspace .rv-auto-zh { font: 600 13px var(--gs-font-zh); color: var(--gs-green); }
-.grindstone-workspace .rv-auto-en { font-size: 9px; letter-spacing: .18em; color: var(--gs-green); opacity: .7; font-weight: 600; }
-.grindstone-workspace .rv-auto-pill { font-size: 10px; padding: 3px 8px; border-radius: 999px; background: var(--gs-green); color: var(--gs-paper); letter-spacing: .04em; }
-.grindstone-workspace .rv-auto-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-.grindstone-workspace .rv-auto-cell { background: var(--gs-card); border-radius: 8px; padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; }
-.grindstone-workspace .rv-auto-num { font-size: 22px; font-weight: 600; color: var(--gs-ink); font-feature-settings: "tnum" 1; }
-.grindstone-workspace .rv-auto-cap { font-size: 10px; letter-spacing: .12em; color: var(--gs-ink-3); font-weight: 500; }
-.grindstone-workspace .rv-auto-foot { margin-top: 12px; padding-top: 10px; border-top: 1px dashed rgba(31,77,58,.2); font-size: 11px; color: var(--gs-ink-2); line-height: 1.5; letter-spacing: .02em; }
+/* Auto queue card — white card with paper-2 cells */
+.grindstone-workspace .rv-auto-card {
+  background: var(--gs-card); border: 1px solid var(--gs-line); border-radius: 12px;
+  padding: 16px 18px;
+  display: flex; flex-direction: column; gap: 14px;
+  box-shadow: var(--gs-shadow);
+}
+.grindstone-workspace .rv-auto-h { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.grindstone-workspace .rv-auto-h-l { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.grindstone-workspace .rv-auto-zh { font: 600 14px var(--gs-font-zh); color: var(--gs-ink); }
+.grindstone-workspace .rv-auto-en { font-size: 10px; color: var(--gs-ink-3); letter-spacing: .04em; }
+.grindstone-workspace .rv-auto-pill {
+  padding: 3px 9px; border-radius: 999px;
+  background: var(--gs-green-soft); color: var(--gs-green);
+  font: 600 10px var(--gs-font-mono);
+  white-space: nowrap; flex-shrink: 0;
+}
+.grindstone-workspace .rv-auto-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.grindstone-workspace .rv-auto-cell {
+  background: var(--gs-paper-2); border-radius: 10px;
+  padding: 14px;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  min-width: 0;
+}
+.grindstone-workspace .rv-auto-num { font: 600 26px var(--gs-font-mono); color: var(--gs-ink); line-height: 1; }
+.grindstone-workspace .rv-auto-cap { font-size: 11px; color: var(--gs-ink-2); }
+.grindstone-workspace .rv-auto-foot {
+  font-size: 10px; color: var(--gs-ink-3); line-height: 1.55;
+  padding-top: 4px; border-top: 1px dashed var(--gs-line);
+}
 
-/* CTA */
+/* CTA — full-width green primary */
 .grindstone-workspace .rv-launch-cta {
-  display: inline-flex; align-items: center; gap: 12px;
+  display: flex; align-items: center; justify-content: center; gap: 12px;
   padding: 14px 20px; background: var(--gs-green); color: var(--gs-paper);
   border: 0; border-radius: 12px; font: 600 15px var(--gs-font-zh);
-  cursor: pointer; transition: all .15s; align-self: flex-start;
+  cursor: pointer; transition: all .15s;
+  width: 100%;
   box-shadow: 0 4px 14px rgba(31,77,58,.18);
 }
 .grindstone-workspace .rv-launch-cta:hover { background: var(--gs-green-2); transform: translateY(-1px); box-shadow: 0 6px 18px rgba(31,77,58,.22); }
-.grindstone-workspace .rv-launch-cta-meta { font-size: 11px; opacity: .8; font-weight: 500; padding: 0 8px; border-left: 1px solid rgba(244,241,236,.25); }
-.grindstone-workspace .rv-launch-kbds { display: flex; gap: 8px; align-items: center; font-size: 10px; letter-spacing: 0.12em; color: var(--gs-ink-3); }
+.grindstone-workspace .rv-launch-cta-meta {
+  font-size: 11px; opacity: .8; font-weight: 500;
+  padding: 0 8px; border-left: 1px solid rgba(244,241,236,.25);
+  white-space: nowrap;
+}
 
-/* Right sidebar */
-.grindstone-workspace .rv-launch-r { display: flex; flex-direction: column; gap: 12px; }
-.grindstone-workspace .rv-launch-card { background: var(--gs-card); border: 1px solid var(--gs-line); border-radius: var(--gs-radius); padding: 14px; }
-.grindstone-workspace .rv-launch-card-h { font-size: 11px; color: var(--gs-ink-3); font-weight: 600; letter-spacing: 0.1em; margin-bottom: 10px; }
-
-/* Forecast mini */
-.grindstone-workspace .rv-fmini { display: flex; align-items: end; gap: 4px; height: 80px; }
-.grindstone-workspace .rv-fmini-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; height: 100%; min-width: 0; }
-.grindstone-workspace .rv-fmini-bar-wrap { flex: 1; width: 100%; display: flex; align-items: end; }
-.grindstone-workspace .rv-fmini-bar { width: 100%; background: var(--gs-green-soft); border-radius: 2px 2px 0 0; min-height: 2px; }
-.grindstone-workspace .rv-fmini-today { background: var(--gs-green); }
-.grindstone-workspace .rv-fmini-d { font-size: 9px; color: var(--gs-ink-3); }
-.grindstone-workspace .rv-fmini-d-today { color: var(--gs-green); font-weight: 600; }
-.grindstone-workspace .rv-fmini-n { font-size: 10px; color: var(--gs-ink-2); }
-
-/* Recent sessions */
-.grindstone-workspace .rv-launch-recent { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; }
-.grindstone-workspace .rv-launch-recent li { display: grid; grid-template-columns: 50px 1fr 40px; font-size: 11px; align-items: baseline; }
-.grindstone-workspace .rv-launch-recent-d { color: var(--gs-ink-3); }
-.grindstone-workspace .rv-launch-recent-n { color: var(--gs-ink); font-weight: 600; }
-.grindstone-workspace .rv-launch-recent-m { color: var(--gs-ink-2); text-align: right; }
-.grindstone-workspace .rv-launch-recent-skip { color: var(--gs-ink-3); font-size: 10px; letter-spacing: 0.08em; }
+/* Keyboard hints — chip-style kbds */
+.grindstone-workspace .rv-launch-kbds {
+  display: flex; gap: 14px; align-items: center;
+  font-size: 10px; color: var(--gs-ink-3); letter-spacing: .04em;
+  flex-wrap: wrap; justify-content: center;
+}
+.grindstone-workspace .rv-launch-kbds span { display: inline-flex; align-items: center; gap: 4px; }
+.grindstone-workspace .rv-launch-kbds kbd {
+  font: 500 10px var(--gs-font-mono);
+  padding: 2px 6px; background: var(--gs-paper-2);
+  border: 1px solid var(--gs-line); border-radius: 4px;
+  color: var(--gs-ink-2);
+}
 
 /* History */
 .grindstone-workspace .rv-history { display: flex; flex-direction: column; gap: 16px; }
@@ -800,7 +687,6 @@ body.theme-dark .grindstone-workspace:not(.gs-force-light) .gs-rail-item-on,
 .grindstone-workspace .rv-section-title { margin: 0; font: 600 18px var(--gs-font-zh); color: var(--gs-ink); letter-spacing: 0.04em; }
 .grindstone-workspace .rv-section-sub { font-size: 11px; color: var(--gs-ink-3); letter-spacing: 0.04em; }
 .grindstone-workspace .rv-debrief-h { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; padding-bottom: 14px; border-bottom: 1px solid var(--gs-line); }
-.grindstone-workspace .rv-debrief-eyebrow { font-size: 9px; letter-spacing: 0.24em; color: var(--gs-ink-3); font-weight: 600; }
 .grindstone-workspace .rv-debrief-title { margin: 4px 0 0; font: 600 24px var(--gs-font-zh); color: var(--gs-ink); letter-spacing: 0.04em; }
 .grindstone-workspace .rv-debrief-scope { margin: 6px 0 0; font-size: 11px; color: var(--gs-ink-3); }
 .grindstone-workspace .rv-debrief-acc { display: flex; align-items: baseline; gap: 12px; }
@@ -819,7 +705,23 @@ body.theme-dark .grindstone-workspace:not(.gs-force-light) .gs-rail-item-on,
 .grindstone-workspace .rv-debrief-rate-pct { font-size: 11px; color: var(--gs-ink-3); }
 .grindstone-workspace .rv-debrief-bar { display: flex; flex-direction: column; gap: 8px; }
 .grindstone-workspace .rv-debrief-bar-h { font-size: 9px; letter-spacing: 0.2em; color: var(--gs-ink-3); font-weight: 600; }
-.grindstone-workspace .rv-debrief-actions { display: flex; gap: 8px; flex-wrap: wrap; padding-top: 4px; }
+.grindstone-workspace .rv-debrief-actions {
+  display: flex; gap: 10px; flex-wrap: wrap;
+  padding-top: 14px; margin-top: 16px;
+  border-top: 1px solid var(--gs-line);
+}
+.grindstone-workspace .rv-debrief-actions .gs-btn {
+  flex: 1; min-width: 140px;
+  padding: 12px 20px; border-radius: 12px;
+  font: 600 14px var(--gs-font-zh);
+  justify-content: center;
+}
+.grindstone-workspace .rv-debrief-actions .gs-btn-primary {
+  box-shadow: 0 4px 14px rgba(31,77,58,.18);
+}
+.grindstone-workspace .rv-debrief-actions .gs-btn-primary:hover {
+  box-shadow: 0 6px 18px rgba(31,77,58,.22);
+}
 
 /* ══════════════════════════════════════
    Stats Tab
@@ -846,7 +748,6 @@ body.theme-dark .grindstone-workspace:not(.gs-force-light) .gs-rail-item-on,
 .grindstone-workspace .st-card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
 .grindstone-workspace .st-card-en { font-size: 9px; letter-spacing: 0.22em; color: var(--gs-ink-3); font-weight: 600; }
 .grindstone-workspace .st-card-zh { font: 600 15px var(--gs-font-zh); color: var(--gs-ink); margin-top: 2px; }
-.grindstone-workspace .st-card-sub { font-size: 11px; color: var(--gs-ink-3); margin-top: 4px; }
 .grindstone-workspace .st-card-body { min-height: 0; }
 .grindstone-workspace .st-chart { position: relative; }
 .grindstone-workspace .st-acc { display: flex; flex-direction: column; gap: 9px; padding-top: 4px; }
@@ -891,7 +792,6 @@ body.theme-dark .grindstone-workspace:not(.gs-force-light) .gs-rail-item-on,
 .grindstone-workspace .tg-tree .tg-tree-namebtn { padding: 0 !important; margin: 0 !important; }
 .grindstone-workspace .tg-tree .tg-tree-namebtn { padding: 0 4px !important; }
 .grindstone-workspace .tg-tree-head { display: flex; align-items: center; justify-content: space-between; padding: 6px 10px 8px; font-size: 9px; letter-spacing: 0.22em; color: var(--gs-ink-3); font-weight: 600; }
-.grindstone-workspace .tg-tree-total { color: var(--gs-ink-2); letter-spacing: 0; }
 .grindstone-workspace .tg-tree-row { display: flex; align-items: center; justify-content: flex-start; gap: 4px; padding: 4px 4px; border-radius: 6px; font-size: 12px; color: var(--gs-ink-2); transition: background .12s; cursor: pointer; border: 0; background: transparent; text-align: left; width: 100%; font-family: inherit; }
 .grindstone-workspace .tg-tree-row:hover { background: var(--gs-paper-2); color: var(--gs-ink); }
 .grindstone-workspace .tg-tree-row-on { background: var(--gs-green-soft); color: var(--gs-green); font-weight: 600; }
@@ -902,18 +802,11 @@ body.theme-dark .grindstone-workspace:not(.gs-force-light) .gs-rail-item-on,
 .grindstone-workspace .tg-tree-caret:hover { background: var(--gs-line); color: var(--gs-ink); }
 .grindstone-workspace .tg-tree-bullet { width: 4px; height: 4px; border-radius: 50%; background: currentColor; opacity: .35; }
 .grindstone-workspace .tg-tree-namebtn { flex: 1; min-width: 0; display: flex; align-items: center; justify-content: flex-start; gap: 4px; padding: 0 4px; border: 0; background: transparent; color: inherit; cursor: pointer; text-align: left; font: inherit; }
-.grindstone-workspace .tg-tree-icon-t { font-family: var(--gs-font-mono); color: var(--gs-ink-3); font-weight: 500; opacity: .7; }
-.grindstone-workspace .tg-tree-row-on .tg-tree-icon-t { color: var(--gs-green); opacity: 1; }
 .grindstone-workspace .tg-tree-name { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .grindstone-workspace .tg-tree-n { font-size: 10px; color: var(--gs-ink-3); background: var(--gs-paper-2); padding: 1px 5px; border-radius: 3px; }
 .grindstone-workspace .tg-tree-row-on .tg-tree-n { background: rgba(31,77,58,.16); color: var(--gs-green); }
 
 .grindstone-workspace .tg-main { overflow: auto; padding: 18px 28px 24px; display: flex; flex-direction: column; gap: 14px; max-height: calc(100vh - 80px); }
-.grindstone-workspace .tg-breadcrumb { display: flex; align-items: center; gap: 6px; padding: 4px 0; font-size: 12px; }
-.grindstone-workspace .tg-bc-seg { border: 0; background: transparent; color: var(--gs-ink); cursor: pointer; padding: 4px 8px; border-radius: 6px; font-family: inherit; font-size: 13px; font-weight: 500; transition: background .12s; }
-.grindstone-workspace .tg-bc-seg:hover { background: var(--gs-paper-2); }
-.grindstone-workspace .tg-bc-seg:last-of-type { color: var(--gs-green); font-weight: 600; }
-.grindstone-workspace .tg-bc-sep { color: var(--gs-ink-3); }
 
 /* ── Filter Bar ── */
 .grindstone-workspace .tg-filter-bar { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; padding: 6px 0; font-size: 12px; position: relative; }
@@ -926,7 +819,6 @@ body.theme-dark .grindstone-workspace:not(.gs-force-light) .gs-rail-item-on,
 .grindstone-workspace .tg-filter-chip-search .tg-filter-chip-x:hover { color: var(--gs-ink); background: var(--gs-line); }
 .grindstone-workspace .tg-filter-and { font-size: 9px; font-weight: 700; letter-spacing: .06em; color: var(--gs-ink-3); }
 .grindstone-workspace .tg-filter-paren { font-size: 14px; font-weight: 300; color: var(--gs-ink-3); line-height: 1; }
-.grindstone-workspace .tg-filter-sep { color: var(--gs-ink-3); }
 .grindstone-workspace .tg-filter-add { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border: 1px dashed var(--gs-line); border-radius: 6px; background: transparent; color: var(--gs-ink-3); cursor: pointer; transition: all .15s; }
 .grindstone-workspace .tg-filter-add:hover { border-color: var(--gs-green); color: var(--gs-green); background: var(--gs-green-soft); }
 .grindstone-workspace .tg-filter-clear { border: 0; background: transparent; color: var(--gs-ink-3); font: 600 9px var(--gs-font-mono); letter-spacing: .08em; cursor: pointer; padding: 3px 6px; border-radius: 4px; margin-left: auto; transition: all .12s; }
@@ -1012,10 +904,6 @@ body.theme-dark .grindstone-workspace:not(.gs-force-light) .gs-rail-item-on,
 .gs-subsection-title-md h3 { margin: 0 0 3px !important; }
 .gs-subsection-sub { font-size: 10px; letter-spacing: 0.14em; color: var(--text-muted); }
 
-/* ── SRS Settings (legacy class kept for any inner refs) ── */
-.gs-srs-section { margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--background-modifier-border); }
-.gs-srs-header h2 { margin: 0 0 2px; }
-.gs-srs-sub { font-size: 10px; letter-spacing: 0.16em; color: var(--text-muted); margin-bottom: 16px; }
 
 /* Per-deck strategy list (under 卡组策略 section) */
 .gs-deck-strategy-list { display: flex; flex-direction: column; gap: 6px; }
@@ -1075,19 +963,6 @@ body.theme-dark .grindstone-workspace:not(.gs-force-light) .gs-rail-item-on,
 .gs-srs-actions .gs-btn-primary { background: var(--interactive-accent); color: var(--text-on-accent); border-color: var(--interactive-accent); }
 .gs-srs-actions .gs-btn-primary:hover { opacity: 0.9; }
 
-/* ── Deck Strategy Picker ──────────────────────────────── */
-.grindstone-workspace .dk-strategy-badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border: 1.5px solid var(--gs-line); border-radius: 6px; background: none; cursor: pointer; font-size: 11px; transition: border-color .15s; }
-.grindstone-workspace .dk-strategy-badge:hover { border-color: var(--gs-green); }
-.grindstone-workspace .dk-strategy-override { border-color: var(--gs-green); }
-.grindstone-workspace .dk-strategy-override .dk-strategy-zh { color: var(--gs-green); font-weight: 600; }
-.grindstone-workspace .dk-strategy-zh { color: var(--gs-ink-2); }
-.grindstone-workspace .dk-strategy-en { font-size: 8px; letter-spacing: 0.1em; color: var(--gs-ink-3); }
-
-.dk-strategy-picker { position: fixed; z-index: 1000; min-width: 180px; padding: 4px; background: var(--background-primary); border: 1px solid var(--background-modifier-border); border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
-.dk-strategy-option { display: flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 5px; cursor: pointer; font-size: 12px; transition: background .1s; }
-.dk-strategy-option:hover { background: var(--background-secondary); }
-.dk-strategy-option-active { background: var(--background-secondary); font-weight: 600; }
-.dk-strategy-option .gs-en { font-size: 8px; letter-spacing: 0.1em; color: var(--text-muted); margin-left: auto; }
 
 /* ── Reset Confirmation Modal ──────────────────────────── */
 .dk-reset-modal .modal-content { max-width: 440px; }
@@ -1269,7 +1144,7 @@ body.theme-dark .grindstone-workspace:not(.gs-force-light) .gs-rail-item-on,
   gap: 24px; align-items: start;
   padding: 18px 28px 48px;
 }
-@media (max-width: 860px) {
+@container leaf (max-width: 720px) {
   .grindstone-workspace .rv-live-split { grid-template-columns: 1fr; }
 }
 
@@ -1419,3 +1294,238 @@ body.theme-dark .grindstone-workspace:not(.gs-force-light) .gs-rail-item-on,
 }
 .grindstone-workspace .rv-live-done-sub { margin: 0; color: var(--gs-ink-3); font-size: 13px; }
 .grindstone-workspace .rv-live-done-actions { display: flex; gap: 10px; margin-top: 16px; }
+
+/* ════════════════════════════════════════════════════════
+   CONTAINER QUERIES — leaf-width responsive (split-pane aware)
+   Container declared on .gs-app (inline-size · name: leaf)
+   ════════════════════════════════════════════════════════ */
+
+/* ━━━ Shell: rail auto-collapse / hide ━━━ */
+
+/* ≤900: rail auto-collapses to icon-only (mirrors .gs-rail--collapsed) */
+@container leaf (max-width: 900px) {
+  .grindstone-workspace .gs-app { grid-template-columns: 54px 1fr; }
+  .grindstone-workspace .gs-rail { padding: 22px 8px 14px; align-items: center; gap: 16px; }
+  .grindstone-workspace .gs-rail-logo { justify-content: center; padding: 0; }
+  .grindstone-workspace .gs-rail-zh,
+  .grindstone-workspace .gs-rail-en,
+  .grindstone-workspace .gs-rail-section { display: none; }
+  .grindstone-workspace .gs-rail-nav { width: 100%; align-items: center; }
+  .grindstone-workspace .gs-rail-item { justify-content: center; padding: 8px; width: 38px; height: 38px; }
+  .grindstone-workspace .gs-rail-foot { padding: 0; align-items: center; }
+  .grindstone-workspace .gs-rail-streak {
+    flex-direction: column; gap: 2px; padding: 6px 4px; text-align: center;
+    background: transparent; border: none;
+  }
+  .grindstone-workspace .gs-rail-streak-flame { font-size: 14px; }
+  .grindstone-workspace .gs-rail-streak-num { font-size: 12px; }
+  .grindstone-workspace .gs-rail-streak-cap { display: none; }
+  .grindstone-workspace .gs-themetoggle {
+    width: 34px; height: 34px; padding: 0; justify-content: center; border-radius: 8px;
+  }
+}
+
+/* ≤560: rail hidden entirely */
+@container leaf (max-width: 560px) {
+  .grindstone-workspace .gs-app { grid-template-columns: 1fr; }
+  .grindstone-workspace .gs-rail { display: none !important; }
+}
+
+/* ━━━ Overview ━━━ */
+
+/* ≤900: tile grid 12-col → 6-col */
+@container leaf (max-width: 900px) {
+  .grindstone-workspace .ov-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    grid-template-rows: minmax(180px, 1fr) minmax(180px, 1fr) minmax(180px, 1fr);
+  }
+  .grindstone-workspace .ov-t-forecast { grid-column: span 6; }
+  .grindstone-workspace .ov-t-progress { grid-column: span 2; }
+  .grindstone-workspace .ov-t-maturity { grid-column: span 2; }
+  .grindstone-workspace .ov-t-ratings  { grid-column: span 2; }
+  .grindstone-workspace .ov-t-heat     { grid-column: span 4; }
+  .grindstone-workspace .ov-t-tags     { grid-column: span 2; }
+}
+
+/* ≤720: stat strip 3-col 2-row · tile grid 2-col explicit placement */
+@container leaf (max-width: 720px) {
+  .grindstone-workspace .ov-strip { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .grindstone-workspace .ov-strip .ov-stat:nth-child(3n) { border-right: 0; }
+  .grindstone-workspace .ov-strip .ov-stat:nth-child(3n+1) { border-right: 1px solid var(--gs-line); }
+  .grindstone-workspace .ov-strip .ov-stat:nth-child(-n+3) { border-bottom: 1px solid var(--gs-line); }
+
+  .grindstone-workspace .ov-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: none;
+    grid-auto-rows: minmax(190px, auto);
+  }
+  .grindstone-workspace .ov-t-forecast { grid-column: 1 / -1; grid-row: 1; }
+  .grindstone-workspace .ov-t-progress { grid-column: 1;       grid-row: 2; }
+  .grindstone-workspace .ov-t-maturity { grid-column: 2;       grid-row: 2; }
+  .grindstone-workspace .ov-t-ratings  { grid-column: 1;       grid-row: 3; }
+  .grindstone-workspace .ov-t-tags     { grid-column: 2;       grid-row: 3; }
+  .grindstone-workspace .ov-t-heat     { grid-column: 1 / -1;  grid-row: 4; }
+
+  .grindstone-workspace .gs-pagehead { padding: 14px 18px 10px; }
+  .grindstone-workspace .gs-pagehead-title { font-size: 19px; }
+}
+
+/* ≤560: stat strip 2-col · single tile col · pagehead column-stacks */
+@container leaf (max-width: 560px) {
+  .grindstone-workspace .ov-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .grindstone-workspace .ov-strip .ov-stat:nth-child(odd) { border-right: 1px solid var(--gs-line); }
+  .grindstone-workspace .ov-strip .ov-stat:nth-child(even) { border-right: 0; }
+  .grindstone-workspace .ov-strip .ov-stat:not(:nth-last-child(-n+2)) { border-bottom: 1px solid var(--gs-line); }
+  .grindstone-workspace .ov-stat-num { font-size: 19px; }
+
+  .grindstone-workspace .ov-grid { grid-template-columns: 1fr; }
+  .grindstone-workspace .ov-t-forecast,
+  .grindstone-workspace .ov-t-progress,
+  .grindstone-workspace .ov-t-maturity,
+  .grindstone-workspace .ov-t-ratings,
+  .grindstone-workspace .ov-t-heat,
+  .grindstone-workspace .ov-t-tags { grid-column: 1 / -1; grid-row: auto; }
+
+  .grindstone-workspace .gs-pagehead {
+    flex-direction: column; align-items: flex-start; gap: 8px;
+    padding: 12px 14px 10px;
+  }
+  .grindstone-workspace .gs-pagehead-r { align-self: flex-end; }
+}
+
+/* ≤420: tighten title + stat eyebrows */
+@container leaf (max-width: 420px) {
+  .grindstone-workspace .gs-pagehead-title { font-size: 17px; }
+  .grindstone-workspace .ov-stat-en { display: none; }
+}
+
+/* ━━━ Tags ━━━ */
+
+/* ≤900: tree shrinks to 180px, drop EF column */
+@container leaf (max-width: 900px) {
+  .grindstone-workspace .tg-page { grid-template-columns: 180px 1fr; }
+  .grindstone-workspace .tg-main { padding: 14px 18px 18px; }
+  .grindstone-workspace .tg-row { grid-template-columns: 2.4fr 2fr 70px 80px 36px; }
+  .grindstone-workspace .tg-row .tg-c-ef { display: none; }
+}
+
+/* ≤720: tree → horizontal chip strip, drop interval column */
+@container leaf (max-width: 720px) {
+  .grindstone-workspace .tg-page {
+    display: flex; flex-direction: column;
+    grid-template-columns: none;
+  }
+  .grindstone-workspace .tg-tree {
+    flex-direction: row; align-items: center;
+    width: 100%; height: auto; max-height: 44px;
+    padding: 6px 14px; gap: 6px;
+    border-right: 0; border-bottom: 1px solid var(--gs-line);
+    overflow-x: auto; overflow-y: hidden;
+    scrollbar-width: thin;
+  }
+  .grindstone-workspace .tg-tree-head { display: none; }
+  .grindstone-workspace .tg-tree-row {
+    flex-shrink: 0; width: auto;
+    padding: 4px 10px; border-radius: 999px;
+    background: var(--gs-paper-2); border: 1px solid var(--gs-line);
+  }
+  .grindstone-workspace .tg-tree-row-on {
+    background: var(--gs-green); color: var(--gs-paper); border-color: var(--gs-green);
+  }
+  .grindstone-workspace .tg-tree-row-on .tg-tree-n {
+    background: rgba(244,241,236,.2); color: var(--gs-paper);
+  }
+  .grindstone-workspace .tg-tree-caret,
+  .grindstone-workspace .tg-tree-bullet,
+  .grindstone-workspace .tg-tree-all-icon { display: none; }
+
+  .grindstone-workspace .tg-row { grid-template-columns: 2.4fr 2fr 80px 36px; }
+  .grindstone-workspace .tg-row .tg-c-int { display: none; }
+}
+
+/* ≤560: row → card-style with grid-template-areas */
+@container leaf (max-width: 560px) {
+  .grindstone-workspace .tg-main { padding: 12px 14px 16px; }
+  .grindstone-workspace .tg-row {
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      "front act"
+      "tags  due";
+    gap: 6px 10px;
+    padding: 12px 14px;
+  }
+  .grindstone-workspace .tg-row .tg-c-front { grid-area: front; }
+  .grindstone-workspace .tg-row .tg-c-tags  { grid-area: tags; }
+  .grindstone-workspace .tg-row .tg-c-due   { grid-area: due; justify-self: end; }
+  .grindstone-workspace .tg-row .tg-c-act   { grid-area: act; }
+  .grindstone-workspace .tg-row-head { display: none; }
+  .grindstone-workspace .tg-front-text { -webkit-line-clamp: 3; }
+}
+
+/* ≤420: chips + meta tighter */
+@container leaf (max-width: 420px) {
+  .grindstone-workspace .tg-tree { padding: 5px 10px; gap: 4px; }
+  .grindstone-workspace .tg-tree-row { font-size: 11px; padding: 3px 8px; }
+  .grindstone-workspace .tg-tag-chip { max-width: 80px; font-size: 9px; padding: 2px 5px; }
+  .grindstone-workspace .tg-front-text { font-size: 12.5px; }
+}
+
+/* ━━━ Stats ━━━ */
+
+/* ≤900: KPIs 2-col, row-2-1 stacked, row-3 2-col */
+@container leaf (max-width: 900px) {
+  .grindstone-workspace .st-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .grindstone-workspace .st-row-2-1 { grid-template-columns: 1fr; }
+  .grindstone-workspace .st-row-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* ≤720: row-3 single col */
+@container leaf (max-width: 720px) {
+  .grindstone-workspace .st-row-3 { grid-template-columns: 1fr; }
+  .grindstone-workspace .st-kpi { padding: 12px 14px; }
+  .grindstone-workspace .st-kpi-num { font-size: 22px; }
+}
+
+/* ≤560: drop accuracy parent + n=, compact KPIs */
+@container leaf (max-width: 560px) {
+  .grindstone-workspace .st-kpi-num { font-size: 20px; }
+  .grindstone-workspace .st-acc-row { grid-template-columns: minmax(60px, 1.4fr) 2fr auto; gap: 8px; }
+  .grindstone-workspace .st-acc-parent,
+  .grindstone-workspace .st-acc-n { display: none; }
+}
+
+/* ≤420: KPIs single col */
+@container leaf (max-width: 420px) {
+  .grindstone-workspace .st-kpis { grid-template-columns: 1fr; gap: 8px; }
+  .grindstone-workspace .st-kpi { padding: 10px 12px; }
+  .grindstone-workspace .st-kpi-num { font-size: 18px; }
+}
+
+/* ━━━ Review (pre-flight) ━━━ */
+
+/* ≤720: tighten title + cells */
+@container leaf (max-width: 720px) {
+  .grindstone-workspace .rv-launch-title { font-size: 21px; }
+  .grindstone-workspace .rv-auto-num { font-size: 22px; }
+  .grindstone-workspace .rv-auto-cell { padding: 12px; }
+}
+
+/* ≤560: tighter card, sub-tabs horizontal scroll */
+@container leaf (max-width: 560px) {
+  .grindstone-workspace .rv-auto-card { padding: 14px; gap: 12px; }
+  .grindstone-workspace .rv-auto-cell { padding: 10px; }
+  .grindstone-workspace .rv-auto-num { font-size: 20px; }
+  .grindstone-workspace .rv-launch-cta { padding: 12px 16px; font-size: 14px; }
+  .grindstone-workspace .rv-tabs { overflow-x: auto; }
+}
+
+/* ≤420: hide CTA meta, drop Esc hint */
+@container leaf (max-width: 420px) {
+  .grindstone-workspace .rv-launch-title { font-size: 19px; }
+  .grindstone-workspace .rv-launch-cta-meta { display: none; }
+  .grindstone-workspace .rv-launch-kbds span:nth-child(3) { display: none; }
+  .grindstone-workspace .rv-launch-kbds { gap: 10px; font-size: 9px; }
+  .grindstone-workspace .rv-auto-pill { display: none; }
+  .grindstone-workspace .rv-auto-num { font-size: 18px; }
+  .grindstone-workspace .rv-auto-cap { font-size: 10px; }
+}

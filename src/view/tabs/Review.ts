@@ -31,6 +31,7 @@ function renderPreFlight(container: HTMLElement, ctx: TabContext): void {
   const dueCards = ctx.store.getDueCards();
   const dueCount = dueCards.length;
   const newCount = ctx.store.getDueNewCount();
+  const learningCount = ctx.store.getMaturity().learning;
   const streak = ctx.store.getOverviewStats().streak;
   const sessions = ctx.store.getRecentSessions(7);
 
@@ -69,7 +70,7 @@ function renderPreFlight(container: HTMLElement, ctx: TabContext): void {
 
   const renderSection = () => {
     sectionWrap.empty();
-    if (activeTab === 'launch') renderLaunch(sectionWrap, dueCount, newCount, ctx);
+    if (activeTab === 'launch') renderLaunch(sectionWrap, dueCount, newCount, learningCount, ctx);
     else if (activeTab === 'debrief') renderDebrief(sectionWrap, sessions, ctx);
   };
 
@@ -81,7 +82,7 @@ function renderPreFlight(container: HTMLElement, ctx: TabContext): void {
 
 function renderLaunch(
   parent: HTMLElement,
-  dueCount: number, newCount: number,
+  dueCount: number, newCount: number, learningCount: number,
   ctx: TabContext,
 ): void {
   const launch = parent.createDiv({ cls: 'rv-launch' });
@@ -102,9 +103,9 @@ function renderLaunch(
   autoH.createSpan({ cls: 'rv-auto-pill gs-mono', text: '计入统计' });
 
   const autoGrid = autoCard.createDiv({ cls: 'rv-auto-grid' });
-  addAutoCell(autoGrid, dueCount, '到期 \u00B7 DUE', undefined, 0);
-  addAutoCell(autoGrid, newCount, '新卡 \u00B7 NEW', undefined, 60);
-  addAutoCell(autoGrid, Math.round(dueCount * 1.4), '预计 · ETA', (n) => `~${n}m`, 120);
+  addAutoCell(autoGrid, dueCount, '到期', undefined, 0);
+  addAutoCell(autoGrid, newCount, '新卡', undefined, 60);
+  addAutoCell(autoGrid, learningCount, '在学', undefined, 120);
 
   autoCard.createDiv({ cls: 'rv-auto-foot gs-en', text: 'Again / Hard / Good / Easy 的评分会写回卡片，决定下次到期时间。' });
 
@@ -112,17 +113,23 @@ function renderLaunch(
   const cta = left.createEl('button', { cls: 'rv-launch-cta' });
   cta.createSpan({ cls: 'rv-launch-cta-zh', text: '开始今日复习' });
   const ctaMeta = cta.createSpan({ cls: 'rv-launch-cta-meta gs-mono' });
-  ctaMeta.textContent = `${dueCount} cards \u00B7 ~${Math.round(dueCount * 1.4)}m \u00B7 tracked`;
-  cta.innerHTML += `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>`;
+  ctaMeta.textContent = `${dueCount} \u5F20 \u00B7 \u7EA6 ${Math.max(1, Math.round(dueCount * 0.5))} \u5206\u949F`;
   cta.addEventListener('click', () => ctx.startInlineReview());
 
-  // Keyboard hints
-  const kbds = left.createDiv({ cls: 'rv-launch-kbds gs-en' });
-  kbds.createSpan({ text: 'SPACE 翻面' });
-  kbds.createSpan({ text: '\u00B7' });
-  kbds.createSpan({ text: '1\u20144 评分' });
-  kbds.createSpan({ text: '\u00B7' });
-  kbds.createSpan({ text: 'ESC 暂停' });
+  // Keyboard hints — chip-style kbds
+  const kbds = left.createDiv({ cls: 'rv-launch-kbds' });
+  const k1 = kbds.createSpan();
+  k1.createEl('kbd', { text: 'Space' });
+  k1.appendText(' 显示答案');
+  const k2 = kbds.createSpan();
+  ['1', '2', '3', '4'].forEach((n, i) => {
+    if (i > 0) k2.appendText(' / ');
+    k2.createEl('kbd', { text: n });
+  });
+  k2.appendText(' 评分');
+  const k3 = kbds.createSpan();
+  k3.createEl('kbd', { text: 'Esc' });
+  k3.appendText(' 退出');
 }
 
 function addAutoCell(

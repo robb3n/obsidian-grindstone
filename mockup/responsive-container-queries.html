@@ -1,0 +1,1497 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grindstone — Responsive (Container Queries) Mockup</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&family=Noto+Serif+SC:wght@500;600&family=JetBrains+Mono:wght@500;600&family=Ma+Shan+Zheng&display=swap');
+
+  :root {
+    --gs-paper: #f4f1ec;
+    --gs-paper-2: #ebe6dd;
+    --gs-ink: #1a1d1b;
+    --gs-ink-2: #4a4d49;
+    --gs-ink-3: #8a8a82;
+    --gs-line: rgba(26, 29, 27, 0.08);
+    --gs-line-2: rgba(26, 29, 27, 0.14);
+    --gs-green: #1f4d3a;
+    --gs-green-2: #2d6b52;
+    --gs-green-soft: #d8e3dc;
+    --gs-gold: #b8956a;
+    --gs-clay: #b8533a;
+    --gs-card: #ffffff;
+    --gs-radius: 14px;
+    --gs-shadow: 0 1px 0 rgba(26,29,27,.04), 0 1px 3px rgba(26,29,27,.04);
+    --gs-font-zh: "Noto Sans SC", -apple-system, "PingFang SC", sans-serif;
+    --gs-font-en: "Manrope", -apple-system, sans-serif;
+    --gs-font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+    --obs-bg: #20222a;
+    --obs-bg-2: #2a2c36;
+    --obs-line: #393b46;
+    --obs-text: #c8c9cb;
+    --obs-faint: #6f717a;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    background: var(--obs-bg);
+    color: var(--obs-text);
+    font-family: var(--gs-font-en);
+    overflow: hidden;
+  }
+
+  /* ── Demo chrome (simulated Obsidian window) ───────── */
+  .demo {
+    height: 100vh;
+    display: grid;
+    grid-template-rows: 38px 1fr 26px;
+  }
+  .demo-bar {
+    display: flex; align-items: center; gap: 14px;
+    padding: 0 14px;
+    background: var(--obs-bg-2);
+    border-bottom: 1px solid var(--obs-line);
+    font-size: 12px;
+  }
+  .demo-title { font-weight: 600; color: #e3e4e6; letter-spacing: .02em; }
+  .demo-meta { color: var(--obs-faint); font-family: var(--gs-font-mono); font-size: 11px; }
+  .demo-meta b { color: #e6c98a; font-weight: 600; transition: color .15s; }
+  body.at-min .demo-meta b { color: #d6735a; }
+  body.at-min .demo-meta b::after { content: ' · MIN'; font-size: 9px; letter-spacing: .12em; opacity: .8; }
+  body.at-min .demo-divider { background: rgba(214,115,90,.25); }
+  .demo-tabs { display: flex; gap: 4px; margin-left: 20px; }
+  .demo-tabs button {
+    border: 1px solid var(--obs-line); background: transparent; color: var(--obs-text);
+    padding: 4px 14px; border-radius: 5px; cursor: pointer;
+    font: 500 11px var(--gs-font-en);
+  }
+  .demo-tabs button:hover { background: #34374a; color: #fff; }
+  .demo-tabs button.on { background: #6fa68b; color: #161a17; border-color: #6fa68b; font-weight: 600; }
+  .demo-presets { margin-left: auto; display: flex; gap: 6px; }
+  .demo-presets button {
+    border: 1px solid var(--obs-line); background: transparent; color: var(--obs-text);
+    padding: 4px 10px; border-radius: 5px; cursor: pointer;
+    font: 500 11px var(--gs-font-mono);
+  }
+  .demo-presets button:hover { background: #34374a; color: #fff; }
+  .demo-presets button.on { background: #e6c98a; color: #20222a; border-color: #e6c98a; }
+  .demo-statusbar {
+    display: flex; align-items: center; gap: 14px; padding: 0 14px;
+    background: var(--obs-bg-2);
+    border-top: 1px solid var(--obs-line);
+    font: 500 10px var(--gs-font-mono); color: var(--obs-faint);
+    letter-spacing: .08em;
+  }
+  .demo-statusbar .dot { width: 6px; height: 6px; border-radius: 50%; background: #6fa68b; }
+
+  .demo-split {
+    display: grid;
+    grid-template-columns: var(--leaf, 1100px) 6px 1fr;
+    overflow: hidden;
+  }
+  .demo-leaf {
+    overflow: hidden;
+    background: var(--gs-paper);
+    border-right: 1px solid var(--obs-line);
+    container-type: inline-size;
+    container-name: leaf;
+    position: relative;
+  }
+  .demo-divider {
+    background: var(--obs-bg);
+    cursor: col-resize;
+    position: relative;
+    transition: background .15s;
+  }
+  .demo-divider::before {
+    content: '';
+    position: absolute; left: 50%; top: 50%;
+    width: 2px; height: 28px; transform: translate(-50%,-50%);
+    background: var(--obs-line); border-radius: 1px;
+  }
+  .demo-divider:hover, .demo-divider.drag { background: #3a3d50; }
+  .demo-other {
+    background: var(--obs-bg);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--obs-faint); font-size: 12px;
+    background-image:
+      linear-gradient(rgba(255,255,255,.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.02) 1px, transparent 1px);
+    background-size: 28px 28px;
+  }
+  .demo-other-hint {
+    padding: 8px 14px; border: 1px dashed var(--obs-line); border-radius: 8px;
+    background: rgba(0,0,0,.2); letter-spacing: .12em; font-size: 10px;
+  }
+
+  /* Breakpoint markers (info-only) */
+  .demo-marks {
+    position: absolute; inset: auto 0 0 0; height: 22px;
+    display: flex; align-items: center; padding: 0 12px;
+    font: 600 9px var(--gs-font-mono); letter-spacing: .14em;
+    color: var(--gs-ink-3);
+    border-top: 1px dashed var(--gs-line);
+    background: var(--gs-paper);
+    pointer-events: none;
+    gap: 14px;
+  }
+  .demo-marks .badge {
+    padding: 2px 8px; border-radius: 999px;
+    background: var(--gs-paper-2); color: var(--gs-ink-2);
+  }
+  .demo-marks .badge.on { background: var(--gs-green); color: #f4f1ec; }
+
+  /* ══════════════════════════════════════════════════════
+     Grindstone leaf — same class names as styles.css,
+     but with container queries replacing media queries.
+     ══════════════════════════════════════════════════════ */
+
+  .gs-app {
+    width: 100%; height: 100%;
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    background: var(--gs-paper);
+    color: var(--gs-ink);
+    font-family: var(--gs-font-zh);
+    overflow: hidden;
+  }
+
+  /* RAIL */
+  .gs-rail {
+    background: var(--gs-paper-2);
+    border-right: 1px solid var(--gs-line);
+    padding: 18px 12px 12px;
+    display: flex; flex-direction: column; gap: 18px;
+    overflow: hidden;
+  }
+  .gs-rail-logo { display: flex; align-items: center; gap: 10px; padding: 0 4px; }
+  .gs-rail-mark {
+    width: 32px; height: 32px; border-radius: 8px;
+    background: var(--gs-green); color: var(--gs-paper);
+    display: flex; align-items: center; justify-content: center;
+    font: 600 15px var(--gs-font-zh);
+    flex: 0 0 auto;
+  }
+  .gs-rail-zh { font-family: 'Ma Shan Zheng', serif; font-size: 17px; line-height: 1; }
+  .gs-rail-en { font-size: 8px; letter-spacing: .18em; color: var(--gs-ink-3); margin-top: 2px; }
+  .gs-rail-section { font-size: 8px; letter-spacing: .22em; color: var(--gs-ink-3); padding: 4px 8px 2px; font-weight: 600; }
+  .gs-rail-nav { display: flex; flex-direction: column; gap: 1px; }
+  .gs-rail-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 7px 9px; border-radius: 7px;
+    font: 500 13px var(--gs-font-zh); color: var(--gs-ink-2);
+    cursor: pointer;
+  }
+  .gs-rail-item .ico { width: 14px; height: 14px; border-radius: 3px; background: currentColor; opacity: .55; flex: 0 0 auto; }
+  .gs-rail-item-on { background: var(--gs-green-soft); color: var(--gs-green); font-weight: 600; }
+  .gs-rail-item-on .ico { opacity: 1; }
+  .gs-rail-badge { margin-left: auto; padding: 1px 7px; border-radius: 999px; background: var(--gs-clay); color: #fff; font: 600 10px var(--gs-font-mono); }
+  .gs-rail-item-on .gs-rail-badge { background: var(--gs-green); }
+  .gs-rail-foot { margin-top: auto; display: flex; flex-direction: column; gap: 8px; }
+  .gs-rail-streak {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 10px; border-radius: 9px;
+    background: var(--gs-card); border: 1px solid var(--gs-line);
+    overflow: hidden;
+  }
+  .gs-rail-streak-flame { font-size: 16px; }
+  .gs-rail-streak-num { font: 600 16px var(--gs-font-mono); line-height: 1; }
+  .gs-rail-streak-cap { font-size: 9px; color: var(--gs-ink-3); margin-top: 2px; letter-spacing: .04em; }
+
+  /* MAIN */
+  .gs-main {
+    min-width: 0; min-height: 0;
+    display: flex; flex-direction: column;
+    overflow: hidden;
+  }
+  .gs-pagehead {
+    padding: 16px 24px 12px;
+    display: flex; align-items: flex-end; justify-content: space-between; gap: 20px;
+    border-bottom: 1px solid var(--gs-line);
+  }
+  .gs-pagehead-eyebrow { font-size: 9px; letter-spacing: .24em; color: var(--gs-ink-3); font-weight: 600; }
+  .gs-pagehead-title { font: 600 22px var(--gs-font-zh); letter-spacing: .04em; margin-top: 3px; }
+  .gs-pagehead-r { display: flex; gap: 8px; }
+  .gs-iconbtn {
+    width: 28px; height: 28px; border-radius: 7px;
+    background: var(--gs-card); border: 1px solid var(--gs-line);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--gs-ink-2); font-size: 13px;
+  }
+
+  .ov-page {
+    flex: 1; min-height: 0;
+    padding: 14px 24px 24px;
+    display: flex; flex-direction: column; gap: 12px;
+    overflow: auto;
+  }
+
+  /* STAT STRIP */
+  .ov-strip {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    background: var(--gs-card);
+    border: 1px solid var(--gs-line);
+    border-radius: 12px;
+    overflow: hidden;
+    flex: 0 0 auto;
+  }
+  .ov-stat { padding: 10px 14px; border-right: 1px solid var(--gs-line); display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+  .ov-stat:last-child { border-right: 0; }
+  .ov-stat-top { display: flex; align-items: baseline; gap: 6px; }
+  .ov-stat-en { font-size: 8px; letter-spacing: .18em; color: var(--gs-ink-3); font-weight: 600; }
+  .ov-stat-zh { font-size: 10px; color: var(--gs-ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ov-stat-num { font-size: 22px; font-weight: 600; line-height: 1; }
+  .ov-stat-num.accent { color: var(--gs-green); }
+  .ov-stat-suffix { font-size: 11px; color: var(--gs-ink-3); margin-left: 3px; }
+
+  /* TILE GRID */
+  .ov-grid {
+    flex: 1;
+    display: grid; gap: 10px;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    grid-template-rows: minmax(180px, 1fr) minmax(180px, 1fr);
+    min-height: 0;
+  }
+  .ov-tile {
+    background: var(--gs-card); border: 1px solid var(--gs-line); border-radius: 12px;
+    padding: 12px 14px;
+    display: flex; flex-direction: column; gap: 8px;
+    min-height: 0; min-width: 0; overflow: hidden;
+    box-shadow: var(--gs-shadow);
+  }
+  .ov-t-forecast { grid-column: span 6; }
+  .ov-t-progress { grid-column: span 3; }
+  .ov-t-maturity { grid-column: span 3; }
+  .ov-t-ratings  { grid-column: span 3; }
+  .ov-t-heat     { grid-column: span 5; }
+  .ov-t-tags     { grid-column: span 4; }
+
+  .ov-th { display: flex; align-items: baseline; gap: 8px; padding-bottom: 6px; border-bottom: 1px solid var(--gs-line); }
+  .ov-th-zh { font-size: 11px; font-weight: 500; }
+  .ov-th-en { font-size: 8px; letter-spacing: .2em; color: var(--gs-ink-3); font-weight: 600; }
+
+  /* Forecast mini bars */
+  .ov-fore { flex: 1; display: flex; align-items: flex-end; gap: 5px; min-height: 0; padding-bottom: 6px; }
+  .ov-fc { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 0; height: 100%; justify-content: flex-end; }
+  .ov-fc-bar-wrap { width: 100%; flex: 1; min-height: 0; display: flex; align-items: flex-end; }
+  .ov-fc-bar { width: 100%; min-height: 16px; border-radius: 4px 4px 2px 2px; background: var(--gs-line-2); }
+  .ov-fc-today .ov-fc-bar { background: var(--gs-green); }
+  .ov-fc-d { font-size: 9px; color: var(--gs-ink-3); }
+  .ov-fc-today .ov-fc-d { color: var(--gs-green); font-weight: 700; }
+
+  /* Progress (donut placeholder) */
+  .ov-prog { flex: 1; display: flex; align-items: center; justify-content: center; }
+  .ov-prog-d {
+    width: 92px; height: 92px; border-radius: 50%;
+    background: conic-gradient(var(--gs-green) 0 62%, var(--gs-paper-2) 62% 100%);
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+  }
+  .ov-prog-d::before {
+    content: ''; position: absolute; inset: 9px; border-radius: 50%; background: var(--gs-card);
+  }
+  .ov-prog-pct { position: relative; font: 600 20px var(--gs-font-mono); }
+
+  /* Maturity rows */
+  .ov-mat-rows { display: flex; flex-direction: column; gap: 7px; flex: 1; justify-content: center; }
+  .ov-mat { display: grid; grid-template-columns: 50px 1fr 24px; align-items: center; gap: 8px; }
+  .ov-mat-l { display: flex; align-items: center; gap: 6px; min-width: 0; }
+  .ov-mat-dot { width: 7px; height: 7px; border-radius: 2px; flex: 0 0 auto; }
+  .ov-mat-zh { font-size: 11px; }
+  .ov-mat-bar { height: 5px; border-radius: 3px; background: var(--gs-line); overflow: hidden; }
+  .ov-mat-bar > div { height: 100%; }
+  .ov-mat-n { font-size: 11px; font-weight: 600; text-align: right; font-family: var(--gs-font-mono); }
+
+  /* Ratings */
+  .ov-rate { display: flex; gap: 8px; flex: 1; align-items: center; justify-content: space-around; }
+  .ov-rate-row { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+  .ov-rate-circle {
+    width: 42px; height: 42px; border-radius: 50%;
+    border: 2px solid var(--gs-line-2);
+    display: flex; align-items: center; justify-content: center;
+    font: 600 12px var(--gs-font-mono);
+  }
+  .ov-rate-l { font-size: 10px; color: var(--gs-ink-2); }
+  .ov-rate-row.hard .ov-rate-circle { border-color: var(--gs-clay); color: var(--gs-clay); }
+  .ov-rate-row.good .ov-rate-circle { border-color: var(--gs-gold); color: var(--gs-gold); }
+  .ov-rate-row.easy .ov-rate-circle { border-color: var(--gs-green); color: var(--gs-green); }
+
+  /* Heatmap */
+  .ov-heat-grid {
+    flex: 1; display: grid;
+    grid-template-columns: repeat(20, 1fr);
+    grid-template-rows: repeat(7, 1fr);
+    gap: 2px;
+    min-height: 0;
+  }
+  .ov-heat-cell { background: var(--gs-paper-2); border-radius: 2px; }
+
+  /* Tags list */
+  .ov-tags { flex: 1; display: flex; flex-direction: column; gap: 2px; min-height: 0; overflow: hidden; }
+  .ov-tag { display: grid; grid-template-columns: 1fr 44px 24px; align-items: center; gap: 8px; padding: 3px 4px; font-size: 11px; color: var(--gs-ink-2); }
+  .ov-tag-path { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ov-tag-meter { height: 4px; border-radius: 2px; background: var(--gs-line); overflow: hidden; }
+  .ov-tag-meter > span { display: block; height: 100%; background: var(--gs-gold); }
+  .ov-tag-n { font: 600 10px var(--gs-font-mono); text-align: right; }
+
+  /* ── Tab wrapper (each .gs-tab is a flex column inside .gs-main) ── */
+  .gs-tab { display: none; flex: 1; flex-direction: column; min-height: 0; min-width: 0; }
+  .gs-tab:not([hidden]) { display: flex; }
+
+  /* ══════════════════════════════════════
+     Tags Tab
+     ══════════════════════════════════════ */
+  .tg-page {
+    flex: 1; min-height: 0; min-width: 0;
+    display: grid; grid-template-columns: 240px 1fr;
+    overflow: hidden;
+  }
+  .tg-tree {
+    background: var(--gs-paper);
+    border-right: 1px solid var(--gs-line);
+    padding: 10px 8px;
+    overflow: auto;
+    display: flex; flex-direction: column; gap: 1px;
+  }
+  .tg-tree-head { display: flex; align-items: center; justify-content: space-between; padding: 6px 10px 8px; font-size: 9px; letter-spacing: .22em; color: var(--gs-ink-3); font-weight: 600; }
+  .tg-tree-total { color: var(--gs-ink-2); letter-spacing: 0; }
+  .tg-tree-row {
+    display: flex; align-items: center; gap: 4px;
+    padding: 4px 6px; border-radius: 6px;
+    font-size: 12px; color: var(--gs-ink-2);
+    border: 0; background: transparent;
+    text-align: left; width: 100%; cursor: pointer;
+    font-family: inherit;
+  }
+  .tg-tree-row:hover { background: var(--gs-paper-2); color: var(--gs-ink); }
+  .tg-tree-row-on { background: var(--gs-green-soft); color: var(--gs-green); font-weight: 600; }
+  .tg-tree-all-icon, .tg-tree-caret, .tg-tree-icon-t { width: 14px; flex-shrink: 0; font-size: 11px; color: var(--gs-ink-3); }
+  .tg-tree-icon-t { font-family: var(--gs-font-mono); }
+  .tg-tree-row-on .tg-tree-icon-t, .tg-tree-row-on .tg-tree-all-icon { color: var(--gs-green); }
+  .tg-tree-bullet { width: 4px; height: 4px; border-radius: 50%; background: currentColor; opacity: .35; flex-shrink: 0; margin-right: 4px; }
+  .tg-tree-name { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tg-tree-n { font-size: 10px; color: var(--gs-ink-3); background: var(--gs-paper-2); padding: 1px 5px; border-radius: 3px; flex-shrink: 0; }
+  .tg-tree-row-on .tg-tree-n { background: rgba(31,77,58,.16); color: var(--gs-green); }
+
+  .tg-main {
+    overflow: auto;
+    padding: 16px 24px 20px;
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  /* Search box in pagehead-r */
+  .tg-search { display: flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 8px; background: var(--gs-card); border: 1px solid var(--gs-line); color: var(--gs-ink-3); }
+  .tg-search:focus-within { border-color: var(--gs-green); color: var(--gs-ink); }
+  .tg-search input { border: 0; background: transparent; outline: none; font: 500 12px var(--gs-font-zh); color: var(--gs-ink); width: 140px; }
+  .tg-search input::placeholder { color: var(--gs-ink-3); }
+  /* Accuracy pill rendered inside filter bar (1-tag-selected case) */
+  .tg-bc-pill { margin-left: auto; }
+  .tg-bc-acc { font: 600 11px var(--gs-font-zh); padding: 3px 9px; border-radius: 999px; }
+  .tg-bc-acc-green { background: var(--gs-green-soft); color: var(--gs-green); }
+
+  .tg-filter-bar { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; font-size: 12px; }
+  .tg-filter-chip { display: inline-flex; align-items: center; gap: 4px; background: var(--gs-green-soft); color: var(--gs-green); font: 500 11px var(--gs-font-zh); padding: 3px 6px 3px 9px; border-radius: 6px; }
+  .tg-filter-chip-label { white-space: nowrap; max-width: 160px; overflow: hidden; text-overflow: ellipsis; }
+  .tg-filter-chip-x { display: inline-flex; align-items: center; justify-content: center; width: 14px; height: 14px; border-radius: 3px; cursor: pointer; opacity: .6; }
+  .tg-filter-and { font-size: 9px; font-weight: 700; letter-spacing: .06em; color: var(--gs-ink-3); }
+  .tg-filter-add { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border: 1px dashed var(--gs-line); border-radius: 6px; background: transparent; color: var(--gs-ink-3); cursor: pointer; }
+  .tg-filter-clear { border: 0; background: transparent; color: var(--gs-ink-3); font: 600 9px var(--gs-font-mono); letter-spacing: .08em; cursor: pointer; padding: 3px 6px; margin-left: auto; }
+
+  .tg-table { background: var(--gs-card); border-radius: 12px; border: 1px solid var(--gs-line); overflow: auto; }
+  .tg-row {
+    display: grid;
+    grid-template-columns: 2.4fr 2fr 70px 56px 80px 36px;
+    align-items: center; gap: 14px;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--gs-line);
+    font-size: 13px;
+  }
+  .tg-row:last-child { border-bottom: 0; }
+  .tg-row-head { background: var(--gs-paper); font-size: 9px; letter-spacing: .2em; color: var(--gs-ink-3); font-weight: 600; padding: 8px 16px; }
+  .tg-c-head-sortable { cursor: pointer; user-select: none; display: inline-flex; align-items: center; gap: 4px; }
+  .tg-c-head-label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tg-c-head-active .tg-c-head-label { color: var(--gs-ink); }
+  .tg-sort-arrow { font-size: 10px; }
+  /* Tree row "all cards" + namebtn (newer wrappers from Tags.ts) */
+  .tg-tree-all { padding-left: 8px; }
+  .tg-tree-namebtn { flex: 1; min-width: 0; display: flex; align-items: center; gap: 4px; padding: 0 4px; }
+  .tg-tree-namebtn .tg-tree-name { flex: 1; }
+  .tg-c-front { display: flex; align-items: center; gap: 6px; min-width: 0; }
+  .tg-caret-mini { color: var(--gs-ink-3); flex-shrink: 0; }
+  .tg-front-text {
+    font-weight: 500; color: var(--gs-ink);
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+    overflow: hidden; word-break: break-word; line-height: 1.4; min-width: 0;
+  }
+  .tg-c-tags { display: flex; flex-wrap: wrap; gap: 4px; min-width: 0; }
+  .tg-tag-chip { background: var(--gs-green-soft); color: var(--gs-green); font: 500 10px var(--gs-font-mono); padding: 2px 7px; border-radius: 4px; white-space: nowrap; max-width: 140px; overflow: hidden; text-overflow: ellipsis; }
+  .tg-c-int, .tg-c-ef { color: var(--gs-ink-2); font-size: 12px; }
+  .tg-c-due { font-size: 12px; }
+  .tg-due-clay { color: var(--gs-clay); font-weight: 600; }
+  .tg-due-mute { color: var(--gs-ink-3); }
+  .tg-c-act { display: flex; justify-content: flex-end; color: var(--gs-ink-3); cursor: pointer; }
+
+  /* ══════════════════════════════════════
+     Review Tab — pre-flight launch view
+     ══════════════════════════════════════ */
+  .rv-page {
+    flex: 1; min-height: 0; min-width: 0;
+    padding: 14px 24px 24px;
+    display: flex; flex-direction: column; gap: 14px;
+    overflow: auto;
+  }
+  .rv-tabs { display: flex; gap: 2px; align-items: center; border-bottom: 1px solid var(--gs-line); }
+  .rv-tab {
+    display: inline-flex; flex-direction: column; align-items: center; gap: 1px;
+    padding: 8px 16px; border: 0; background: transparent;
+    cursor: pointer; border-bottom: 2px solid transparent;
+    transition: border-color .15s;
+  }
+  .rv-tab-zh { font: 500 13px var(--gs-font-zh); color: var(--gs-ink-2); }
+  .rv-tab-en { font: 600 8px var(--gs-font-en); letter-spacing: .2em; color: var(--gs-ink-3); }
+  .rv-tab-on { border-bottom-color: var(--gs-green); }
+  .rv-tab-on .rv-tab-zh { color: var(--gs-ink); font-weight: 600; }
+  .rv-tab-on .rv-tab-en { color: var(--gs-green); }
+  .rv-tabs-rule { flex: 1; }
+
+  .rv-section-wrap { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+
+  .rv-launch { display: flex; justify-content: center; width: 100%; }
+  .rv-launch-l {
+    display: flex; flex-direction: column; gap: 18px;
+    width: 100%; max-width: 640px;
+    padding: 8px 0 16px;
+  }
+  .rv-launch-h { display: flex; flex-direction: column; gap: 4px; }
+  .rv-launch-eyebrow { font-size: 9px; letter-spacing: .24em; color: var(--gs-ink-3); font-weight: 600; }
+  .rv-launch-title { margin: 0; font: 600 24px var(--gs-font-zh); color: var(--gs-ink); letter-spacing: .04em; }
+  .rv-launch-sub { margin: 0; font-size: 12px; color: var(--gs-ink-3); line-height: 1.55; }
+
+  .rv-auto-card {
+    background: var(--gs-card); border: 1px solid var(--gs-line);
+    border-radius: 12px; padding: 16px 18px;
+    display: flex; flex-direction: column; gap: 14px;
+    box-shadow: var(--gs-shadow);
+  }
+  .rv-auto-h { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+  .rv-auto-h-l { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .rv-auto-zh { font: 600 14px var(--gs-font-zh); color: var(--gs-ink); }
+  .rv-auto-en { font-size: 10px; color: var(--gs-ink-3); letter-spacing: .04em; }
+  .rv-auto-pill {
+    padding: 3px 9px; border-radius: 999px;
+    background: var(--gs-green-soft); color: var(--gs-green);
+    font: 600 10px var(--gs-font-mono);
+    white-space: nowrap; flex-shrink: 0;
+  }
+  .rv-auto-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+  .rv-auto-cell {
+    padding: 14px; background: var(--gs-paper-2); border-radius: 10px;
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    min-width: 0;
+  }
+  .rv-auto-num { font: 600 26px var(--gs-font-mono); color: var(--gs-ink); line-height: 1; }
+  .rv-auto-cap { font-size: 11px; color: var(--gs-ink-2); }
+  .rv-auto-foot {
+    font-size: 10px; color: var(--gs-ink-3); line-height: 1.55;
+    padding-top: 4px; border-top: 1px dashed var(--gs-line);
+  }
+
+  .rv-launch-cta {
+    display: flex; align-items: center; justify-content: center; gap: 12px;
+    padding: 14px 20px; border: 0; border-radius: 12px;
+    background: var(--gs-green); color: var(--gs-paper);
+    font: 600 15px var(--gs-font-zh); cursor: pointer;
+    transition: background .15s, transform .15s, box-shadow .15s;
+  }
+  .rv-launch-cta:hover {
+    background: var(--gs-green-2); transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(31,77,58,.22);
+  }
+  .rv-launch-cta-meta {
+    font-size: 11px; opacity: .8; font-weight: 500;
+    padding: 0 8px; border-left: 1px solid rgba(244,241,236,.25);
+    white-space: nowrap;
+  }
+
+  .rv-launch-kbds {
+    display: flex; gap: 14px; align-items: center;
+    font-size: 10px; color: var(--gs-ink-3); letter-spacing: .04em;
+    flex-wrap: wrap; justify-content: center;
+  }
+  .rv-launch-kbds span { display: inline-flex; align-items: center; gap: 4px; }
+  .rv-launch-kbds kbd {
+    font: 500 10px var(--gs-font-mono);
+    padding: 2px 6px; background: var(--gs-paper-2);
+    border: 1px solid var(--gs-line); border-radius: 4px;
+    color: var(--gs-ink-2);
+  }
+
+  /* ══════════════════════════════════════
+     Stats Tab
+     ══════════════════════════════════════ */
+  .st-page {
+    flex: 1; min-height: 0; min-width: 0;
+    padding: 14px 24px 24px;
+    display: flex; flex-direction: column; gap: 12px;
+    overflow: auto;
+  }
+  .st-range { display: inline-flex; gap: 2px; background: var(--gs-paper-2); padding: 3px; border-radius: 8px; border: 1px solid var(--gs-line); }
+  .st-range-btn { padding: 5px 12px; border: 0; background: transparent; font: 600 11px var(--gs-font-en); letter-spacing: .06em; color: var(--gs-ink-3); cursor: pointer; border-radius: 6px; text-transform: uppercase; }
+  .st-range-btn-on { background: var(--gs-card); color: var(--gs-ink); box-shadow: 0 1px 2px rgba(0,0,0,.06); }
+
+  .st-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+  .st-kpi { background: var(--gs-card); border: 1px solid var(--gs-line); border-radius: 12px; padding: 14px 16px; min-width: 0; box-shadow: var(--gs-shadow); }
+  .st-kpi-eyebrow { font-size: 9px; letter-spacing: .22em; color: var(--gs-ink-3); font-weight: 600; }
+  .st-kpi-zh { font-size: 11px; color: var(--gs-ink-2); margin-top: 2px; }
+  .st-kpi-num { font: 600 26px var(--gs-font-mono); color: var(--gs-ink); display: flex; align-items: baseline; gap: 6px; margin-top: 6px; line-height: 1; }
+  .st-kpi-unit { font-size: 11px; color: var(--gs-ink-3); font-weight: 500; }
+  .st-kpi-delta { margin-top: 8px; font-size: 10px; font-weight: 600; letter-spacing: .04em; }
+  .st-kpi-delta-up   { color: var(--gs-green); }
+  .st-kpi-delta-down { color: var(--gs-clay); }
+  .st-kpi-delta-flat { color: var(--gs-ink-3); }
+
+  .st-row { display: grid; gap: 12px; }
+  .st-row-2-1 { grid-template-columns: 2fr 1fr; }
+  .st-row-3   { grid-template-columns: 1fr 1fr 1fr; }
+
+  .st-card { background: var(--gs-card); border: 1px solid var(--gs-line); border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 12px; min-width: 0; box-shadow: var(--gs-shadow); }
+  .st-card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+  .st-card-en { font-size: 9px; letter-spacing: .22em; color: var(--gs-ink-3); font-weight: 600; }
+  .st-card-zh { font: 600 14px var(--gs-font-zh); color: var(--gs-ink); margin-top: 2px; }
+  .st-card-body { min-height: 0; min-width: 0; }
+
+  /* Trend chart placeholder */
+  .st-chart { position: relative; height: 180px; display: flex; align-items: flex-end; gap: 3px; padding: 8px 0 0; }
+  .st-chart::before {
+    content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: var(--gs-line);
+  }
+  .st-chart-bar { flex: 1; background: var(--gs-green-soft); border-radius: 3px 3px 1px 1px; min-height: 4px; }
+  .st-chart-bar-on { background: var(--gs-green); }
+
+  /* Accuracy rows */
+  .st-acc { display: flex; flex-direction: column; gap: 4px; }
+  .st-acc-row { display: grid; grid-template-columns: minmax(70px, 1.4fr) 2.4fr auto auto; align-items: center; gap: 10px; padding: 3px 0; }
+  .st-acc-l { min-width: 0; }
+  .st-acc-leaf { font-size: 12px; color: var(--gs-ink); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .st-acc-parent { font-size: 9px; letter-spacing: .12em; color: var(--gs-ink-3); }
+  .st-acc-bar-wrap { background: var(--gs-line); height: 6px; border-radius: 3px; overflow: hidden; min-width: 0; }
+  .st-acc-bar { height: 100%; }
+  .st-acc-bar-green { background: var(--gs-green); }
+  .st-acc-bar-gold  { background: var(--gs-gold); }
+  .st-acc-bar-clay  { background: var(--gs-clay); }
+  .st-acc-pct { font: 600 11px var(--gs-font-mono); min-width: 30px; text-align: right; }
+  .st-acc-pct-green { color: var(--gs-green); }
+  .st-acc-pct-gold  { color: var(--gs-gold); }
+  .st-acc-pct-clay  { color: var(--gs-clay); }
+  .st-acc-n { font: 500 10px var(--gs-font-mono); color: var(--gs-ink-3); min-width: 36px; text-align: right; }
+
+  /* Mini heatmap */
+  .st-heat-mini { display: grid; grid-template-columns: repeat(14, 1fr); grid-template-rows: repeat(7, 1fr); gap: 2px; height: 160px; }
+  .st-heat-mini > div { background: var(--gs-paper-2); border-radius: 2px; }
+
+  /* Donut maturity */
+  .st-donut {
+    display: grid; grid-template-columns: 110px 1fr; gap: 14px; align-items: center;
+  }
+  .st-donut-ring {
+    width: 110px; height: 110px; border-radius: 50%;
+    background: conic-gradient(var(--gs-green) 0 62%, var(--gs-gold) 62% 94%, var(--gs-clay) 94% 100%);
+    position: relative;
+  }
+  .st-donut-ring::before { content: ''; position: absolute; inset: 18px; background: var(--gs-card); border-radius: 50%; }
+  .st-donut-cap { display: flex; flex-direction: column; gap: 6px; font-size: 11px; color: var(--gs-ink-2); }
+  .st-donut-row { display: flex; align-items: center; gap: 6px; }
+  .st-donut-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+
+  /* ════════════════════════════════════════════
+     CONTAINER QUERIES — the meat of the proposal
+     ════════════════════════════════════════════ */
+
+  /* ── 900px: rail auto-collapses, tile grid drops to 6 cols ── */
+  @container leaf (max-width: 900px) {
+    .gs-app { grid-template-columns: 54px 1fr; }
+    .gs-rail { padding: 18px 6px 12px; align-items: center; }
+    .gs-rail-logo { padding: 0; }
+    .gs-rail-zh, .gs-rail-en, .gs-rail-section, .gs-rail-item span:not(.gs-rail-badge),
+    .gs-rail-streak-text { display: none; }
+    .gs-rail-item { justify-content: center; width: 36px; height: 36px; padding: 0; }
+    .gs-rail-item .ico { width: 16px; height: 16px; }
+    .gs-rail-streak { padding: 6px; width: 36px; height: 36px; justify-content: center; }
+    .gs-rail-streak-flame { margin: 0; }
+    .gs-rail-streak-text { display: none; }
+    .gs-rail-badge { position: absolute; transform: translate(8px, -8px); padding: 0 4px; font-size: 8px; }
+
+    .ov-grid {
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      grid-template-rows: minmax(180px, 1fr) minmax(180px, 1fr) minmax(180px, 1fr);
+    }
+    .ov-t-forecast { grid-column: span 6; }
+    .ov-t-progress { grid-column: span 2; }
+    .ov-t-maturity { grid-column: span 2; }
+    .ov-t-ratings  { grid-column: span 2; }
+    .ov-t-heat     { grid-column: span 4; }
+    .ov-t-tags     { grid-column: span 2; }
+  }
+
+  /* ── 720px: stat strip 3-col · tile grid 2-col with explicit placement ── */
+  @container leaf (max-width: 720px) {
+    .ov-strip {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .ov-strip .ov-stat:nth-child(3n) { border-right: 0; }
+    .ov-strip .ov-stat:nth-child(3n+1) { border-right: 1px solid var(--gs-line); }
+    .ov-strip .ov-stat:nth-child(-n+3) { border-bottom: 1px solid var(--gs-line); }
+
+    .ov-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-rows: none;
+      grid-auto-rows: minmax(190px, auto);
+    }
+    /* Row 1: forecast full · Row 2: progress | maturity · Row 3: ratings | tags · Row 4: heat full */
+    .ov-t-forecast { grid-column: 1 / -1; grid-row: 1; }
+    .ov-t-progress { grid-column: 1;       grid-row: 2; }
+    .ov-t-maturity { grid-column: 2;       grid-row: 2; }
+    .ov-t-ratings  { grid-column: 1;       grid-row: 3; }
+    .ov-t-tags     { grid-column: 2;       grid-row: 3; }
+    .ov-t-heat     { grid-column: 1 / -1;  grid-row: 4; }
+
+    .gs-pagehead { padding: 14px 18px 10px; }
+    .gs-pagehead-title { font-size: 19px; }
+    .ov-page { padding: 12px 18px 20px; }
+  }
+
+  /* ── 560px: rail hidden, single-col tiles, compact stat strip ── */
+  @container leaf (max-width: 560px) {
+    .gs-app { grid-template-columns: 1fr; }
+    .gs-rail { display: none; }
+
+    .ov-strip {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .ov-stat:nth-child(2n) { border-right: 0; }
+    .ov-stat:not(:nth-last-child(-n+2)) { border-bottom: 1px solid var(--gs-line); }
+    .ov-stat:nth-child(odd) { border-right: 1px solid var(--gs-line); }
+    .ov-stat-num { font-size: 19px; }
+
+    .ov-grid {
+      grid-template-columns: 1fr;
+      grid-template-rows: repeat(6, minmax(170px, auto));
+    }
+    .ov-t-forecast, .ov-t-progress, .ov-t-maturity,
+    .ov-t-ratings, .ov-t-heat, .ov-t-tags { grid-column: 1 / -1; grid-row: auto; }
+
+    .gs-pagehead {
+      flex-direction: column; align-items: flex-start; gap: 8px;
+      padding: 12px 14px 10px;
+    }
+    .gs-pagehead-r { align-self: flex-end; }
+    .ov-page { padding: 10px 14px 18px; gap: 10px; }
+  }
+
+  /* ── 420px: very narrow — kill the donut decoration, collapse ratings ── */
+  @container leaf (max-width: 420px) {
+    .ov-prog-d { width: 72px; height: 72px; }
+    .ov-prog-pct { font-size: 17px; }
+    .ov-rate-circle { width: 36px; height: 36px; }
+    .gs-pagehead-title { font-size: 17px; }
+    .ov-stat-en { display: none; }
+  }
+
+  /* ══════════════════════════════════════════════════════
+     TAGS — progressive degradation of tree + table
+     ══════════════════════════════════════════════════════ */
+
+  /* ≤900: tree shrinks, drop EF column */
+  @container leaf (max-width: 900px) {
+    .tg-page { grid-template-columns: 180px 1fr; }
+    .tg-main { padding: 14px 18px 18px; }
+    .tg-row { grid-template-columns: 2.4fr 2fr 70px 80px 36px; }
+    .tg-row .tg-c-ef { display: none; }
+  }
+
+  /* ≤720: tree → top horizontal chip strip; drop interval column */
+  @container leaf (max-width: 720px) {
+    .tg-page {
+      display: flex; flex-direction: column;
+      grid-template-columns: none;
+    }
+    .tg-tree {
+      flex-direction: row;
+      align-items: center;
+      width: 100%; height: auto;
+      max-height: 44px;
+      padding: 6px 14px;
+      gap: 6px;
+      border-right: 0;
+      border-bottom: 1px solid var(--gs-line);
+      overflow-x: auto;
+      overflow-y: hidden;
+      scrollbar-width: thin;
+    }
+    .tg-tree-head { display: none; }
+    .tg-tree-row {
+      flex-shrink: 0;
+      width: auto;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: var(--gs-paper-2);
+      border: 1px solid var(--gs-line);
+    }
+    .tg-tree-row-on {
+      background: var(--gs-green);
+      color: var(--gs-paper);
+      border-color: var(--gs-green);
+    }
+    .tg-tree-row-on .tg-tree-n {
+      background: rgba(244,241,236,.2); color: var(--gs-paper);
+    }
+    /* hide tree-only ornaments — leaf shape doesn't need carets/bullets */
+    .tg-tree-caret, .tg-tree-bullet, .tg-tree-all-icon { display: none; }
+    /* indent inline padding-left from inline style → 0 */
+    .tg-tree-row[style*="padding-left"] { padding-left: 10px !important; }
+    .tg-tree-row[style*="padding-left"]::before {
+      content: '·'; color: var(--gs-ink-3); margin-right: 4px;
+    }
+
+    .tg-row { grid-template-columns: 2.4fr 2fr 80px 36px; }
+    .tg-row .tg-c-int { display: none; }
+  }
+
+  /* ≤560: card-style rows — front spans top, tags + due on row 2 */
+  @container leaf (max-width: 560px) {
+    .tg-main { padding: 12px 14px 16px; }
+    .tg-row {
+      grid-template-columns: 1fr auto;
+      grid-template-areas:
+        "front act"
+        "tags  due";
+      gap: 6px 10px;
+      padding: 12px 14px;
+    }
+    .tg-row .tg-c-front { grid-area: front; }
+    .tg-row .tg-c-tags  { grid-area: tags; }
+    .tg-row .tg-c-due   { grid-area: due; justify-self: end; }
+    .tg-row .tg-c-act   { grid-area: act; }
+    .tg-row-head { display: none; }
+    .tg-front-text { -webkit-line-clamp: 3; }
+  }
+
+  /* ≤420: tighten chips strip + meta */
+  @container leaf (max-width: 420px) {
+    .tg-tree { padding: 5px 10px; gap: 4px; }
+    .tg-tree-row { font-size: 11px; padding: 3px 8px; }
+    .tg-tag-chip { max-width: 80px; font-size: 9px; padding: 2px 5px; }
+    .tg-front-text { font-size: 12.5px; }
+    .tg-bc-seg { padding: 3px 5px; font-size: 12px; }
+  }
+
+  /* ══════════════════════════════════════════════════════
+     REVIEW — pre-flight tightens, CTA meta hides at narrow
+     ══════════════════════════════════════════════════════ */
+
+  /* ≤720: tighten rv-page padding, slightly smaller cells */
+  @container leaf (max-width: 720px) {
+    .rv-page { padding: 12px 18px 20px; gap: 12px; }
+    .rv-launch-title { font-size: 21px; }
+    .rv-auto-num { font-size: 22px; }
+    .rv-auto-cell { padding: 12px; }
+  }
+
+  /* ≤560: tighter card padding, kbds row may wrap */
+  @container leaf (max-width: 560px) {
+    .rv-page { padding: 10px 14px 16px; gap: 10px; }
+    .rv-auto-card { padding: 14px; gap: 12px; }
+    .rv-auto-cell { padding: 10px; gap: 2px; }
+    .rv-auto-num { font-size: 20px; }
+    .rv-launch-cta { padding: 12px 16px; font-size: 14px; }
+    /* sub-tabs scroll horizontally if needed */
+    .rv-tabs { overflow-x: auto; }
+  }
+
+  /* ≤420: CTA meta hides (too cramped), kbds drop the Esc hint */
+  @container leaf (max-width: 420px) {
+    .rv-launch-l { gap: 14px; }
+    .rv-launch-title { font-size: 19px; }
+    .rv-launch-cta-meta { display: none; }
+    .rv-launch-kbds span:nth-child(3) { display: none; }
+    .rv-launch-kbds { gap: 10px; font-size: 9px; }
+    .rv-auto-pill { display: none; }
+    .rv-auto-num { font-size: 18px; }
+    .rv-auto-cap { font-size: 10px; }
+  }
+
+  /* ══════════════════════════════════════════════════════
+     STATS — KPI grid + multi-card rows reflow
+     ══════════════════════════════════════════════════════ */
+
+  /* ≤900: KPIs → 2-col, row-2-1 stacked, row-3 → 2-col with donut spanning */
+  @container leaf (max-width: 900px) {
+    .st-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .st-row-2-1 { grid-template-columns: 1fr; }
+    .st-row-3   { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .st-row-3 > :last-child { grid-column: 1 / -1; }
+    .st-donut-cap { flex-direction: row; flex-wrap: wrap; gap: 18px; }
+  }
+
+  /* ≤720: row-3 stacks single col; compact KPIs + smaller chart heights */
+  @container leaf (max-width: 720px) {
+    .st-page { padding: 12px 18px 20px; gap: 10px; }
+    .st-kpi { padding: 12px 14px; }
+    .st-kpi-num { font-size: 22px; }
+    .st-row-3 { grid-template-columns: 1fr; }
+    .st-row-3 > :last-child { grid-column: auto; }
+    .st-donut { grid-template-columns: 110px 1fr; }
+    .st-donut-cap { flex-direction: column; flex-wrap: nowrap; }
+    .st-chart { height: 150px; }
+    .st-heat-mini { height: 130px; grid-template-columns: repeat(12, 1fr); }
+    .st-range-btn:last-child { display: none; }
+  }
+
+  /* ≤560: drop accuracy parent + n=, donut stacks, tighten chart */
+  @container leaf (max-width: 560px) {
+    .st-page { padding: 10px 14px 16px; }
+    .st-kpi-eyebrow { font-size: 8px; letter-spacing: .18em; }
+    .st-kpi-num { font-size: 20px; }
+    .st-card { padding: 12px 14px; gap: 10px; }
+    .st-chart { height: 130px; }
+    .st-heat-mini { height: 110px; grid-template-columns: repeat(10, 1fr); }
+    .st-acc-row { grid-template-columns: 1fr 2fr auto; gap: 8px; }
+    .st-acc-parent, .st-acc-n { display: none; }
+    .st-donut { grid-template-columns: 1fr; justify-items: center; gap: 10px; }
+    .st-donut-cap { flex-direction: row; gap: 10px; flex-wrap: wrap; justify-content: center; font-size: 10px; }
+  }
+
+  /* ≤420: KPIs single col, range buttons tighter */
+  @container leaf (max-width: 420px) {
+    .st-kpis { grid-template-columns: 1fr; gap: 8px; }
+    .st-kpi { padding: 10px 12px; }
+    .st-kpi-num { font-size: 18px; }
+    .st-chart { height: 110px; }
+    .st-card-zh { font-size: 13px; }
+    .st-acc-row { font-size: 11px; }
+    .st-acc-pct { font-size: 10px; min-width: 26px; }
+  }
+</style>
+</head>
+<body>
+<div class="demo">
+
+  <!-- ── Demo bar ── -->
+  <div class="demo-bar">
+    <div class="demo-title">Grindstone · Responsive Mockup</div>
+    <div class="demo-tabs">
+      <button class="dtb on" data-tab="overview">Overview</button>
+      <button class="dtb" data-tab="review">Review</button>
+      <button class="dtb" data-tab="stats">Stats</button>
+      <button class="dtb" data-tab="tags">Tags</button>
+    </div>
+    <div class="demo-meta">leaf: <b id="w">—</b>px</div>
+    <div class="demo-presets">
+      <button data-w="1200">1200</button>
+      <button data-w="900">900</button>
+      <button data-w="720">720</button>
+      <button data-w="560">560</button>
+      <button data-w="420">420</button>
+    </div>
+  </div>
+
+  <!-- ── Split view ── -->
+  <div class="demo-split" id="split">
+
+    <!-- LEAF -->
+    <div class="demo-leaf" id="leaf">
+      <div class="gs-app">
+        <!-- Rail -->
+        <aside class="gs-rail">
+          <div class="gs-rail-logo">
+            <div class="gs-rail-mark">磨</div>
+            <div>
+              <div class="gs-rail-zh">磨刀石</div>
+              <div class="gs-rail-en">GRINDSTONE</div>
+            </div>
+          </div>
+          <div>
+            <div class="gs-rail-section">WORKSPACE</div>
+            <div class="gs-rail-nav">
+              <div class="gs-rail-item gs-rail-item-on"><span class="ico"></span><span>纵览</span></div>
+              <div class="gs-rail-item"><span class="ico"></span><span>复习</span><span class="gs-rail-badge">12</span></div>
+              <div class="gs-rail-item"><span class="ico"></span><span>统计</span></div>
+              <div class="gs-rail-item"><span class="ico"></span><span>标签</span></div>
+            </div>
+          </div>
+          <div class="gs-rail-foot">
+            <div class="gs-rail-streak">
+              <span class="gs-rail-streak-flame">🔥</span>
+              <span class="gs-rail-streak-text">
+                <div class="gs-rail-streak-num">14</div>
+                <div class="gs-rail-streak-cap">DAY STREAK</div>
+              </span>
+            </div>
+          </div>
+        </aside>
+
+        <!-- Main -->
+        <main class="gs-main">
+
+        <!-- ══════════ OVERVIEW TAB ══════════ -->
+        <section class="gs-tab gs-tab-overview" data-tab="overview">
+          <header class="gs-pagehead">
+            <div>
+              <div class="gs-pagehead-eyebrow">OVERVIEW</div>
+              <h1 class="gs-pagehead-title">纵览</h1>
+            </div>
+            <div class="gs-pagehead-r">
+              <button class="gs-iconbtn">⟳</button>
+              <button class="gs-iconbtn">⚙</button>
+            </div>
+          </header>
+
+          <div class="ov-page">
+
+            <!-- Stat strip -->
+            <section class="ov-strip">
+              <div class="ov-stat">
+                <div class="ov-stat-top"><span class="ov-stat-en">DUE</span><span class="ov-stat-zh">到期</span></div>
+                <div><span class="ov-stat-num accent">12</span></div>
+              </div>
+              <div class="ov-stat">
+                <div class="ov-stat-top"><span class="ov-stat-en">NEW</span><span class="ov-stat-zh">新卡</span></div>
+                <div><span class="ov-stat-num">3</span></div>
+              </div>
+              <div class="ov-stat">
+                <div class="ov-stat-top"><span class="ov-stat-en">REVIEWED</span><span class="ov-stat-zh">已复习</span></div>
+                <div><span class="ov-stat-num">47</span></div>
+              </div>
+              <div class="ov-stat">
+                <div class="ov-stat-top"><span class="ov-stat-en">RETENTION</span><span class="ov-stat-zh">留存</span></div>
+                <div><span class="ov-stat-num">86<span class="ov-stat-suffix">%</span></span></div>
+              </div>
+              <div class="ov-stat">
+                <div class="ov-stat-top"><span class="ov-stat-en">STREAK</span><span class="ov-stat-zh">连续</span></div>
+                <div><span class="ov-stat-num">14</span></div>
+              </div>
+              <div class="ov-stat">
+                <div class="ov-stat-top"><span class="ov-stat-en">TOTAL</span><span class="ov-stat-zh">总卡</span></div>
+                <div><span class="ov-stat-num">428</span></div>
+              </div>
+            </section>
+
+            <!-- Tile grid -->
+            <section class="ov-grid">
+
+              <article class="ov-tile ov-t-forecast">
+                <header class="ov-th"><span class="ov-th-zh">7 日预测</span><span class="ov-th-en">FORECAST</span></header>
+                <div class="ov-fore">
+                  <div class="ov-fc ov-fc-today"><div class="ov-fc-bar-wrap"><div class="ov-fc-bar" style="height:70%"></div></div><div class="ov-fc-d">今</div></div>
+                  <div class="ov-fc"><div class="ov-fc-bar-wrap"><div class="ov-fc-bar" style="height:45%"></div></div><div class="ov-fc-d">二</div></div>
+                  <div class="ov-fc"><div class="ov-fc-bar-wrap"><div class="ov-fc-bar" style="height:55%"></div></div><div class="ov-fc-d">三</div></div>
+                  <div class="ov-fc"><div class="ov-fc-bar-wrap"><div class="ov-fc-bar" style="height:38%"></div></div><div class="ov-fc-d">四</div></div>
+                  <div class="ov-fc"><div class="ov-fc-bar-wrap"><div class="ov-fc-bar" style="height:62%"></div></div><div class="ov-fc-d">五</div></div>
+                  <div class="ov-fc"><div class="ov-fc-bar-wrap"><div class="ov-fc-bar" style="height:30%"></div></div><div class="ov-fc-d">六</div></div>
+                  <div class="ov-fc"><div class="ov-fc-bar-wrap"><div class="ov-fc-bar" style="height:48%"></div></div><div class="ov-fc-d">日</div></div>
+                </div>
+              </article>
+
+              <article class="ov-tile ov-t-progress">
+                <header class="ov-th"><span class="ov-th-zh">今日进度</span><span class="ov-th-en">PROGRESS</span></header>
+                <div class="ov-prog"><div class="ov-prog-d"><span class="ov-prog-pct">62%</span></div></div>
+              </article>
+
+              <article class="ov-tile ov-t-maturity">
+                <header class="ov-th"><span class="ov-th-zh">熟练度</span><span class="ov-th-en">MATURITY</span></header>
+                <div class="ov-mat-rows">
+                  <div class="ov-mat"><div class="ov-mat-l"><span class="ov-mat-dot" style="background:var(--gs-green)"></span><span class="ov-mat-zh">成熟</span></div><div class="ov-mat-bar"><div style="width:62%;background:var(--gs-green)"></div></div><div class="ov-mat-n">265</div></div>
+                  <div class="ov-mat"><div class="ov-mat-l"><span class="ov-mat-dot" style="background:var(--gs-gold)"></span><span class="ov-mat-zh">在学</span></div><div class="ov-mat-bar"><div style="width:32%;background:var(--gs-gold)"></div></div><div class="ov-mat-n">137</div></div>
+                  <div class="ov-mat"><div class="ov-mat-l"><span class="ov-mat-dot" style="background:var(--gs-clay)"></span><span class="ov-mat-zh">新卡</span></div><div class="ov-mat-bar"><div style="width:6%;background:var(--gs-clay)"></div></div><div class="ov-mat-n">26</div></div>
+                </div>
+              </article>
+
+              <article class="ov-tile ov-t-ratings">
+                <header class="ov-th"><span class="ov-th-zh">评分分布</span><span class="ov-th-en">RATINGS</span></header>
+                <div class="ov-rate">
+                  <div class="ov-rate-row hard"><div class="ov-rate-circle">8</div><div class="ov-rate-l">难</div></div>
+                  <div class="ov-rate-row good"><div class="ov-rate-circle">22</div><div class="ov-rate-l">良</div></div>
+                  <div class="ov-rate-row easy"><div class="ov-rate-circle">17</div><div class="ov-rate-l">易</div></div>
+                </div>
+              </article>
+
+              <article class="ov-tile ov-t-heat">
+                <header class="ov-th"><span class="ov-th-zh">活动热图</span><span class="ov-th-en">HEATMAP · 20 WEEKS</span></header>
+                <div class="ov-heat-grid" id="heat"></div>
+              </article>
+
+              <article class="ov-tile ov-t-tags">
+                <header class="ov-th"><span class="ov-th-zh">标签 Top</span><span class="ov-th-en">TAGS</span></header>
+                <div class="ov-tags">
+                  <div class="ov-tag"><span class="ov-tag-path">#编程/算法</span><span class="ov-tag-meter"><span style="width:88%"></span></span><span class="ov-tag-n">42</span></div>
+                  <div class="ov-tag"><span class="ov-tag-path">#英语/词汇</span><span class="ov-tag-meter"><span style="width:70%"></span></span><span class="ov-tag-n">33</span></div>
+                  <div class="ov-tag"><span class="ov-tag-path">#历史/民国</span><span class="ov-tag-meter"><span style="width:58%"></span></span><span class="ov-tag-n">28</span></div>
+                  <div class="ov-tag"><span class="ov-tag-path">#日语/N1</span><span class="ov-tag-meter"><span style="width:46%"></span></span><span class="ov-tag-n">22</span></div>
+                  <div class="ov-tag"><span class="ov-tag-path">#数学/线代</span><span class="ov-tag-meter"><span style="width:34%"></span></span><span class="ov-tag-n">16</span></div>
+                  <div class="ov-tag"><span class="ov-tag-path">#哲学/伦理</span><span class="ov-tag-meter"><span style="width:24%"></span></span><span class="ov-tag-n">11</span></div>
+                </div>
+              </article>
+
+            </section>
+          </div>
+        </section>
+        <!-- ══════════ /OVERVIEW TAB ══════════ -->
+
+        <!-- ══════════ REVIEW TAB ══════════ -->
+        <section class="gs-tab gs-tab-review" data-tab="review" hidden>
+          <header class="gs-pagehead">
+            <div>
+              <div class="gs-pagehead-eyebrow">REVIEW · 复习</div>
+              <h1 class="gs-pagehead-title">复习</h1>
+            </div>
+            <div class="gs-pagehead-r">
+              <span class="gs-pill gs-pill-clay">12 待复习</span>
+              <span class="gs-pill">连续 14 天</span>
+            </div>
+          </header>
+
+          <div class="rv-page">
+            <div class="rv-tabs">
+              <button class="rv-tab rv-tab-on">
+                <span class="rv-tab-zh">启动</span>
+                <span class="rv-tab-en">PRE-FLIGHT</span>
+              </button>
+              <button class="rv-tab">
+                <span class="rv-tab-zh">历史</span>
+                <span class="rv-tab-en">HISTORY</span>
+              </button>
+              <button class="rv-tab">
+                <span class="rv-tab-zh">复盘</span>
+                <span class="rv-tab-en">DEBRIEF</span>
+              </button>
+              <div class="rv-tabs-rule"></div>
+            </div>
+
+            <div class="rv-section-wrap">
+              <div class="rv-launch">
+                <div class="rv-launch-l">
+                  <div class="rv-launch-h">
+                    <div class="rv-launch-eyebrow">PRE-FLIGHT · 进入会话前</div>
+                    <h2 class="rv-launch-title">今日复习</h2>
+                    <p class="rv-launch-sub">由 SRS 调度的到期队列 · 评分计入统计、影响后续间隔</p>
+                  </div>
+
+                  <div class="rv-auto-card">
+                    <div class="rv-auto-h">
+                      <div class="rv-auto-h-l">
+                        <span class="rv-auto-zh">SRS 调度的到期队列</span>
+                        <span class="rv-auto-en">由 SM-2 调度 · 不可手动配置</span>
+                      </div>
+                      <span class="rv-auto-pill">计入统计</span>
+                    </div>
+                    <div class="rv-auto-grid">
+                      <div class="rv-auto-cell">
+                        <div class="rv-auto-num">12</div>
+                        <div class="rv-auto-cap">到期</div>
+                      </div>
+                      <div class="rv-auto-cell">
+                        <div class="rv-auto-num">3</div>
+                        <div class="rv-auto-cap">新卡</div>
+                      </div>
+                      <div class="rv-auto-cell">
+                        <div class="rv-auto-num">9</div>
+                        <div class="rv-auto-cap">在学</div>
+                      </div>
+                    </div>
+                    <div class="rv-auto-foot">Again / Hard / Good / Easy 的评分会写回卡片，决定下次到期时间。</div>
+                  </div>
+
+                  <button class="rv-launch-cta">
+                    <span class="rv-launch-cta-zh">开始今日复习</span>
+                    <span class="rv-launch-cta-meta">12 张 · 约 6 分钟</span>
+                  </button>
+
+                  <div class="rv-launch-kbds">
+                    <span><kbd>Space</kbd> 显示答案</span>
+                    <span><kbd>1</kbd> / <kbd>2</kbd> / <kbd>3</kbd> / <kbd>4</kbd> 评分</span>
+                    <span><kbd>Esc</kbd> 退出</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+        <!-- ══════════ /REVIEW TAB ══════════ -->
+
+        <!-- ══════════ TAGS TAB ══════════ -->
+        <section class="gs-tab gs-tab-tags" data-tab="tags" hidden>
+          <header class="gs-pagehead">
+            <div>
+              <div class="gs-pagehead-eyebrow">WORKSPACE · TAGS</div>
+              <h1 class="gs-pagehead-title">标签</h1>
+            </div>
+            <div class="gs-pagehead-r">
+              <span class="gs-pill">11 个标签</span>
+              <span class="gs-pill gs-pill-green">42 张匹配</span>
+              <div class="tg-search">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+                <input placeholder="搜索卡片..." />
+              </div>
+            </div>
+          </header>
+
+          <div class="tg-page">
+
+            <!-- Tag tree (left) -->
+            <aside class="tg-tree" id="tgTree">
+              <div class="tg-tree-head"><span class="gs-en">TAG TREE</span></div>
+              <button class="tg-tree-row tg-tree-all"><span class="tg-tree-all-icon">⌂</span><div class="tg-tree-namebtn"><span class="tg-tree-name">全部卡片</span><span class="tg-tree-n">132</span></div></button>
+              <button class="tg-tree-row tg-tree-row-on"><span class="tg-tree-caret">▾</span><div class="tg-tree-namebtn"><span class="tg-tree-name">编程</span><span class="tg-tree-n">58</span></div></button>
+              <button class="tg-tree-row tg-tree-row-on" style="padding-left:18px"><span class="tg-tree-bullet"></span><div class="tg-tree-namebtn"><span class="tg-tree-name">算法</span><span class="tg-tree-n">42</span></div></button>
+              <button class="tg-tree-row" style="padding-left:18px"><span class="tg-tree-bullet"></span><div class="tg-tree-namebtn"><span class="tg-tree-name">数据结构</span><span class="tg-tree-n">16</span></div></button>
+              <button class="tg-tree-row"><span class="tg-tree-caret">▸</span><div class="tg-tree-namebtn"><span class="tg-tree-name">英语</span><span class="tg-tree-n">38</span></div></button>
+              <button class="tg-tree-row"><span class="tg-tree-caret">▸</span><div class="tg-tree-namebtn"><span class="tg-tree-name">历史</span><span class="tg-tree-n">28</span></div></button>
+              <button class="tg-tree-row"><span class="tg-tree-caret">▸</span><div class="tg-tree-namebtn"><span class="tg-tree-name">日语</span><span class="tg-tree-n">22</span></div></button>
+              <button class="tg-tree-row"><span class="tg-tree-caret">▸</span><div class="tg-tree-namebtn"><span class="tg-tree-name">数学</span><span class="tg-tree-n">16</span></div></button>
+            </aside>
+
+            <!-- Main column -->
+            <div class="tg-main">
+              <div class="tg-filter-bar">
+                <span class="tg-filter-chip"><span class="tg-filter-chip-label">#算法</span><span class="tg-filter-chip-x">×</span></span>
+                <button class="tg-filter-add">+</button>
+                <span class="tg-bc-pill"><span class="tg-bc-acc tg-bc-acc-green">准确率 92%</span></span>
+              </div>
+
+              <div class="tg-table">
+                <div class="tg-row tg-row-head gs-en">
+                  <span class="tg-c-front tg-c-head-sortable tg-c-head-active"><span class="tg-c-head-label">QUESTION</span><span class="tg-sort-arrow">↓</span></span>
+                  <span class="tg-c-tags">TAGS</span>
+                  <span class="tg-c-int tg-c-head-sortable"><span class="tg-c-head-label">INTERVAL</span></span>
+                  <span class="tg-c-ef tg-c-head-sortable"><span class="tg-c-head-label">EF</span></span>
+                  <span class="tg-c-due tg-c-head-sortable"><span class="tg-c-head-label">DUE</span></span>
+                  <span class="tg-c-act"></span>
+                </div>
+                <div class="tg-row">
+                  <div class="tg-c-front"><span class="tg-caret-mini">▸</span><span class="tg-front-text">快速排序的最坏时间复杂度为多少？为什么？</span></div>
+                  <div class="tg-c-tags"><span class="tg-tag-chip">#编程/算法</span></div>
+                  <div class="tg-c-int">12d</div>
+                  <div class="tg-c-ef">2.4</div>
+                  <div class="tg-c-due tg-due-clay">今日</div>
+                  <div class="tg-c-act">⋯</div>
+                </div>
+                <div class="tg-row">
+                  <div class="tg-c-front"><span class="tg-caret-mini">▸</span><span class="tg-front-text">二叉搜索树的中序遍历有什么性质？</span></div>
+                  <div class="tg-c-tags"><span class="tg-tag-chip">#编程/算法</span><span class="tg-tag-chip">#数据结构</span></div>
+                  <div class="tg-c-int">7d</div>
+                  <div class="tg-c-ef">2.1</div>
+                  <div class="tg-c-due">+3d</div>
+                  <div class="tg-c-act">⋯</div>
+                </div>
+                <div class="tg-row">
+                  <div class="tg-c-front"><span class="tg-caret-mini">▸</span><span class="tg-front-text">Dijkstra 算法不适用于哪种图？</span></div>
+                  <div class="tg-c-tags"><span class="tg-tag-chip">#编程/算法</span></div>
+                  <div class="tg-c-int">21d</div>
+                  <div class="tg-c-ef">2.6</div>
+                  <div class="tg-c-due">+10d</div>
+                  <div class="tg-c-act">⋯</div>
+                </div>
+                <div class="tg-row">
+                  <div class="tg-c-front"><span class="tg-caret-mini">▸</span><span class="tg-front-text">动态规划与分治法的核心区别？</span></div>
+                  <div class="tg-c-tags"><span class="tg-tag-chip">#编程/算法</span></div>
+                  <div class="tg-c-int">4d</div>
+                  <div class="tg-c-ef">1.9</div>
+                  <div class="tg-c-due tg-due-clay">明日</div>
+                  <div class="tg-c-act">⋯</div>
+                </div>
+                <div class="tg-row">
+                  <div class="tg-c-front"><span class="tg-caret-mini">▸</span><span class="tg-front-text">什么是稳定排序？举出 3 个例子</span></div>
+                  <div class="tg-c-tags"><span class="tg-tag-chip">#编程/算法</span></div>
+                  <div class="tg-c-int">30d</div>
+                  <div class="tg-c-ef">2.8</div>
+                  <div class="tg-c-due tg-due-mute">+18d</div>
+                  <div class="tg-c-act">⋯</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+        <!-- ══════════ /TAGS TAB ══════════ -->
+
+        <!-- ══════════ STATS TAB ══════════ -->
+        <section class="gs-tab gs-tab-stats" data-tab="stats" hidden>
+          <header class="gs-pagehead">
+            <div>
+              <div class="gs-pagehead-eyebrow">WORKSPACE · STATS</div>
+              <h1 class="gs-pagehead-title">统计</h1>
+            </div>
+            <div class="gs-pagehead-r">
+              <div class="st-range">
+                <button class="st-range-btn">7D</button>
+                <button class="st-range-btn st-range-btn-on">30D</button>
+                <button class="st-range-btn">90D</button>
+                <button class="st-range-btn">ALL</button>
+              </div>
+            </div>
+          </header>
+
+          <div class="st-page">
+            <!-- KPI row -->
+            <section class="st-kpis">
+              <div class="st-kpi">
+                <div class="st-kpi-eyebrow">REVIEWED</div>
+                <div class="st-kpi-zh">已复习</div>
+                <div class="st-kpi-num">847<span class="st-kpi-unit">cards</span></div>
+                <div class="st-kpi-delta st-kpi-delta-up">▲ 12% vs 上 30 天</div>
+              </div>
+              <div class="st-kpi">
+                <div class="st-kpi-eyebrow">RETENTION</div>
+                <div class="st-kpi-zh">留存率</div>
+                <div class="st-kpi-num">86<span class="st-kpi-unit">%</span></div>
+                <div class="st-kpi-delta st-kpi-delta-up">▲ 3.2%</div>
+              </div>
+              <div class="st-kpi">
+                <div class="st-kpi-eyebrow">DAILY AVG</div>
+                <div class="st-kpi-zh">日均</div>
+                <div class="st-kpi-num">28<span class="st-kpi-unit">cards</span></div>
+                <div class="st-kpi-delta st-kpi-delta-flat">— 持平</div>
+              </div>
+              <div class="st-kpi">
+                <div class="st-kpi-eyebrow">EF AVG</div>
+                <div class="st-kpi-zh">平均难度因子</div>
+                <div class="st-kpi-num">2.34<span class="st-kpi-unit"></span></div>
+                <div class="st-kpi-delta st-kpi-delta-down">▼ 0.08</div>
+              </div>
+            </section>
+
+            <!-- Row 1: 2:1 — trend chart + accuracy by tag -->
+            <section class="st-row st-row-2-1">
+              <article class="st-card">
+                <header class="st-card-head">
+                  <div class="st-card-head-l">
+                    <div class="st-card-en">REVIEW TREND</div>
+                    <div class="st-card-zh">复习量趋势</div>
+                  </div>
+                </header>
+                <div class="st-card-body st-chart" id="stTrend"></div>
+              </article>
+              <article class="st-card">
+                <header class="st-card-head">
+                  <div class="st-card-head-l">
+                    <div class="st-card-en">ACCURACY BY TAG</div>
+                    <div class="st-card-zh">标签准确率</div>
+                  </div>
+                </header>
+                <div class="st-card-body st-acc">
+                  <div class="st-acc-row">
+                    <div class="st-acc-l"><div class="st-acc-leaf">算法</div><div class="st-acc-parent">编程/</div></div>
+                    <div class="st-acc-bar-wrap"><div class="st-acc-bar st-acc-bar-green" style="width:92%"></div></div>
+                    <div class="st-acc-pct st-acc-pct-green">92%</div>
+                    <div class="st-acc-n">n=156</div>
+                  </div>
+                  <div class="st-acc-row">
+                    <div class="st-acc-l"><div class="st-acc-leaf">词汇</div><div class="st-acc-parent">英语/</div></div>
+                    <div class="st-acc-bar-wrap"><div class="st-acc-bar st-acc-bar-green" style="width:87%"></div></div>
+                    <div class="st-acc-pct st-acc-pct-green">87%</div>
+                    <div class="st-acc-n">n=98</div>
+                  </div>
+                  <div class="st-acc-row">
+                    <div class="st-acc-l"><div class="st-acc-leaf">民国</div><div class="st-acc-parent">历史/</div></div>
+                    <div class="st-acc-bar-wrap"><div class="st-acc-bar st-acc-bar-gold" style="width:74%"></div></div>
+                    <div class="st-acc-pct st-acc-pct-gold">74%</div>
+                    <div class="st-acc-n">n=62</div>
+                  </div>
+                  <div class="st-acc-row">
+                    <div class="st-acc-l"><div class="st-acc-leaf">N1</div><div class="st-acc-parent">日语/</div></div>
+                    <div class="st-acc-bar-wrap"><div class="st-acc-bar st-acc-bar-gold" style="width:68%"></div></div>
+                    <div class="st-acc-pct st-acc-pct-gold">68%</div>
+                    <div class="st-acc-n">n=44</div>
+                  </div>
+                  <div class="st-acc-row">
+                    <div class="st-acc-l"><div class="st-acc-leaf">线代</div><div class="st-acc-parent">数学/</div></div>
+                    <div class="st-acc-bar-wrap"><div class="st-acc-bar st-acc-bar-clay" style="width:52%"></div></div>
+                    <div class="st-acc-pct st-acc-pct-clay">52%</div>
+                    <div class="st-acc-n">n=28</div>
+                  </div>
+                </div>
+              </article>
+            </section>
+
+            <!-- Row 2: 3 cols — forgetting curve + heatmap + maturity dist -->
+            <section class="st-row st-row-3">
+              <article class="st-card">
+                <header class="st-card-head">
+                  <div class="st-card-head-l">
+                    <div class="st-card-en">FORGETTING CURVE</div>
+                    <div class="st-card-zh">记忆曲线</div>
+                  </div>
+                </header>
+                <div class="st-card-body st-chart" id="stFc"></div>
+              </article>
+              <article class="st-card">
+                <header class="st-card-head">
+                  <div class="st-card-head-l">
+                    <div class="st-card-en">STUDY HEATMAP</div>
+                    <div class="st-card-zh">学习热图</div>
+                  </div>
+                </header>
+                <div class="st-card-body st-heat-mini" id="stHeat"></div>
+              </article>
+              <article class="st-card">
+                <header class="st-card-head">
+                  <div class="st-card-head-l">
+                    <div class="st-card-en">MATURITY MIX</div>
+                    <div class="st-card-zh">熟练度分布</div>
+                  </div>
+                </header>
+                <div class="st-card-body st-donut">
+                  <div class="st-donut-ring"></div>
+                  <div class="st-donut-cap">
+                    <div class="st-donut-row"><span class="st-donut-dot" style="background:var(--gs-green)"></span><span>成熟 265</span></div>
+                    <div class="st-donut-row"><span class="st-donut-dot" style="background:var(--gs-gold)"></span><span>在学 137</span></div>
+                    <div class="st-donut-row"><span class="st-donut-dot" style="background:var(--gs-clay)"></span><span>新卡 26</span></div>
+                  </div>
+                </div>
+              </article>
+            </section>
+          </div>
+        </section>
+        <!-- ══════════ /STATS TAB ══════════ -->
+
+        </main>
+      </div>
+
+      <!-- Breakpoint markers overlay -->
+      <div class="demo-marks" id="marks">
+        <span class="badge" data-bp="full">FULL ≥901</span>
+        <span class="badge" data-bp="900">≤900 collapse rail</span>
+        <span class="badge" data-bp="720">≤720 strip 3-col</span>
+        <span class="badge" data-bp="560">≤560 hide rail · single col</span>
+        <span class="badge" data-bp="420">≤420 tight</span>
+      </div>
+    </div>
+
+    <!-- Divider -->
+    <div class="demo-divider" id="div"></div>
+
+    <!-- Other pane placeholder -->
+    <div class="demo-other">
+      <div class="demo-other-hint">≈ EDITOR PANE （占位）</div>
+    </div>
+  </div>
+
+  <!-- Status bar -->
+  <div class="demo-statusbar">
+    <span class="dot"></span>
+    <span>CONTAINER QUERIES · @container leaf (max-width: …)</span>
+    <span style="margin-left:auto">obsidian-grindstone · mockup</span>
+  </div>
+
+</div>
+
+<script>
+  const split = document.getElementById('split');
+  const div   = document.getElementById('div');
+  const leaf  = document.getElementById('leaf');
+  const wOut  = document.getElementById('w');
+  const presets = document.querySelectorAll('.demo-presets button');
+  const marks = document.getElementById('marks').querySelectorAll('.badge');
+
+  // Build a heatmap
+  const heat = document.getElementById('heat');
+  const cellCount = 7 * 20;
+  for (let i = 0; i < cellCount; i++) {
+    const c = document.createElement('div');
+    c.className = 'ov-heat-cell';
+    const v = Math.random();
+    if (v > 0.7)      c.style.background = '#1f4d3a';
+    else if (v > 0.5) c.style.background = '#5a8770';
+    else if (v > 0.3) c.style.background = '#b6ccbe';
+    heat.appendChild(c);
+  }
+
+  const MIN_LEAF = 420; // hard floor — matches the smallest breakpoint
+  function setLeafWidth(px) {
+    const max = window.innerWidth - 60; // leave room for the other pane + divider
+    px = Math.max(MIN_LEAF, Math.min(max, px));
+    split.style.setProperty('--leaf', px + 'px');
+    wOut.textContent = px;
+    document.body.classList.toggle('at-min', px === MIN_LEAF);
+    // active breakpoint badge
+    marks.forEach(b => b.classList.remove('on'));
+    const bp = px > 900 ? 'full' : px > 720 ? '900' : px > 560 ? '720' : px > 420 ? '560' : '420';
+    document.querySelector(`.badge[data-bp="${bp}"]`).classList.add('on');
+    // active preset button
+    presets.forEach(p => p.classList.toggle('on', Number(p.dataset.w) === px));
+  }
+
+  // Initial
+  setLeafWidth(Math.min(1100, window.innerWidth - 400));
+
+  // Drag
+  let dragging = false;
+  div.addEventListener('mousedown', () => { dragging = true; div.classList.add('drag'); document.body.style.cursor = 'col-resize'; });
+  window.addEventListener('mouseup', () => { dragging = false; div.classList.remove('drag'); document.body.style.cursor = ''; });
+  window.addEventListener('mousemove', e => {
+    if (!dragging) return;
+    setLeafWidth(e.clientX);
+  });
+
+  // Presets
+  presets.forEach(p => p.addEventListener('click', () => setLeafWidth(Number(p.dataset.w))));
+
+  // Fill Stats trend chart with fake bars
+  const stTrend = document.getElementById('stTrend');
+  const trendHeights = [38, 52, 44, 60, 48, 70, 55, 66, 58, 78, 64, 82, 72, 88, 76, 70, 84, 92, 80, 96, 86, 90, 78, 88, 94, 82, 90, 86, 92, 100];
+  trendHeights.forEach((h, i) => {
+    const b = document.createElement('div');
+    b.className = 'st-chart-bar' + (i >= trendHeights.length - 3 ? ' st-chart-bar-on' : '');
+    b.style.height = h + '%';
+    stTrend.appendChild(b);
+  });
+
+  // Stats mini heat
+  const stHeat = document.getElementById('stHeat');
+  for (let i = 0; i < 14 * 7; i++) {
+    const c = document.createElement('div');
+    const v = Math.random();
+    if (v > 0.7)      c.style.background = '#1f4d3a';
+    else if (v > 0.5) c.style.background = '#5a8770';
+    else if (v > 0.3) c.style.background = '#b6ccbe';
+    stHeat.appendChild(c);
+  }
+
+  // Forgetting curve placeholder (use existing st-chart styling with dots)
+  const stFc = document.getElementById('stFc');
+  if (stFc) {
+    stFc.style.display = 'flex';
+    stFc.style.alignItems = 'center';
+    stFc.style.justifyContent = 'center';
+    stFc.innerHTML = `<svg viewBox="0 0 200 120" style="width:100%;height:100%;max-height:160px">
+      <path d="M 10 30 Q 60 30 100 50 T 190 95" stroke="#1f4d3a" stroke-width="2" fill="none"/>
+      <circle cx="10" cy="30" r="3" fill="#1f4d3a"/><circle cx="40" cy="36" r="3" fill="#1f4d3a"/>
+      <circle cx="80" cy="48" r="3" fill="#1f4d3a"/><circle cx="120" cy="64" r="3" fill="#1f4d3a"/>
+      <circle cx="160" cy="80" r="3" fill="#1f4d3a"/><circle cx="190" cy="95" r="3" fill="#b8533a"/>
+      <line x1="0" y1="115" x2="200" y2="115" stroke="#8a8a82" stroke-width="0.5"/>
+    </svg>`;
+  }
+
+  // ── Tab switcher (Overview / Tags / Stats) ──
+  const tabs    = document.querySelectorAll('.gs-tab');
+  const dtbs    = document.querySelectorAll('.dtb');
+  const railMap = { overview: 0, review: 1, stats: 2, tags: 3 };
+  const railItems = document.querySelectorAll('.gs-rail-item');
+
+  function setTab(name) {
+    tabs.forEach(t => { t.hidden = t.dataset.tab !== name; });
+    dtbs.forEach(b => b.classList.toggle('on', b.dataset.tab === name));
+    railItems.forEach((r, i) => r.classList.toggle('gs-rail-item-on', i === railMap[name]));
+  }
+  dtbs.forEach(b => b.addEventListener('click', () => setTab(b.dataset.tab)));
+
+  // Window resize: clamp leaf if it would overflow
+  window.addEventListener('resize', () => {
+    const current = parseInt(getComputedStyle(split).getPropertyValue('--leaf'));
+    setLeafWidth(current);
+  });
+</script>
+</body>
+</html>

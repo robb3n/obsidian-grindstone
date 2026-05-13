@@ -2,7 +2,7 @@ import { MarkdownRenderer, Component, setTooltip } from 'obsidian';
 import { TagTreeNode, CardEntry } from '../../store/GrindstoneStore';
 import { TabContext } from './types';
 
-type SortField = 'front' | 'interval' | 'ef' | 'due';
+type SortField = 'front' | 'ef' | 'due';
 type SortDir = 'asc' | 'desc';
 
 export function renderTags(container: HTMLElement, ctx: TabContext, initialTag?: string): void {
@@ -335,10 +335,8 @@ export function renderTags(container: HTMLElement, ctx: TabContext, initialTag?:
     };
     makeSortHead('tg-c-front', 'front', 'QUESTION');
     headRow.createSpan({ cls: 'tg-c-tags', text: 'TAGS' });
-    makeSortHead('tg-c-int', 'interval', 'INTERVAL');
     makeSortHead('tg-c-ef', 'ef', 'EF');
     makeSortHead('tg-c-due', 'due', 'DUE');
-    headRow.createSpan({ cls: 'tg-c-act' });
 
     if (cards.length === 0) {
       const empty = table.createDiv({ cls: 'tg-empty' });
@@ -442,16 +440,9 @@ function renderCardRow(
     chip.addEventListener('click', (e) => { e.stopPropagation(); onSelectTag(tag, e); });
   }
 
-  // Interval, EF, Due
-  mainDiv.createSpan({ cls: 'tg-c-int gs-mono', text: `${card.interval}d` });
+  // EF, Due
   mainDiv.createSpan({ cls: 'tg-c-ef gs-mono', text: card.ease.toFixed(2) });
   mainDiv.createSpan({ cls: `tg-c-due gs-mono tg-due-${dueTone}`, text: dueLabel });
-
-  // Actions
-  const act = mainDiv.createSpan({ cls: 'tg-c-act' });
-  const moreBtn = act.createEl('button', { cls: 'gs-iconbtn' });
-  moreBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><circle cx="6" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="18" cy="12" r="1.5"/></svg>`;
-  moreBtn.addEventListener('click', (e) => e.stopPropagation());
 
   // Expanded content
   if (isOpen) {
@@ -477,8 +468,6 @@ function sortCards(cards: CardEntry[], field: SortField, dir: SortDir): CardEntr
     switch (field) {
       case 'front':
         return a.card.blockTitle.toLowerCase().localeCompare(b.card.blockTitle.toLowerCase());
-      case 'interval':
-        return a.card.interval - b.card.interval;
       case 'ef':
         return a.card.ease - b.card.ease;
       case 'due':

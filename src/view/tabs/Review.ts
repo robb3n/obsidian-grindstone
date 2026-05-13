@@ -53,8 +53,8 @@ function renderPreFlight(container: HTMLElement, ctx: TabContext): void {
   const sectionWrap = page.createDiv({ cls: 'rv-section-wrap' });
 
   const SECTIONS = [
-    { id: 'launch', zh: '启动', en: 'PRE-FLIGHT' },
-    { id: 'debrief', zh: '复盘', en: 'DEBRIEF' },
+    { id: 'launch', zh: '启动' },
+    { id: 'debrief', zh: '复盘' },
   ];
 
   const renderTabs = () => {
@@ -62,10 +62,8 @@ function renderPreFlight(container: HTMLElement, ctx: TabContext): void {
     for (const s of SECTIONS) {
       const btn = tabs.createEl('button', { cls: `rv-tab${activeTab === s.id ? ' rv-tab-on' : ''}` });
       btn.createSpan({ cls: 'rv-tab-zh', text: s.zh });
-      btn.createSpan({ cls: 'rv-tab-en gs-en', text: s.en });
       btn.addEventListener('click', () => { activeTab = s.id; renderTabs(); renderSection(); });
     }
-    tabs.createDiv({ cls: 'rv-tabs-rule' });
   };
 
   const renderSection = () => {
@@ -181,75 +179,36 @@ function renderLiveReview(container: HTMLElement, engine: ReviewEngine, ctx: Tab
   const progressBar = container.createDiv({ cls: 'rv-live-progress' });
   progressBar.createDiv({ cls: 'rv-live-progress-fill' }).style.width = `${engine.getProgress() * 100}%`;
 
-  // ── Split layout (same grid as rv-launch) ──
-  const split = container.createDiv({ cls: 'gs-page rv-live-split' });
+  // Body: single column (card + hints + exit)
+  const body = container.createDiv({ cls: 'gs-page rv-live-body' });
 
-  // ── LEFT: Session context (mirrors pre-flight style) ──
-  const left = split.createDiv({ cls: 'rv-live-left' });
+  const card = body.createDiv({ cls: 'rv-live-card gs-card' });
 
-  // Header (matches rv-launch-h)
-  const hdr = left.createDiv({ cls: 'rv-launch-h' });
-  hdr.createDiv({ cls: 'rv-launch-eyebrow gs-en', text: 'IN SESSION \u00B7 复习中' });
-  hdr.createEl('h2', { cls: 'rv-launch-title', text: '今日复习' });
-  hdr.createEl('p', { cls: 'rv-launch-sub', text: `共 ${pos.total} 张 \u00B7 已完成 ${doneCount} \u00B7 剩余 ${remaining}` });
-
-  // Session stats card (matches rv-auto-card style)
-  const autoCard = left.createDiv({ cls: 'rv-auto-card' });
-  const autoH = autoCard.createDiv({ cls: 'rv-auto-h' });
-  const autoHL = autoH.createDiv({ cls: 'rv-auto-h-l' });
-  autoHL.createSpan({ cls: 'rv-auto-zh', text: '当前进度' });
-  autoHL.createSpan({ cls: 'rv-auto-en gs-en', text: `CARD ${pos.current} OF ${pos.total}` });
-  autoH.createSpan({ cls: 'rv-auto-pill gs-mono', text: `${Math.round(engine.getProgress() * 100)}%` });
-
-  const autoGrid = autoCard.createDiv({ cls: 'rv-auto-grid' });
-  addAutoCell(autoGrid, `${item.card.interval}d`, '间隔 \u00B7 INTERVAL');
-  addAutoCell(autoGrid, item.card.ease.toFixed(2), '难度 \u00B7 EF');
-  addAutoCell(autoGrid, `${item.card.reviewCount}`, '复习 \u00B7 REVIEWS');
-
-  // Keyboard hints (matches rv-launch-kbds style)
-  const kbds = left.createDiv({ cls: 'rv-launch-kbds gs-en' });
-  kbds.createSpan({ text: 'SPACE 翻面' });
-  kbds.createSpan({ text: '\u00B7' });
-  kbds.createSpan({ text: '1\u20144 评分' });
-  kbds.createSpan({ text: '\u00B7' });
-  kbds.createSpan({ text: 'ESC 退出' });
-
-  // Exit link (subtle, not a big button)
-  const exitLink = left.createEl('button', { cls: 'rv-live-exit gs-en', text: '\u2190 EXIT SESSION' });
-  exitLink.addEventListener('click', () => {
-    component.unload();
-    ctx.endInlineReview();
-  });
-
-  // ── RIGHT: Active card ──
-  const right = split.createDiv({ cls: 'rv-live-right' });
-  const card = right.createDiv({ cls: 'rv-live-card gs-card' });
-
-  // Tags (tags already include #, don't add another)
-  const tagRow = card.createDiv({ cls: 'rv-live-tags' });
+  // Card head: tags (left) + position (right)
+  const headRow = card.createDiv({ cls: 'rv-live-head' });
+  const tagRow = headRow.createDiv({ cls: 'rv-live-tags' });
   const uniqueTags = [...new Set(item.card.tags)];
   for (const tag of uniqueTags) {
     const display = tag.startsWith('#') ? tag : `#${tag}`;
     tagRow.createSpan({ cls: 'rv-live-tag', text: display });
   }
+  headRow.createSpan({ cls: 'rv-live-pos gs-mono gs-en', text: `${pos.current} / ${pos.total}` });
 
-  // Question
-  const questionEl = card.createDiv({ cls: 'rv-live-question' });
+  // Scrollable middle (Q + A)
+  const scroll = card.createDiv({ cls: 'rv-live-scroll' });
+
+  // Question section
+  const qSection = scroll.createDiv({ cls: 'rv-live-section' });
+  qSection.createDiv({ cls: 'rv-live-eyebrow gs-en', text: 'QUESTION · 题面' });
+  const questionEl = qSection.createDiv({ cls: 'rv-live-question' });
   MarkdownRenderer.render(ctx.app, item.card.blockTitle, questionEl, item.card.file, component);
 
-  // Answer area
-  const answerWrap = card.createDiv({ cls: 'rv-live-answer' });
-
-  // Section label row
-  const labelRow = card.createDiv({ cls: 'rv-live-labels' });
-  const labelLeft2 = labelRow.createSpan({ cls: 'rv-live-label-l gs-en' });
-  const labelRight2 = labelRow.createSpan({ cls: 'rv-live-label-r gs-en' });
-
-  const updateLabels = () => {
-    labelLeft2.textContent = answerShown ? 'ANSWER' : 'QUESTION';
-    labelRight2.textContent = answerShown ? '' : 'SPACE 显示答案';
-  };
-  updateLabels();
+  // Answer section (hidden until shown)
+  const aSection = scroll.createDiv({ cls: 'rv-live-section rv-live-a-section' });
+  aSection.createDiv({ cls: 'rv-live-divider' });
+  aSection.createDiv({ cls: 'rv-live-eyebrow gs-en', text: 'ANSWER · 答案' });
+  const answerWrap = aSection.createDiv({ cls: 'rv-live-answer' });
+  if (!answerShown) aSection.style.display = 'none';
 
   if (autoShow) {
     loadInlineAnswer(answerWrap, item, ctx, component);
@@ -258,35 +217,58 @@ function renderLiveReview(container: HTMLElement, engine: ReviewEngine, ctx: Tab
   // ── Action area (inside card) ──
   const actionArea = card.createDiv({ cls: 'rv-live-action-area' });
 
-  // Show answer button
+  // Show answer button (full-width, matches launch CTA)
   const showAnswerBtn = actionArea.createEl('button', { cls: 'rv-live-show-btn' });
-  showAnswerBtn.createSpan({ text: '显示答案' });
+  showAnswerBtn.createSpan({ cls: 'rv-live-show-zh', text: '显示答案' });
   showAnswerBtn.createEl('kbd', { cls: 'rv-kbd gs-mono', text: 'SPACE' });
   if (autoShow) showAnswerBtn.style.display = 'none';
 
-  // Rating buttons
+  // Rating buttons (neutral cells, color only on top stripe + label)
   const rateRow = actionArea.createDiv({ cls: 'rv-live-ratings' });
   if (!autoShow) rateRow.style.display = 'none';
 
   const previews = engine.previewIntervals();
   for (const def of RATING_DEFS) {
     const btn = rateRow.createEl('button', { cls: `rv-live-r ${def.cls}` });
-    const topRow = btn.createDiv({ cls: 'rv-live-r-top' });
-    topRow.createSpan({ cls: 'rv-live-r-zh', text: def.zh });
-    topRow.createEl('kbd', { cls: 'rv-kbd gs-mono', text: def.key });
+    btn.createEl('kbd', { cls: 'rv-live-r-key gs-mono', text: def.key });
+    btn.createDiv({ cls: 'rv-live-r-zh', text: def.zh });
     btn.createDiv({ cls: 'rv-live-r-en gs-en', text: def.en });
     btn.createDiv({ cls: 'rv-live-r-interval gs-mono', text: previews[def.rating] });
     btn.addEventListener('click', () => doRate(def.rating));
   }
 
+  // Keyboard hints (chip-style matching launch)
+  const kbds = body.createDiv({ cls: 'rv-launch-kbds' });
+  const k1 = kbds.createSpan();
+  k1.createEl('kbd', { text: 'Space' });
+  k1.appendText(' 显示答案');
+  const k2 = kbds.createSpan();
+  ['1', '2', '3', '4'].forEach((n, i) => {
+    if (i > 0) k2.appendText(' / ');
+    k2.createEl('kbd', { text: n });
+  });
+  k2.appendText(' 评分');
+  const k3 = kbds.createSpan();
+  k3.createEl('kbd', { text: 'Esc' });
+  k3.appendText(' 退出');
+
+  // Exit session button (matches launch CTA)
+  const exitBtn = body.createEl('button', { cls: 'rv-launch-cta' });
+  exitBtn.createSpan({ cls: 'rv-launch-cta-zh', text: '退出复习' });
+  exitBtn.createSpan({ cls: 'rv-launch-cta-meta gs-mono', text: 'EXIT SESSION' });
+  exitBtn.addEventListener('click', () => {
+    component.unload();
+    ctx.endInlineReview();
+  });
+
   // Toggle answer
   const toggleAnswer = async () => {
     if (!answerShown) {
       answerShown = true;
+      aSection.style.display = '';
       await loadInlineAnswer(answerWrap, item, ctx, component);
       showAnswerBtn.style.display = 'none';
       rateRow.style.display = '';
-      updateLabels();
     }
   };
 
@@ -334,7 +316,6 @@ async function loadInlineAnswer(
   component: Component,
 ): Promise<void> {
   container.empty();
-  container.createDiv({ cls: 'rv-live-divider' });
   const md = container.createDiv({ cls: 'rv-live-answer-md' });
   const blockContent = await ctx.cardManager.getBlockContent(item.card as any, item.id);
   await MarkdownRenderer.render(ctx.app, blockContent, md, item.card.file, component);

@@ -112,20 +112,25 @@ function renderForecastTile(grid: HTMLElement, forecast: ReturnType<typeof impor
   const max = Math.max(...forecast.map(f => f.count), 1);
   const fore = tile.createDiv({ cls: 'ov-fore' });
 
-  for (const f of forecast) {
+  forecast.forEach((f, idx) => {
     const col = fore.createDiv({ cls: 'ov-fc' });
     const barWrap = col.createDiv({ cls: 'ov-fc-bar-wrap' });
     const bar = barWrap.createDiv({
       cls: `ov-fc-bar${f.isToday ? ' ov-fc-today' : ''}`,
     });
-    bar.style.height = `${Math.max(22, (f.count / max) * 100)}%`;
+    const targetH = Math.max(22, (f.count / max) * 100);
+    bar.style.height = '0%';
+    window.setTimeout(() => {
+      if (!bar.isConnected) return;
+      bar.style.height = `${targetH}%`;
+    }, idx * 60 + 16);
     bar.createSpan({ cls: 'ov-fc-n gs-mono', text: String(f.count) });
 
     col.createDiv({
       cls: `ov-fc-d gs-mono${f.isToday ? ' ov-fc-d-today' : ''}`,
       text: f.label,
     });
-  }
+  });
 }
 
 function renderProgressTile(grid: HTMLElement, progress: { done: number; total: number }): void {
@@ -166,12 +171,18 @@ function renderProgressTile(grid: HTMLElement, progress: { done: number; total: 
   fill.setAttribute('stroke-width', String(stroke));
   fill.setAttribute('stroke-linecap', 'round');
   fill.setAttribute('stroke-dasharray', String(c));
-  fill.setAttribute('stroke-dashoffset', String(c * (1 - (progress.total === 0 ? 0 : progress.done / progress.total))));
+  fill.setAttribute('stroke-dashoffset', String(c));
   fill.setAttribute('transform', `rotate(-90 ${size / 2} ${size / 2})`);
-  fill.style.transition = 'stroke-dashoffset .8s cubic-bezier(.2,.7,.3,1)';
+  fill.style.transition = 'stroke-dashoffset .9s cubic-bezier(.215,.61,.355,1)';
   svg.appendChild(fill);
 
   prog.appendChild(svg);
+
+  const targetOffset = c * (1 - (progress.total === 0 ? 0 : progress.done / progress.total));
+  window.setTimeout(() => {
+    if (!fill.isConnected) return;
+    fill.setAttribute('stroke-dashoffset', String(targetOffset));
+  }, 16);
 
   const overlay = prog.createDiv({ cls: 'ov-prog-overlay' });
   overlay.createDiv({ cls: 'ov-prog-pct gs-mono', text: `${pct}%` });
@@ -185,12 +196,12 @@ function renderMaturityTile(grid: HTMLElement, maturity: { new: number; learning
   const total = maturity.new + maturity.learning + maturity.mature;
   const rows = tile.createDiv({ cls: 'ov-mat-rows' });
 
-  addMatRow(rows, '新', 'NEW', maturity.new, total, 'var(--gs-clay)');
-  addMatRow(rows, '习', 'LRN', maturity.learning, total, 'var(--gs-gold)');
-  addMatRow(rows, '熟', 'MAT', maturity.mature, total, 'var(--gs-green)');
+  addMatRow(rows, '新', 'NEW', maturity.new, total, 'var(--gs-clay)', 0);
+  addMatRow(rows, '习', 'LRN', maturity.learning, total, 'var(--gs-gold)', 1);
+  addMatRow(rows, '熟', 'MAT', maturity.mature, total, 'var(--gs-green)', 2);
 }
 
-function addMatRow(parent: HTMLElement, zh: string, en: string, value: number, total: number, color: string): void {
+function addMatRow(parent: HTMLElement, zh: string, en: string, value: number, total: number, color: string, idx: number): void {
   const pct = total === 0 ? 0 : (value / total) * 100;
   const row = parent.createDiv({ cls: 'ov-mat' });
 
@@ -202,8 +213,12 @@ function addMatRow(parent: HTMLElement, zh: string, en: string, value: number, t
 
   const bar = row.createDiv({ cls: 'ov-mat-bar' });
   const barFill = bar.createDiv();
-  barFill.style.width = `${pct}%`;
+  barFill.style.width = '0%';
   barFill.style.background = color;
+  window.setTimeout(() => {
+    if (!barFill.isConnected) return;
+    barFill.style.width = `${pct}%`;
+  }, idx * 80 + 16);
 
   row.createSpan({ cls: 'ov-mat-n gs-mono', text: String(value) });
 }
@@ -213,25 +228,91 @@ function renderRatingsTile(grid: HTMLElement, ratings: RatingsData): void {
   tileHead(tile, '评分分布', 'RATINGS');
 
   const total = ratings.again + ratings.hard + ratings.good + ratings.easy;
-  const rate = tile.createDiv({ cls: 'ov-rate' });
-
-  addRateCircle(rate, 'Again', ratings.againPct, 'var(--gs-clay)');
-  addRateCircle(rate, 'Hard', ratings.hardPct, 'var(--gs-gold)');
-  addRateCircle(rate, 'Good', ratings.goodPct, 'var(--gs-green-2)');
-  addRateCircle(rate, 'Easy', ratings.easyPct, 'var(--gs-green)');
 
   if (total === 0) {
     tile.createDiv({ cls: 'ov-rate-empty', text: '尚无评分 \u00B7 NO DATA' });
+    return;
   }
+
+  const rate = tile.createDiv({ cls: 'ov-rate' });
+
+  // Half-circle gauge
+  const gaugeWrap = rate.createDiv({ cls: 'ov-rate-gauge' });
+  const svgNS = 'http://www.w3.org/2000/svg';
+  const W = 200, H = 110, R = 80, STROKE = 14;
+  const cx = W / 2, cy = H - 12;
+  const arcLen = Math.PI * R;
+  const arcD = `M ${cx - R} ${cy} A ${R} ${R} 0 0 1 ${cx + R} ${cy}`;
+
+  const svg = document.createElementNS(svgNS, 'svg');
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+
+  const track = document.createElementNS(svgNS, 'path');
+  track.setAttribute('d', arcD);
+  track.setAttribute('fill', 'none');
+  track.setAttribute('stroke', 'var(--gs-line)');
+  track.setAttribute('stroke-width', String(STROKE));
+  track.setAttribute('stroke-linecap', 'butt');
+  svg.appendChild(track);
+
+  const segs = [
+    { pct: ratings.againPct, color: 'var(--gs-clay)' },
+    { pct: ratings.hardPct,  color: 'var(--gs-gold)' },
+    { pct: ratings.goodPct,  color: 'var(--gs-green)' },
+    { pct: ratings.easyPct,  color: 'var(--gs-green-2)' },
+  ];
+
+  const segGap = 2.5;
+  let cum = 0;
+  const segPaths: { el: SVGPathElement; len: number }[] = [];
+  for (const seg of segs) {
+    const portion = (seg.pct / 100) * arcLen;
+    const visible = Math.max(0, portion - segGap);
+    if (portion > 0) {
+      const p = document.createElementNS(svgNS, 'path');
+      p.setAttribute('d', arcD);
+      p.setAttribute('fill', 'none');
+      p.setAttribute('stroke', seg.color);
+      p.setAttribute('stroke-width', String(STROKE));
+      p.setAttribute('stroke-linecap', 'butt');
+      p.setAttribute('stroke-dasharray', `0 ${arcLen}`);
+      p.setAttribute('stroke-dashoffset', String(-cum));
+      p.style.transition = 'stroke-dasharray .9s cubic-bezier(.215,.61,.355,1)';
+      svg.appendChild(p);
+      segPaths.push({ el: p, len: visible });
+    }
+    cum += portion;
+  }
+
+  gaugeWrap.appendChild(svg);
+
+  const accuracy = ratings.goodPct + ratings.easyPct;
+  const center = gaugeWrap.createDiv({ cls: 'ov-rate-center' });
+  center.createDiv({ cls: 'ov-rate-acc gs-mono', text: `${accuracy}%` });
+  center.createDiv({ cls: 'ov-rate-acc-l gs-en', text: 'ACCURACY' });
+
+  window.setTimeout(() => {
+    for (const { el, len } of segPaths) {
+      if (el.isConnected) el.setAttribute('stroke-dasharray', `${len} ${arcLen}`);
+    }
+  }, 16);
+
+  // Legend
+  const legend = rate.createDiv({ cls: 'ov-rate-legend' });
+  addLegendItem(legend, 'Again', ratings.againPct, 'var(--gs-clay)');
+  addLegendItem(legend, 'Hard',  ratings.hardPct,  'var(--gs-gold)');
+  addLegendItem(legend, 'Good',  ratings.goodPct,  'var(--gs-green)');
+  addLegendItem(legend, 'Easy',  ratings.easyPct,  'var(--gs-green-2)');
 }
 
-function addRateCircle(parent: HTMLElement, label: string, pct: number, color: string): void {
-  const row = parent.createDiv({ cls: 'ov-rate-row' });
-  const circle = row.createDiv({ cls: 'ov-rate-circle' });
-  circle.style.borderColor = color;
-  const span = circle.createSpan({ cls: 'gs-mono', text: `${pct}%` });
-  span.style.color = color;
-  row.createSpan({ cls: 'ov-rate-l gs-en', text: label });
+function addLegendItem(parent: HTMLElement, label: string, pct: number, color: string): void {
+  const item = parent.createDiv({ cls: 'ov-rate-li' });
+  const dot = item.createSpan({ cls: 'ov-rate-li-dot' });
+  dot.style.background = color;
+  item.createSpan({ cls: 'ov-rate-li-name gs-en', text: label });
+  const v = item.createSpan({ cls: 'ov-rate-li-pct gs-mono', text: `${pct}%` });
+  v.style.color = color;
 }
 
 function renderHeatmapTile(grid: HTMLElement, cells: number[]): void {

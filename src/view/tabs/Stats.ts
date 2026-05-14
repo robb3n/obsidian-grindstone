@@ -136,6 +136,8 @@ function renderTrendCard(parent: HTMLElement, data: Array<{ date: string; count:
     const area = document.createElementNS('http://www.w3.org/2000/svg', 'path');
     area.setAttribute('d', `M${xs[0]},${H - P.b} L${points.replace(/ /g, ' L')} L${xs[xs.length - 1]},${H - P.b} Z`);
     area.setAttribute('fill', 'url(#st-trend-grad)');
+    area.style.opacity = '0';
+    area.style.transition = 'opacity .6s ease-out .4s';
     svg.appendChild(area);
 
     const line = document.createElementNS('http://www.w3.org/2000/svg', 'path');
@@ -143,15 +145,36 @@ function renderTrendCard(parent: HTMLElement, data: Array<{ date: string; count:
     line.setAttribute('fill', 'none'); line.setAttribute('stroke', 'var(--gs-green)');
     line.setAttribute('stroke-width', '1.8'); line.setAttribute('stroke-linejoin', 'round');
     svg.appendChild(line);
+
+    window.setTimeout(() => {
+      if (!line.isConnected) return;
+      const len = line.getTotalLength();
+      line.style.strokeDasharray = `${len}`;
+      line.style.strokeDashoffset = `${len}`;
+      line.getBoundingClientRect();
+      line.style.transition = 'stroke-dashoffset .9s cubic-bezier(.2,.7,.3,1)';
+      line.style.strokeDashoffset = '0';
+      area.style.opacity = '1';
+    }, 16);
   }
 
   // Dots
+  const dots: SVGCircleElement[] = [];
   for (let i = 0; i < values.length; i++) {
     const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
     c.setAttribute('cx', String(xs[i])); c.setAttribute('cy', String(ys[i]));
     c.setAttribute('r', '2.4'); c.setAttribute('fill', 'var(--gs-green)');
+    c.style.opacity = '0';
+    c.style.transition = 'opacity .25s ease-out';
     svg.appendChild(c);
+    dots.push(c);
   }
+  const dotStep = Math.max(8, 900 / Math.max(1, dots.length));
+  dots.forEach((c, i) => {
+    window.setTimeout(() => {
+      if (c.isConnected) c.style.opacity = '1';
+    }, 50 + i * dotStep);
+  });
 
   body.appendChild(svg);
 }
@@ -166,7 +189,7 @@ function renderAccuracyCard(parent: HTMLElement, data: Array<{ tag: string; accu
   const body = card.createDiv({ cls: 'st-card-body st-acc' });
   const sorted = [...data].sort((a, b) => b.accuracy - a.accuracy).slice(0, 10);
 
-  for (const t of sorted) {
+  sorted.forEach((t, i) => {
     const tone = t.accuracy >= 85 ? 'green' : t.accuracy >= 70 ? 'gold' : 'clay';
     const parts = t.tag.split('/');
     const leaf = parts[parts.length - 1];
@@ -179,14 +202,17 @@ function renderAccuracyCard(parent: HTMLElement, data: Array<{ tag: string; accu
 
     const barWrap = row.createDiv({ cls: 'st-acc-bar-wrap' });
     const bar = barWrap.createDiv({ cls: `st-acc-bar st-acc-bar-${tone}` });
-    bar.style.width = `${t.accuracy}%`;
+    bar.style.width = '0%';
+    window.setTimeout(() => {
+      if (bar.isConnected) bar.style.width = `${t.accuracy}%`;
+    }, i * 60 + 40);
 
     const pct = row.createDiv({ cls: `st-acc-pct gs-mono st-acc-pct-${tone}` });
     pct.textContent = String(t.accuracy);
     pct.createSpan({ text: '%' });
 
     row.createDiv({ cls: 'st-acc-n gs-mono', text: `n=${t.reviewCount}` });
-  }
+  });
 }
 
 function renderForgetCard(parent: HTMLElement, data: Array<{ intervalDays: number; retention: number; sampleSize: number }>): void {
@@ -213,20 +239,25 @@ function renderForgetCard(parent: HTMLElement, data: Array<{ intervalDays: numbe
   svg.style.width = '100%'; svg.style.height = '200px';
 
   // Line
+  let linePath: SVGPathElement | null = null;
   if (data.length > 1) {
-    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    path.setAttribute('d', 'M' + xs.map((x, i) => `${x},${ys[i]}`).join(' L'));
-    path.setAttribute('fill', 'none'); path.setAttribute('stroke', 'var(--gs-clay)'); path.setAttribute('stroke-width', '1.8');
-    svg.appendChild(path);
+    linePath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    linePath.setAttribute('d', 'M' + xs.map((x, i) => `${x},${ys[i]}`).join(' L'));
+    linePath.setAttribute('fill', 'none'); linePath.setAttribute('stroke', 'var(--gs-clay)'); linePath.setAttribute('stroke-width', '1.8');
+    svg.appendChild(linePath);
   }
 
   // Dots
+  const dots: SVGCircleElement[] = [];
   for (let i = 0; i < data.length; i++) {
     const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
     c.setAttribute('cx', String(xs[i])); c.setAttribute('cy', String(ys[i]));
     c.setAttribute('r', '3'); c.setAttribute('fill', 'var(--gs-card)');
     c.setAttribute('stroke', 'var(--gs-clay)'); c.setAttribute('stroke-width', '1.6');
+    c.style.opacity = '0';
+    c.style.transition = 'opacity .28s ease-out';
     svg.appendChild(c);
+    dots.push(c);
 
     const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
     text.setAttribute('x', String(xs[i])); text.setAttribute('y', String(H - 6));
@@ -235,6 +266,23 @@ function renderForgetCard(parent: HTMLElement, data: Array<{ intervalDays: numbe
     text.textContent = `${data[i].intervalDays}d`;
     svg.appendChild(text);
   }
+
+  window.setTimeout(() => {
+    if (linePath && linePath.isConnected) {
+      const len = linePath.getTotalLength();
+      linePath.style.strokeDasharray = `${len}`;
+      linePath.style.strokeDashoffset = `${len}`;
+      linePath.getBoundingClientRect();
+      linePath.style.transition = 'stroke-dashoffset .9s cubic-bezier(.2,.7,.3,1)';
+      linePath.style.strokeDashoffset = '0';
+    }
+    const step = Math.max(60, 800 / Math.max(1, dots.length));
+    dots.forEach((c, i) => {
+      window.setTimeout(() => {
+        if (c.isConnected) c.style.opacity = '1';
+      }, i * step);
+    });
+  }, 16);
 
   body.appendChild(svg);
 
@@ -278,7 +326,18 @@ function renderHeatmapCard(parent: HTMLElement, cells: number[]): void {
     rect.setAttribute('x', String(c * (cell + gap) + 14)); rect.setAttribute('y', String(r * (cell + gap)));
     rect.setAttribute('width', String(cell)); rect.setAttribute('height', String(cell));
     rect.setAttribute('rx', '2.5'); rect.setAttribute('fill', palette[Math.min(4, Math.max(0, cells[i]))]);
+    rect.style.transformBox = 'fill-box';
+    rect.style.transformOrigin = 'center';
+    rect.style.transform = 'scale(0)';
+    rect.style.opacity = '0';
+    rect.style.transition = 'transform .42s cubic-bezier(.2,.7,.3,1), opacity .28s ease-out';
     svg.appendChild(rect);
+    const delay = c * 32 + r * 8 + 40;
+    window.setTimeout(() => {
+      if (!rect.isConnected) return;
+      rect.style.transform = 'scale(1)';
+      rect.style.opacity = '1';
+    }, delay);
   }
 
   body.appendChild(svg);
@@ -314,13 +373,27 @@ function renderMinutesCard(parent: HTMLElement, data: Array<{ date: string; minu
     const x = P.l + i * bw;
     const y = H - P.b - h;
     const isWeekend = (i % 7 === 5 || i % 7 === 6);
+    const finalOpacity = values[i] === 0 ? 0.5 : 1;
     const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-    rect.setAttribute('x', String(x + 0.5)); rect.setAttribute('y', String(y));
-    rect.setAttribute('width', String(bw - 1)); rect.setAttribute('height', String(Math.max(0, h)));
+    rect.setAttribute('x', String(x + 0.5));
+    rect.setAttribute('y', String(y));
+    rect.setAttribute('width', String(bw - 1));
+    rect.setAttribute('height', String(Math.max(0, h)));
     rect.setAttribute('rx', '1.5');
     rect.setAttribute('fill', values[i] === 0 ? 'var(--gs-line)' : (isWeekend ? 'var(--gs-gold)' : 'var(--gs-green-2)'));
-    rect.setAttribute('opacity', values[i] === 0 ? '0.5' : '1');
+    rect.setAttribute('opacity', '0');
+    rect.style.transformBox = 'fill-box';
+    rect.style.transformOrigin = 'center bottom';
+    rect.style.transform = 'scaleY(0)';
+    rect.style.transition = 'transform .7s cubic-bezier(.2,.7,.3,1), opacity .3s ease-out';
     svg.appendChild(rect);
+
+    const delay = Math.round((i / Math.max(1, values.length - 1)) * 600) + 30;
+    window.setTimeout(() => {
+      if (!rect.isConnected) return;
+      rect.style.transform = 'scaleY(1)';
+      rect.setAttribute('opacity', String(finalOpacity));
+    }, delay);
   }
 
   body.appendChild(svg);

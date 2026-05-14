@@ -344,7 +344,19 @@ function renderHeatmapTile(grid: HTMLElement, cells: number[]): void {
     rect.setAttribute('height', String(cellSize));
     rect.setAttribute('rx', '2');
     rect.setAttribute('fill', palette[Math.min(4, Math.max(0, cells[i]))]);
+    rect.style.transformBox = 'fill-box';
+    rect.style.transformOrigin = 'center';
+    rect.style.transform = 'scale(0)';
+    rect.style.opacity = '0';
+    rect.style.transition = 'transform .42s cubic-bezier(.2,.7,.3,1), opacity .28s ease-out';
     svg.appendChild(rect);
+
+    const delay = col * 32 + row * 8 + 40;
+    window.setTimeout(() => {
+      if (!rect.isConnected) return;
+      rect.style.transform = 'scale(1)';
+      rect.style.opacity = '1';
+    }, delay);
   }
 
   tile.appendChild(svg);
@@ -369,15 +381,20 @@ function renderTagsTile(grid: HTMLElement, tags: Array<{ path: string; count: nu
   const max = Math.max(...tags.map(t => t.count), 1);
   const list = tile.createDiv({ cls: 'ov-tags' });
 
-  for (const t of tags) {
+  tags.forEach((t, i) => {
     const btn = list.createEl('button', { cls: 'ov-tag' });
     btn.addEventListener('click', () => ctx.onNavigate('tags', { tag: t.path }));
     btn.createSpan({ cls: 'ov-tag-path', text: t.path });
     const meter = btn.createSpan({ cls: 'ov-tag-meter' });
     const fill = meter.createSpan();
-    fill.style.width = `${(t.count / max) * 100}%`;
+    fill.style.width = '0%';
+    const targetW = (t.count / max) * 100;
+    window.setTimeout(() => {
+      if (!fill.isConnected) return;
+      fill.style.width = `${targetW}%`;
+    }, i * 60 + 40);
     btn.createSpan({ cls: 'ov-tag-n gs-mono', text: String(t.count) });
-  }
+  });
 
   const more = list.createEl('button', { cls: 'ov-tag-more' });
   more.textContent = `查看全部 ${tags.length} 个 →`;

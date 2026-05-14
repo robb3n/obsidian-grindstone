@@ -168,6 +168,19 @@ export class DataStore {
     return dist;
   }
 
+  /** Due-cards-only maturity split. Sum equals dueToday from getStats. */
+  getDueBreakdown(today: string): MaturityDistribution {
+    const dist: MaturityDistribution = { new: 0, learning: 0, mature: 0 };
+    for (const card of Object.values(this.data.cards)) {
+      if (card.disabled) continue;
+      if (card.due > today) continue;
+      if (card.reviewCount === 0) dist.new++;
+      else if (card.interval < 21) dist.learning++;
+      else dist.mature++;
+    }
+    return dist;
+  }
+
   // ── Review log methods ──
 
   /** Append a review log entry and persist. */

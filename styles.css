@@ -650,7 +650,9 @@ body.theme-dark .grindstone-workspace:not(.gs-force-light) .gs-rail-item-on,
   min-width: 0;
 }
 .grindstone-workspace .rv-auto-num { font: 600 26px var(--gs-font-mono); color: var(--gs-ink); line-height: 1; }
-.grindstone-workspace .rv-auto-cap { font-size: 11px; color: var(--gs-ink-2); }
+.grindstone-workspace .rv-auto-cap { display: inline-flex; gap: 6px; align-items: baseline; }
+.grindstone-workspace .rv-auto-cap-zh { font-size: 11px; color: var(--gs-ink-2); }
+.grindstone-workspace .rv-auto-cap-en { font-size: 9px; letter-spacing: 0.18em; color: var(--gs-ink-3); font-weight: 600; }
 .grindstone-workspace .rv-auto-foot {
   font-size: 10px; color: var(--gs-ink-3); line-height: 1.55;
   padding-top: 4px; border-top: 1px dashed var(--gs-line);
@@ -1094,44 +1096,90 @@ body.theme-dark .grindstone-workspace:not(.gs-force-light) .gs-rail-item-on,
 
 .rvm-rate {
   display: grid; grid-template-columns: repeat(4, 1fr);
-  gap: 8px; width: 100%; padding: 14px 32px 4px;
+  gap: 10px; width: 100%; padding: 14px 32px 4px;
   border-top: 1px solid var(--background-modifier-border);
 }
-.rvm-r {
-  padding: 12px 8px; border: 0; border-radius: 10px;
-  cursor: pointer; text-align: center;
+/* Option B: button is bare shell; visual layout on .rvm-r-inner div */
+.grindstone-review-modal .rvm-r {
+  all: unset;
+  display: block; box-sizing: border-box;
+  width: 100%;
+  cursor: pointer;
+  border-radius: 10px;
+}
+.grindstone-review-modal .rvm-r,
+.grindstone-review-modal .rvm-r:hover,
+.grindstone-review-modal .rvm-r:focus,
+.grindstone-review-modal .rvm-r:active {
+  background: transparent;
+  outline: none;
+  border: none;
+  box-shadow: none;
+}
+.grindstone-review-modal .rvm-r:focus-visible .rvm-r-inner {
+  outline: 2px solid var(--gs-green, var(--interactive-accent)); outline-offset: 2px;
+}
+.grindstone-review-modal .rvm-r-inner {
+  position: relative;
+  display: flex; flex-direction: column; gap: 3px;
+  padding: 10px 12px 10px 16px;
+  background: var(--gs-paper-2, #ebe6dd);
+  border: 1px solid var(--gs-line, rgba(26,29,27,.08));
+  border-radius: 10px;
+  text-align: left;
+  color: var(--gs-ink, var(--text-normal));
+  overflow: hidden;
   transition: transform .12s, box-shadow .12s;
-  display: flex; flex-direction: column; align-items: center; gap: 4px;
-  border-top: 3px solid transparent;
 }
-.rvm-r:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,.08); }
+.grindstone-review-modal .rvm-r-inner::before {
+  content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+}
+.grindstone-review-modal .rvm-r:hover .rvm-r-inner {
+  transform: translateY(-1px);
+  background: var(--gs-paper, var(--background-primary));
+  border-color: var(--gs-line-2, var(--background-modifier-border));
+}
+.grindstone-review-modal .rvm-r-again:hover .rvm-r-inner { box-shadow: 0 6px 18px rgba(184,83,58,.18); }
+.grindstone-review-modal .rvm-r-hard:hover  .rvm-r-inner { box-shadow: 0 6px 18px rgba(184,149,106,.20); }
+.grindstone-review-modal .rvm-r-good:hover  .rvm-r-inner { box-shadow: 0 6px 18px rgba(31,77,58,.18); }
+.grindstone-review-modal .rvm-r-easy:hover  .rvm-r-inner { box-shadow: 0 6px 18px rgba(45,107,82,.18); }
+.grindstone-review-modal .rvm-r-kbd {
+  position: absolute; top: 8px; right: 8px;
+  font: 600 8px/1 var(--gs-font-mono, ui-monospace, monospace);
+  padding: 1px 5px; border-radius: 3px;
+  background: var(--gs-paper, #f4f1ec);
+  border: 1px solid var(--gs-line, rgba(26,29,27,.08));
+  color: var(--gs-ink-3, var(--text-muted));
+}
+.grindstone-review-modal .rvm-r-zh {
+  font: 700 14px/1.1 var(--gs-font-zh, "Noto Sans SC", -apple-system, sans-serif);
+}
+.grindstone-review-modal .rvm-r-en {
+  font: 600 8px/1 var(--gs-font-en, "Manrope", sans-serif);
+  letter-spacing: 0.18em;
+  color: var(--gs-ink-3, var(--text-muted));
+}
+.grindstone-review-modal .rvm-r-interval {
+  align-self: flex-start; margin-top: 3px;
+  font: 600 9px/1 var(--gs-font-mono, ui-monospace, monospace);
+  padding: 2px 7px; border-radius: 999px;
+}
 
-.rvm-r-zh { font-size: 15px; font-weight: 600; }
-.rvm-r-row { display: flex; align-items: center; gap: 6px; }
-.rvm-r-en { font-size: 9px; letter-spacing: 0.14em; opacity: .7; font-weight: 600; }
-.rvm-r-kbd {
-  font-size: 10px; padding: 1px 5px; border-radius: 4px;
-  background: var(--background-secondary);
-  border: 1px solid var(--background-modifier-border);
-  color: var(--text-muted);
+.grindstone-review-modal .rvm-r-again .rvm-r-inner::before { background: var(--gs-clay, #b8533a); }
+.grindstone-review-modal .rvm-r-again .rvm-r-interval {
+  background: rgba(184,83,58,.12); color: var(--gs-clay, #b8533a);
 }
-.rvm-r-interval { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
-
-.rvm-r-again {
-  background: rgba(184,83,58,.10); color: var(--text-error, #b8533a);
-  border-top-color: var(--text-error, #b8533a);
+.grindstone-review-modal .rvm-r-hard .rvm-r-inner::before { background: var(--gs-gold, #b8956a); }
+.grindstone-review-modal .rvm-r-hard .rvm-r-interval {
+  background: rgba(184,149,106,.18); color: var(--gs-gold, #b8956a);
 }
-.rvm-r-hard {
-  background: rgba(184,149,106,.12); color: var(--text-warning, #b8956a);
-  border-top-color: var(--text-warning, #b8956a);
+.grindstone-review-modal .rvm-r-good .rvm-r-inner::before { background: var(--gs-green, #1f4d3a); }
+.grindstone-review-modal .rvm-r-good .rvm-r-interval {
+  background: var(--gs-green-soft, #d8e3dc); color: var(--gs-green, #1f4d3a);
 }
-.rvm-r-good {
-  background: rgba(31,77,58,.10); color: var(--interactive-accent);
-  border-top-color: var(--interactive-accent);
-}
-.rvm-r-easy {
-  background: rgba(45,107,82,.12); color: var(--interactive-accent);
-  border-top-color: var(--interactive-accent);
+.grindstone-review-modal .rvm-r-easy .rvm-r-inner::before { background: var(--gs-green-2, #2d6b52); }
+.grindstone-review-modal .rvm-r-easy .rvm-r-interval {
+  background: rgba(45,107,82,.14); color: var(--gs-green-2, #2d6b52);
 }
 
 .rvm-hint {
@@ -1148,10 +1196,6 @@ body.theme-dark .grindstone-workspace:not(.gs-force-light) .gs-rail-item-on,
 .rvm-done-sub { margin: 0 0 14px; color: var(--text-muted); font-size: 12px; }
 
 /* ── rvm inside grindstone-workspace (inherit theme tokens) ── */
-.grindstone-workspace .rvm-r-again { color: var(--gs-clay); border-top-color: var(--gs-clay); }
-.grindstone-workspace .rvm-r-hard { color: var(--gs-gold); border-top-color: var(--gs-gold); }
-.grindstone-workspace .rvm-r-good { color: var(--gs-green); border-top-color: var(--gs-green); }
-.grindstone-workspace .rvm-r-easy { color: var(--gs-green-2); border-top-color: var(--gs-green-2); }
 .grindstone-workspace .rvm-done-eyebrow { color: var(--gs-green); }
 
 /* ══════════════════════════════════════
@@ -1172,7 +1216,7 @@ body.theme-dark .grindstone-workspace:not(.gs-force-light) .gs-rail-item-on,
 .grindstone-workspace .rv-live-body {
   display: flex; flex-direction: column; gap: 18px;
   width: 100%; max-width: 720px; margin: 0 auto;
-  padding: 18px 28px 24px;
+  padding: 18px 28px 48px;
   overflow: hidden;
   min-height: 0;
 }
@@ -1276,51 +1320,91 @@ body.theme-dark .grindstone-workspace:not(.gs-force-light) .gs-rail-item-on,
   color: var(--gs-paper);
 }
 
-/* Rating row — neutral cells with color on top stripe + zh label */
+/* Rating row — Option B: left accent bar + interval pill */
+/* Strategy: button is a bare clickable shell; visual layout lives on .rv-live-r-inner div
+   so Obsidian's <button> internal styling (align-items: center, etc.) can't interfere. */
 .grindstone-workspace .rv-live-ratings {
   display: grid; grid-template-columns: repeat(4, 1fr);
-  gap: 8px; width: 100%;
+  gap: 10px; width: 100%;
 }
 .grindstone-workspace .rv-live-r {
+  all: unset;
+  display: block; box-sizing: border-box;
+  width: 100%;
+  cursor: pointer;
+  border-radius: 10px;
+}
+/* Force-clear all Obsidian button state styling — keep shell invisible */
+.grindstone-workspace .rv-live-r,
+.grindstone-workspace .rv-live-r:hover,
+.grindstone-workspace .rv-live-r:focus,
+.grindstone-workspace .rv-live-r:active {
+  background: transparent;
+  outline: none;
+  border: none;
+  box-shadow: none;
+}
+.grindstone-workspace .rv-live-r:focus-visible .rv-live-r-inner {
+  outline: 2px solid var(--gs-green); outline-offset: 2px;
+}
+.grindstone-workspace .rv-live-r-inner {
   position: relative;
-  display: flex; flex-direction: column; align-items: center; gap: 2px;
-  padding: 14px 10px 10px;
+  display: flex; flex-direction: column; gap: 3px;
+  padding: 10px 12px 10px 16px;
   background: var(--gs-paper-2);
   border: 1px solid var(--gs-line);
-  border-top: 3px solid transparent;
-  border-radius: 8px;
-  cursor: pointer; text-align: center;
+  border-radius: 10px;
+  text-align: left;
   color: var(--gs-ink);
-  transition: transform .12s, box-shadow .15s, border-color .15s;
+  overflow: hidden;
+  transition: transform .12s, box-shadow .15s;
 }
-.grindstone-workspace .rv-live-r:hover {
+.grindstone-workspace .rv-live-r-inner::before {
+  content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+}
+.grindstone-workspace .rv-live-r:hover .rv-live-r-inner {
   transform: translateY(-1px);
-  box-shadow: 0 4px 14px rgba(0,0,0,.06);
+  background: var(--gs-paper);
+  border-color: var(--gs-line-2);
 }
+.grindstone-workspace .rv-live-r-again:hover .rv-live-r-inner { box-shadow: 0 6px 18px rgba(184,83,58,.18); }
+.grindstone-workspace .rv-live-r-hard:hover  .rv-live-r-inner { box-shadow: 0 6px 18px rgba(184,149,106,.20); }
+.grindstone-workspace .rv-live-r-good:hover  .rv-live-r-inner { box-shadow: 0 6px 18px rgba(31,77,58,.18); }
+.grindstone-workspace .rv-live-r-easy:hover  .rv-live-r-inner { box-shadow: 0 6px 18px rgba(45,107,82,.18); }
 .grindstone-workspace .rv-live-r-key {
-  position: absolute; top: 7px; right: 7px;
-  font: 600 9px var(--gs-font-mono);
+  position: absolute; top: 8px; right: 8px;
+  font: 600 8px/1 var(--gs-font-mono);
   padding: 1px 5px; border-radius: 3px;
   background: var(--gs-paper); border: 1px solid var(--gs-line);
   color: var(--gs-ink-3);
 }
-.grindstone-workspace .rv-live-r-zh { font: 600 14px var(--gs-font-zh); line-height: 1.2; }
+.grindstone-workspace .rv-live-r-zh { font: 700 14px/1.1 var(--gs-font-zh); }
 .grindstone-workspace .rv-live-r-en {
-  font-size: 9px; letter-spacing: 0.16em; font-weight: 600;
-  color: var(--gs-ink-3); margin-top: 2px;
+  font: 600 8px/1 var(--gs-font-en); letter-spacing: 0.18em;
+  color: var(--gs-ink-3);
 }
 .grindstone-workspace .rv-live-r-interval {
-  font-size: 10px; color: var(--gs-ink-2); margin-top: 4px;
+  align-self: flex-start; margin-top: 3px;
+  font: 600 9px/1 var(--gs-font-mono);
+  padding: 2px 7px; border-radius: 999px;
 }
 
-.grindstone-workspace .rv-live-r-again { border-top-color: var(--gs-clay); }
-.grindstone-workspace .rv-live-r-again .rv-live-r-zh { color: var(--gs-clay); }
-.grindstone-workspace .rv-live-r-hard { border-top-color: var(--gs-gold); }
-.grindstone-workspace .rv-live-r-hard .rv-live-r-zh { color: var(--gs-gold); }
-.grindstone-workspace .rv-live-r-good { border-top-color: var(--gs-green); }
-.grindstone-workspace .rv-live-r-good .rv-live-r-zh { color: var(--gs-green); }
-.grindstone-workspace .rv-live-r-easy { border-top-color: var(--gs-green-2); }
-.grindstone-workspace .rv-live-r-easy .rv-live-r-zh { color: var(--gs-green-2); }
+.grindstone-workspace .rv-live-r-again .rv-live-r-inner::before { background: var(--gs-clay); }
+.grindstone-workspace .rv-live-r-again .rv-live-r-interval {
+  background: rgba(184,83,58,.12); color: var(--gs-clay);
+}
+.grindstone-workspace .rv-live-r-hard .rv-live-r-inner::before { background: var(--gs-gold); }
+.grindstone-workspace .rv-live-r-hard .rv-live-r-interval {
+  background: rgba(184,149,106,.18); color: var(--gs-gold);
+}
+.grindstone-workspace .rv-live-r-good .rv-live-r-inner::before { background: var(--gs-green); }
+.grindstone-workspace .rv-live-r-good .rv-live-r-interval {
+  background: var(--gs-green-soft); color: var(--gs-green);
+}
+.grindstone-workspace .rv-live-r-easy .rv-live-r-inner::before { background: var(--gs-green-2); }
+.grindstone-workspace .rv-live-r-easy .rv-live-r-interval {
+  background: rgba(45,107,82,.14); color: var(--gs-green-2);
+}
 
 /* ── Completion view ── */
 .grindstone-workspace .rv-live-done {
@@ -1587,5 +1671,6 @@ body.theme-dark .grindstone-workspace:not(.gs-force-light) .gs-rail-item-on,
   .grindstone-workspace .rv-launch-kbds { gap: 10px; font-size: 9px; }
   .grindstone-workspace .rv-auto-pill { display: none; }
   .grindstone-workspace .rv-auto-num { font-size: 18px; }
-  .grindstone-workspace .rv-auto-cap { font-size: 10px; }
+  .grindstone-workspace .rv-auto-cap-zh { font-size: 10px; }
+  .grindstone-workspace .rv-auto-cap-en { display: none; }
 }

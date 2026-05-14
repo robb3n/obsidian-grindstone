@@ -30,8 +30,7 @@ export function renderReview(container: HTMLElement, ctx: TabContext): void {
 function renderPreFlight(container: HTMLElement, ctx: TabContext): void {
   const dueCards = ctx.store.getDueCards();
   const dueCount = dueCards.length;
-  const newCount = ctx.store.getDueNewCount();
-  const learningCount = ctx.store.getMaturity().learning;
+  const dueBreakdown = ctx.store.getDueBreakdown();
   const streak = ctx.store.getOverviewStats().streak;
   const sessions = ctx.store.getRecentSessions(7);
 
@@ -68,7 +67,7 @@ function renderPreFlight(container: HTMLElement, ctx: TabContext): void {
 
   const renderSection = () => {
     sectionWrap.empty();
-    if (activeTab === 'launch') renderLaunch(sectionWrap, dueCount, newCount, learningCount, ctx);
+    if (activeTab === 'launch') renderLaunch(sectionWrap, dueCount, dueBreakdown, ctx);
     else if (activeTab === 'debrief') renderDebrief(sectionWrap, sessions, ctx);
   };
 
@@ -80,7 +79,8 @@ function renderPreFlight(container: HTMLElement, ctx: TabContext): void {
 
 function renderLaunch(
   parent: HTMLElement,
-  dueCount: number, newCount: number, learningCount: number,
+  dueCount: number,
+  dueBreakdown: { new: number; learning: number; mature: number },
   ctx: TabContext,
 ): void {
   const launch = parent.createDiv({ cls: 'rv-launch' });
@@ -101,9 +101,9 @@ function renderLaunch(
   autoH.createSpan({ cls: 'rv-auto-pill gs-mono', text: '计入统计' });
 
   const autoGrid = autoCard.createDiv({ cls: 'rv-auto-grid' });
-  addAutoCell(autoGrid, dueCount, '到期', undefined, 0);
-  addAutoCell(autoGrid, newCount, '新卡', undefined, 60);
-  addAutoCell(autoGrid, learningCount, '在学', undefined, 120);
+  addAutoCell(autoGrid, dueBreakdown.new,      '新', 'NEW', undefined, 0);
+  addAutoCell(autoGrid, dueBreakdown.learning, '习', 'LRN', undefined, 60);
+  addAutoCell(autoGrid, dueBreakdown.mature,   '熟', 'MAT', undefined, 120);
 
   autoCard.createDiv({ cls: 'rv-auto-foot gs-en', text: 'Again / Hard / Good / Easy 的评分会写回卡片，决定下次到期时间。' });
 
@@ -134,6 +134,7 @@ function addAutoCell(
   parent: HTMLElement,
   value: number | string,
   label: string,
+  en?: string,
   format?: (n: number) => string,
   delay = 0,
 ): void {
@@ -144,7 +145,9 @@ function addAutoCell(
   } else {
     num.textContent = value;
   }
-  cell.createDiv({ cls: 'rv-auto-cap', text: label });
+  const cap = cell.createDiv({ cls: 'rv-auto-cap' });
+  cap.createSpan({ cls: 'rv-auto-cap-zh', text: label });
+  if (en) cap.createSpan({ cls: 'rv-auto-cap-en gs-en', text: en });
 }
 
 // ═══════════════════════════════════════════════════════
@@ -230,10 +233,11 @@ function renderLiveReview(container: HTMLElement, engine: ReviewEngine, ctx: Tab
   const previews = engine.previewIntervals();
   for (const def of RATING_DEFS) {
     const btn = rateRow.createEl('button', { cls: `rv-live-r ${def.cls}` });
-    btn.createEl('kbd', { cls: 'rv-live-r-key gs-mono', text: def.key });
-    btn.createDiv({ cls: 'rv-live-r-zh', text: def.zh });
-    btn.createDiv({ cls: 'rv-live-r-en gs-en', text: def.en });
-    btn.createDiv({ cls: 'rv-live-r-interval gs-mono', text: previews[def.rating] });
+    const inner = btn.createDiv({ cls: 'rv-live-r-inner' });
+    inner.createEl('kbd', { cls: 'rv-live-r-key gs-mono', text: def.key });
+    inner.createDiv({ cls: 'rv-live-r-zh', text: def.zh });
+    inner.createDiv({ cls: 'rv-live-r-en gs-en', text: def.en });
+    inner.createDiv({ cls: 'rv-live-r-interval gs-mono', text: previews[def.rating] });
     btn.addEventListener('click', () => doRate(def.rating));
   }
 

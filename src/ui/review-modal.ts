@@ -163,11 +163,11 @@ export class ReviewModal extends Modal {
     const previews = this.engine.previewIntervals();
     for (const def of RATING_DEFS) {
       const btn = rateSection.createEl('button', { cls: `rvm-r ${def.cls}` });
-      btn.createDiv({ cls: 'rvm-r-zh', text: def.zh });
-      const row = btn.createDiv({ cls: 'rvm-r-row' });
-      row.createSpan({ cls: 'rvm-r-en gs-en', text: def.en });
-      row.createEl('kbd', { cls: 'rvm-r-kbd gs-mono', text: def.key });
-      btn.createDiv({ cls: 'rvm-r-interval gs-mono', text: previews[def.rating] });
+      const inner = btn.createDiv({ cls: 'rvm-r-inner' });
+      inner.createEl('kbd', { cls: 'rvm-r-kbd gs-mono', text: def.key });
+      inner.createDiv({ cls: 'rvm-r-zh', text: def.zh });
+      inner.createDiv({ cls: 'rvm-r-en gs-en', text: def.en });
+      inner.createDiv({ cls: 'rvm-r-interval gs-mono', text: previews[def.rating] });
       btn.addEventListener('click', () => this.doRate(def.rating));
     }
 

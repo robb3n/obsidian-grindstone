@@ -602,9 +602,9 @@ export class GrindstoneStore {
     return this.dataStore.getDueCards(today());
   }
 
-  /** Count of due cards that have never been reviewed (reviewCount === 0). */
-  getDueNewCount(): number {
-    return this.getDueCards().filter((e) => e.card.reviewCount === 0).length;
+  getDueBreakdown(): MaturityData {
+    const dist = this.dataStore.getDueBreakdown(today());
+    return { new: dist.new, learning: dist.learning, mature: dist.mature };
   }
 
   getDueCardsByTag(tag: string): CardEntry[] {

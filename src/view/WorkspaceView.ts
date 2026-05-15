@@ -54,7 +54,7 @@ export class GrindstoneWorkspaceView extends ItemView {
     container.addClass('grindstone-workspace');
 
     // Restore collapsed state from settings
-    this.sidebarCollapsed = !!this.store.getRawStore().getSettings().gsSidebarCollapsed;
+    this.sidebarCollapsed = !!this.store.getSettings().gsSidebarCollapsed;
 
     // Root element
     this.rootEl = container.createDiv({ cls: 'gs-app gs-root' });
@@ -100,7 +100,7 @@ export class GrindstoneWorkspaceView extends ItemView {
       dueCount: this.store.getDueCards().length,
       streak: this.store.getOverviewStats().streak,
       onToggleTheme: () => this.toggleTheme(),
-      themeMode: this.store.getRawStore().getSettings().gsTheme,
+      themeMode: this.store.getSettings().gsTheme,
       isDark: this.isDark(),
       collapsed: this.sidebarCollapsed,
       onToggleCollapse: () => this.toggleSidebarCollapse(),
@@ -140,16 +140,10 @@ export class GrindstoneWorkspaceView extends ItemView {
   }
 
   private doStartInlineReview(tag?: string): void {
-    const rawStore = this.store.getRawStore();
-    let queue;
-    if (tag) {
-      queue = this.store.getDueCardsByTag(tag);
-    } else {
-      queue = this.store.getDueCards();
-    }
+    const queue = tag ? this.store.getDueCardsByTag(tag) : this.store.getDueCards();
     if (queue.length === 0) return;
 
-    this.reviewEngine = new ReviewEngine(queue, rawStore, this.store, this.cardManager);
+    this.reviewEngine = new ReviewEngine(queue, this.store, this.cardManager);
     // Navigate to review tab and re-render
     this.activeTab = 'review';
     this.renderSidebar();
@@ -182,29 +176,29 @@ export class GrindstoneWorkspaceView extends ItemView {
     this.sidebarCollapsed = !this.sidebarCollapsed;
     this.applySidebarCollapsed();
     this.renderSidebar();
-    this.store.getRawStore().updateSettings({ gsSidebarCollapsed: this.sidebarCollapsed });
+    this.store.updateSettings({ gsSidebarCollapsed: this.sidebarCollapsed });
   }
 
   // ── Theme ─────────────────────────────────────────────
 
   private isDark(): boolean {
-    const settings = this.store.getRawStore().getSettings();
+    const settings = this.store.getSettings();
     if (settings.gsTheme === 'light') return false;
     if (settings.gsTheme === 'dark') return true;
     return document.body.classList.contains('theme-dark');
   }
 
   private applyThemeOverride(): void {
-    const mode = this.store.getRawStore().getSettings().gsTheme;
+    const mode = this.store.getSettings().gsTheme;
     this.contentEl.classList.toggle('gs-force-dark', mode === 'dark');
     this.contentEl.classList.toggle('gs-force-light', mode === 'light');
   }
 
   private toggleTheme(): void {
-    const current = this.store.getRawStore().getSettings().gsTheme;
+    const current = this.store.getSettings().gsTheme;
     // Cycle: auto → dark → light → auto
     const next = !current ? 'dark' : current === 'dark' ? 'light' : undefined;
-    this.store.getRawStore().updateSettings({ gsTheme: next as any });
+    this.store.updateSettings({ gsTheme: next as any });
     this.applyThemeOverride();
     this.renderSidebar();
   }

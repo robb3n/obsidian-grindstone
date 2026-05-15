@@ -6,7 +6,6 @@ import { ReviewModal } from './view/review-modal';
 import { GrindstoneWorkspaceView, WORKSPACE_VIEW_TYPE } from './view/WorkspaceView';
 import { addRibbonIcon } from './view/ribbon';
 import { GrindstoneSettingTab } from './settings/settings-tab';
-import { formatDate } from './util/date';
 
 export default class GrindstonePlugin extends Plugin {
   store!: DataStore;
@@ -132,19 +131,12 @@ export default class GrindstonePlugin extends Plugin {
   }
 
   private getDueCount(): number {
-    const today = formatDate(new Date());
-    return this.store.getDueCards(today).length;
+    return this.gsStore.getDueCards().length;
   }
 
   private startReviewModal(tag?: string): void {
-    let queue;
-    if (tag) {
-      queue = this.gsStore.getDueCardsByTag(tag);
-    } else {
-      const today = formatDate(new Date());
-      queue = this.store.getDueCards(today);
-    }
-    new ReviewModal(this.app, queue, this.cardManager, this.store, this.gsStore).open();
+    const queue = tag ? this.gsStore.getDueCardsByTag(tag) : this.gsStore.getDueCards();
+    new ReviewModal(this.app, queue, this.cardManager, this.gsStore).open();
   }
 
   private async activateWorkspace(): Promise<void> {

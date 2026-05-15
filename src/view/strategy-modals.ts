@@ -105,7 +105,7 @@ export class DeckResetConfirmModal extends Modal {
   private findPresetId(): string | null {
     const allPresets: SrsPreset[] = [
       ...BUILTIN_PRESETS,
-      ...(this.gsStore.getRawStore().getSettings().customPresets ?? []),
+      ...(this.gsStore.getSettings().customPresets ?? []),
     ];
     return allPresets.find(p => p.name === this.strategyName)?.id ?? null;
   }

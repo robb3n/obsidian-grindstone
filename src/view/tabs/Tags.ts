@@ -285,7 +285,7 @@ export function renderTags(container: HTMLElement, ctx: TabContext, initialTag?:
     matchPill.textContent = `${cards.length} 张匹配`;
 
     // autoShow detection
-    const autoShowTags = ctx.store.getRawStore().getSettings().autoShowTags;
+    const autoShowTags = ctx.store.getSettings().autoShowTags;
     const isAutoShowTag = selectedTags.size === 1
       && matchesAnyPrefix([...selectedTags][0], autoShowTags, true);
     let expandAll = false;

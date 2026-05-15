@@ -1,7 +1,6 @@
-import { CardData, Rating, CardState, SrsParams } from '../card/types';
+import { CardData, Rating, CardState } from '../card/types';
 import { schedule } from '../srs/sm2';
 import { CardManager } from '../card/card-manager';
-import { DataStore } from '../storage/data-store';
 import { GrindstoneStore } from '../store/GrindstoneStore';
 import { formatDate } from '../util/date';
 import { cardHasAutoShowTag } from '../util/tag-match';
@@ -25,18 +24,15 @@ export interface IntervalPreview {
 export class ReviewEngine {
   private queue: QueueItem[];
   private currentIndex = 0;
-  private store: DataStore;
   private gsStore: GrindstoneStore;
   private cardManager: CardManager;
 
   constructor(
     queue: QueueItem[],
-    store: DataStore,
     gsStore: GrindstoneStore,
     cardManager: CardManager,
   ) {
     this.queue = queue;
-    this.store = store;
     this.gsStore = gsStore;
     this.cardManager = cardManager;
   }
@@ -62,7 +58,7 @@ export class ReviewEngine {
   isAutoShow(): boolean {
     const item = this.getCurrentItem();
     if (!item) return false;
-    return cardHasAutoShowTag(item.card.tags, this.store.getSettings().autoShowTags);
+    return cardHasAutoShowTag(item.card.tags, this.gsStore.getSettings().autoShowTags);
   }
 
   previewIntervals(): IntervalPreview {
@@ -107,9 +103,9 @@ export class ReviewEngine {
     card.due = formatDate(dueDate);
     card.lastReviewed = formatDate(today);
 
-    this.store.setCard(id, card);
-    await this.store.save();
-    await this.store.addReviewLog({
+    this.gsStore.setCard(id, card);
+    await this.gsStore.save();
+    await this.gsStore.addReviewLog({
       cardId: id,
       rating,
       timestamp: today.toISOString().slice(0, 19),

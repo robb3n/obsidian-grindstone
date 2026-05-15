@@ -1,7 +1,6 @@
 import { App, Modal, Component, MarkdownRenderer, TFile } from 'obsidian';
 import { Rating } from '../card/types';
 import { CardManager } from '../card/card-manager';
-import { DataStore } from '../storage/data-store';
 import { GrindstoneStore } from '../store/GrindstoneStore';
 import { ReviewEngine, QueueItem } from '../review/review-engine';
 import { RATING_LABELS, RATING_KEY_MAP } from '../review/rating-defs';
@@ -19,11 +18,10 @@ export class ReviewModal extends Modal {
     app: App,
     queue: QueueItem[],
     cardManager: CardManager,
-    store: DataStore,
     gsStore: GrindstoneStore,
   ) {
     super(app);
-    this.engine = new ReviewEngine(queue, store, gsStore, cardManager);
+    this.engine = new ReviewEngine(queue, gsStore, cardManager);
     this.cardManager = cardManager;
     this.component = new Component();
   }

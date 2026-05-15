@@ -1,6 +1,40 @@
+import { App, Notice } from 'obsidian';
 import { TabContext } from './types';
 import { RatingsData } from '../../store/GrindstoneStore';
 import { countUp } from '../anim';
+
+const DEMO_FILE_BASENAME = 'Grindstone Demo';
+const DEMO_CONTENT = `# Grindstone Demo
+
+#grind 什么是间隔重复（Spaced Repetition）？
+一种根据"遗忘曲线"安排复习时机的学习方法：每复习一次，下次复习的间隔会变长，从而让长期记忆更稳。
+
+---
+
+#grind 磨石如何把一行文字变成一张卡片？
+任何含有触发标签（默认 \`#grind\`）的行就是一张卡片的开头。
+- 题面 = 该行去掉标签后的文字
+- 答案 = 从该行到下一个分隔符 \`---\` / 下一张卡 / 下一个标题之间的内容
+
+---
+
+#grind 复习评分有哪四档？
+- **1 Again** — 没记住，短间隔再练
+- **2 Hard** — 难，间隔较短
+- **3 Good** — 可，标准间隔增长
+- **4 Easy** — 易，间隔大幅增长
+
+---
+
+#grind 卡组（deck）是什么？
+卡组就是顶级标签。比如 \`#grind/biology/cells\` 这张卡的卡组是 \`grind\`，子标签 \`biology/cells\` 用于组织和筛选。
+
+---
+
+#grind 这张演示笔记可以删吗？
+可以。删除文件后，对应的卡片会自动从复习队列移除。
+你也可以在 Settings 里改触发标签，把 \`#grind\` 换成自己想用的标签（比如 \`#flashcard\`、\`#anki\`）。
+`;
 
 const MOTIVATIONAL = [
   '迈进',
@@ -36,10 +70,14 @@ export function renderOverview(container: HTMLElement, ctx: TabContext): void {
   const quote = headR.createDiv({ cls: 'ov-quote' });
   quote.createSpan({ text: motiv });
 
-  // CTA button
+  // CTA — fast path: skip pre-flight, dive straight into the inline session.
+  // Sidebar Review tab still routes through pre-flight for "see today first" users.
   const cta = headR.createEl('button', { cls: 'gs-btn gs-btn-primary ov-cta' });
   cta.textContent = `开始复习 \u00B7 ${stats.due}`;
-  cta.addEventListener('click', () => ctx.onNavigate('review'));
+  cta.disabled = stats.due === 0;
+  cta.addEventListener('click', () => {
+    if (stats.due > 0) ctx.startInlineReview();
+  });
 
   // ── Page Body ──
   const page = container.createDiv({ cls: 'gs-page ov-page' });
@@ -47,7 +85,7 @@ export function renderOverview(container: HTMLElement, ctx: TabContext): void {
   // Empty state
   const totalCards = maturity.new + maturity.learning + maturity.mature;
   if (totalCards === 0) {
-    renderEmptyState(page);
+    renderEmptyState(page, ctx);
     return;
   }
 
@@ -403,13 +441,51 @@ function renderTagsTile(grid: HTMLElement, tags: Array<{ path: string; count: nu
 
 // ── Helpers ──
 
-function renderEmptyState(parent: HTMLElement): void {
+function renderEmptyState(parent: HTMLElement, ctx: TabContext): void {
   const empty = parent.createDiv({ cls: 'gs-empty-state' });
   const icon = empty.createDiv({ cls: 'gs-empty-icon' });
   icon.innerHTML = `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12L12 20l-9-9V3h8z"/><circle cx="7" cy="7" r="1.2"/></svg>`;
   empty.createDiv({ cls: 'gs-empty-title', text: '还没有卡片' });
   empty.createDiv({ cls: 'gs-empty-sub', text: '在 Obsidian 笔记中添加触发标签（默认 #grind），磨石会自动提取卡片进行间隔复习。' });
   empty.createDiv({ cls: 'gs-empty-hint', text: '#grind' });
+
+  // Quick-start: one-click demo note. Lets the user see SRS data flow without
+  // having to learn the syntax first.
+  const actions = empty.createDiv({ cls: 'gs-empty-actions' });
+  const demoBtn = actions.createEl('button', { cls: 'gs-btn gs-btn-primary', text: '创建演示笔记' });
+  demoBtn.addEventListener('click', () => createDemoNote(ctx, demoBtn));
+  actions.createDiv({ cls: 'gs-empty-actions-hint', text: '在 vault 根目录新建 Grindstone Demo.md（5 张示例卡）' });
+}
+
+async function createDemoNote(ctx: TabContext, btn: HTMLButtonElement): Promise<void> {
+  btn.disabled = true;
+  const originalText = btn.textContent;
+  btn.textContent = '创建中…';
+  try {
+    const path = pickAvailableDemoPath(ctx.app);
+    const file = await ctx.app.vault.create(path, DEMO_CONTENT);
+    // Metadata cache indexes asynchronously — give it a tick before scanning.
+    await new Promise(r => setTimeout(r, 200));
+    await ctx.cardManager.scanFile(file);
+    await ctx.store.save();
+    new Notice(`已创建 ${path}（5 张示例卡）`);
+    ctx.refreshTab();
+  } catch (err) {
+    console.error('[Grindstone] Demo creation failed:', err);
+    new Notice(`创建失败：${err instanceof Error ? err.message : String(err)}`);
+    btn.disabled = false;
+    btn.textContent = originalText;
+  }
+}
+
+function pickAvailableDemoPath(app: App): string {
+  const base = `${DEMO_FILE_BASENAME}.md`;
+  if (!app.vault.getAbstractFileByPath(base)) return base;
+  for (let i = 2; i < 100; i++) {
+    const candidate = `${DEMO_FILE_BASENAME} ${i}.md`;
+    if (!app.vault.getAbstractFileByPath(candidate)) return candidate;
+  }
+  return `${DEMO_FILE_BASENAME} ${Date.now()}.md`;
 }
 
 function pad(n: number): string {

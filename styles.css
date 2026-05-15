@@ -414,6 +414,16 @@ body.theme-dark .grindstone-workspace:not(.gs-force-light) .gs-rail-item-on,
   padding: 6px 14px; background: var(--gs-paper-2); border-radius: 8px;
   font-family: var(--gs-font-mono);
 }
+.grindstone-workspace .gs-empty-actions {
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  margin-top: 18px;
+}
+.grindstone-workspace .gs-empty-actions .gs-btn-primary {
+  padding: 9px 22px; font-size: 13px;
+}
+.grindstone-workspace .gs-empty-actions-hint {
+  font-size: 11px; color: var(--gs-ink-3);
+}
 
 .grindstone-workspace .gs-error-state {
   display: flex; flex-direction: column; align-items: center; justify-content: center;

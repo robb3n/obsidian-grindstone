@@ -2,13 +2,16 @@ import { Plugin } from 'obsidian';
 import {
   PluginData, CardData, DEFAULT_DATA, GrindstoneSettings, DEFAULT_SETTINGS,
   StoreStats, MaturityDistribution, ReviewLog, Rating,
-  SrsParams, DEFAULT_SRS_PARAMS, BUILTIN_PRESETS,
+  SrsParams, DEFAULT_SRS_PARAMS,
 } from '../card/types';
+import { formatDate } from '../util/date';
 
 
 export class DataStore {
   private data: PluginData;
   private plugin: Plugin;
+  private saveTimer: number | null = null;
+  private savePending: Promise<void> | null = null;
 
   constructor(plugin: Plugin) {
     this.plugin = plugin;
@@ -45,6 +48,30 @@ export class DataStore {
       cleanCards[id] = rest as CardData;
     }
     await this.plugin.saveData({ ...this.data, cards: cleanCards });
+  }
+
+  /**
+   * Debounced save: coalesces high-frequency writers (vault scan events fire
+   * for every file changed in a session). 300ms delay; flushed on plugin
+   * unload via `flushSave()`.
+   */
+  saveDebounced(delayMs = 300): void {
+    if (this.saveTimer != null) window.clearTimeout(this.saveTimer);
+    this.saveTimer = window.setTimeout(() => {
+      this.saveTimer = null;
+      this.savePending = this.save().finally(() => { this.savePending = null; });
+    }, delayMs);
+  }
+
+  /** Force-flush any pending debounced save. Awaits the in-flight write too. */
+  async flushSave(): Promise<void> {
+    if (this.saveTimer != null) {
+      window.clearTimeout(this.saveTimer);
+      this.saveTimer = null;
+      await this.save();
+      return;
+    }
+    if (this.savePending) await this.savePending;
   }
 
   needsMigration(): boolean {
@@ -291,11 +318,4 @@ export class DataStore {
 
     return result;
   }
-}
-
-function formatDate(d: Date): string {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${y}-${m}-${day}`;
 }

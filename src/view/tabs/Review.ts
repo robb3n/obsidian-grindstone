@@ -1,15 +1,10 @@
-import { Component, MarkdownRenderer, TFile } from 'obsidian';
+import { Component, MarkdownRenderer } from 'obsidian';
 import { Rating } from '../../card/types';
 import { ReviewEngine, formatInterval } from '../../review/review-engine';
+import { RATING_LABELS, RATING_KEY_MAP } from '../../review/rating-defs';
+import { renderCardAnswer } from '../../review/card-render';
 import { TabContext } from './types';
 import { countUp } from '../anim';
-
-const RATING_DEFS: { rating: Rating; zh: string; en: string; key: string; cls: string }[] = [
-  { rating: 'again', zh: '重来', en: 'Again', key: '1', cls: 'rv-live-r-again' },
-  { rating: 'hard',  zh: '难',   en: 'Hard',  key: '2', cls: 'rv-live-r-hard' },
-  { rating: 'good',  zh: '可',   en: 'Good',  key: '3', cls: 'rv-live-r-good' },
-  { rating: 'easy',  zh: '易',   en: 'Easy',  key: '4', cls: 'rv-live-r-easy' },
-];
 
 export function renderReview(container: HTMLElement, ctx: TabContext): void {
   const engine = ctx.getReviewEngine();
@@ -231,8 +226,8 @@ function renderLiveReview(container: HTMLElement, engine: ReviewEngine, ctx: Tab
   if (!autoShow) rateRow.style.display = 'none';
 
   const previews = engine.previewIntervals();
-  for (const def of RATING_DEFS) {
-    const btn = rateRow.createEl('button', { cls: `rv-live-r ${def.cls}` });
+  for (const def of RATING_LABELS) {
+    const btn = rateRow.createEl('button', { cls: `rv-live-r rv-live-r-${def.rating}` });
     const inner = btn.createDiv({ cls: 'rv-live-r-inner' });
     inner.createEl('kbd', { cls: 'rv-live-r-key gs-mono', text: def.key });
     inner.createDiv({ cls: 'rv-live-r-zh', text: def.zh });
@@ -294,8 +289,7 @@ function renderLiveReview(container: HTMLElement, engine: ReviewEngine, ctx: Tab
       e.preventDefault();
       toggleAnswer();
     } else if (answerShown) {
-      const map: Record<string, Rating> = { '1': 'again', '2': 'hard', '3': 'good', '4': 'easy' };
-      const rating = map[e.key];
+      const rating = RATING_KEY_MAP[e.key];
       if (rating) {
         e.preventDefault();
         doRate(rating);
@@ -321,8 +315,7 @@ async function loadInlineAnswer(
 ): Promise<void> {
   container.empty();
   const md = container.createDiv({ cls: 'rv-live-answer-md' });
-  const blockContent = await ctx.cardManager.getBlockContent(item.card as any, item.id);
-  await MarkdownRenderer.render(ctx.app, blockContent, md, item.card.file, component);
+  await renderCardAnswer(md, item.card as any, item.id, ctx.cardManager, ctx.app, component);
 }
 
 // ═══════════════════════════════════════════════════════

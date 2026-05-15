@@ -2,10 +2,11 @@ import { Plugin, TFile, TAbstractFile } from 'obsidian';
 import { DataStore } from './storage/data-store';
 import { CardManager } from './card/card-manager';
 import { GrindstoneStore } from './store/GrindstoneStore';
-import { ReviewModal } from './ui/review-modal';
+import { ReviewModal } from './view/review-modal';
 import { GrindstoneWorkspaceView, WORKSPACE_VIEW_TYPE } from './view/WorkspaceView';
-import { addRibbonIcon } from './ui/ribbon';
+import { addRibbonIcon } from './view/ribbon';
 import { GrindstoneSettingTab } from './settings/settings-tab';
+import { formatDate } from './util/date';
 
 export default class GrindstonePlugin extends Plugin {
   store!: DataStore;
@@ -17,7 +18,11 @@ export default class GrindstonePlugin extends Plugin {
     await this.store.load();
 
     this.gsStore = new GrindstoneStore(this.store);
-    this.cardManager = new CardManager(this.app, this.store);
+    this.cardManager = new CardManager(
+      this.app,
+      this.store,
+      () => this.gsStore.invalidatePrimaryDeckCache(),
+    );
 
     // Register workspace view
     this.registerView(
@@ -44,12 +49,13 @@ export default class GrindstonePlugin extends Plugin {
       );
     });
 
-    // Incremental update on metadata change (skip re-entrant scans from ID embedding)
+    // Incremental update on metadata change (skip re-entrant scans from ID embedding).
+    // Save is debounced — vault-wide edits would otherwise trigger many disk writes.
     this.registerEvent(
       this.app.metadataCache.on('changed', async (file: TFile) => {
         if (this.cardManager.isWritingIds(file.path)) return;
         await this.cardManager.scanFile(file);
-        await this.store.save();
+        this.store.saveDebounced();
       }),
     );
 
@@ -58,7 +64,7 @@ export default class GrindstonePlugin extends Plugin {
       this.app.vault.on('rename', async (file: TAbstractFile, oldPath: string) => {
         if (file instanceof TFile) {
           this.cardManager.handleRename(oldPath, file.path);
-          await this.store.save();
+          this.store.saveDebounced();
         }
       }),
     );
@@ -68,7 +74,7 @@ export default class GrindstonePlugin extends Plugin {
       this.app.vault.on('delete', async (file: TAbstractFile) => {
         if (file instanceof TFile) {
           this.cardManager.handleDelete(file.path);
-          await this.store.save();
+          this.store.saveDebounced();
         }
       }),
     );
@@ -158,13 +164,6 @@ export default class GrindstonePlugin extends Plugin {
   }
 
   async onunload(): Promise<void> {
-    await this.store.save();
+    await this.store.flushSave();
   }
-}
-
-function formatDate(d: Date): string {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${y}-${m}-${day}`;
 }

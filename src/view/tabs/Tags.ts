@@ -1,6 +1,8 @@
 import { MarkdownRenderer, Component, setTooltip } from 'obsidian';
 import { TagTreeNode, CardEntry } from '../../store/GrindstoneStore';
 import { TabContext } from './types';
+import { today as formatToday } from '../../util/date';
+import { matchesAnyPrefix } from '../../util/tag-match';
 
 type SortField = 'front' | 'ef' | 'due';
 type SortDir = 'asc' | 'desc';
@@ -284,12 +286,8 @@ export function renderTags(container: HTMLElement, ctx: TabContext, initialTag?:
 
     // autoShow detection
     const autoShowTags = ctx.store.getRawStore().getSettings().autoShowTags;
-    const isAutoShowTag = selectedTags.size === 1 && (() => {
-      const sel = [...selectedTags][0];
-      return autoShowTags.some((ast: string) =>
-        sel === ast || sel.startsWith(ast + '/') || ast.startsWith(sel + '/'),
-      );
-    })();
+    const isAutoShowTag = selectedTags.size === 1
+      && matchesAnyPrefix([...selectedTags][0], autoShowTags, true);
     let expandAll = false;
     const openRows = new Set<string>();
 
@@ -495,11 +493,6 @@ function scrollRowToOffset(row: HTMLElement, topOffset: number): void {
   const containerTop = scroller.getBoundingClientRect().top;
   const diff = rowTop - containerTop - topOffset;
   scroller.scrollBy({ top: diff, behavior: 'smooth' });
-}
-
-function formatToday(): string {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
 function formatDue(due: string): string {

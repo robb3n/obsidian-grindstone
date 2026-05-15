@@ -4,15 +4,18 @@ import { computeCardId, generateCardId, toCardKey, embedIdInLine, extractEmbedde
 import { parseCardBlocks, CardBlock } from '../scanner/block-parser';
 import { initialCardState } from '../srs/sm2';
 import { DataStore } from '../storage/data-store';
+import { formatDate } from '../util/date';
 
 export class CardManager {
   private app: App;
   private store: DataStore;
+  private onCardTagsChanged?: () => void;
   private _idWriteInProgress = new Set<string>();
 
-  constructor(app: App, store: DataStore) {
+  constructor(app: App, store: DataStore, onCardTagsChanged?: () => void) {
     this.app = app;
     this.store = store;
+    this.onCardTagsChanged = onCardTagsChanged;
   }
 
   /** True if the given file is currently being modified by ID embedding. */
@@ -57,6 +60,7 @@ export class CardManager {
     const ids: string[] = [];
     const lines = content.split('\n');
     const pendingEmbeds: Array<{ lineIndex: number; id: string }> = [];
+    let tagsChanged = false;
 
     for (const block of blocks) {
       let cardId: string;
@@ -72,6 +76,7 @@ export class CardManager {
 
       const existing = this.store.getCard(key);
       if (existing) {
+        if (!sameTags(existing.tags, block.tags)) tagsChanged = true;
         existing.file = file.path;
         existing.blockStartLine = block.startLine;
         existing.tags = block.tags;
@@ -97,6 +102,8 @@ export class CardManager {
       }
     }
 
+    if (tagsChanged) this.onCardTagsChanged?.();
+
     // Batch-write new IDs back to the file
     if (pendingEmbeds.length > 0) {
       this._idWriteInProgress.add(file.path);
@@ -114,6 +121,7 @@ export class CardManager {
   private scanFileLegacy(file: TFile, blocks: CardBlock[], settings: GrindstoneSettings): string[] {
     const ids: string[] = [];
     const titleCounts: Record<string, number> = {};
+    let tagsChanged = false;
 
     for (const block of blocks) {
       const blockIndex = titleCounts[block.title] ?? 0;
@@ -124,6 +132,7 @@ export class CardManager {
 
       const existing = this.store.getCard(cardId);
       if (existing) {
+        if (!sameTags(existing.tags, block.tags)) tagsChanged = true;
         existing.file = file.path;
         existing.blockStartLine = block.startLine;
         existing.tags = block.tags;
@@ -148,6 +157,8 @@ export class CardManager {
         this.store.setCard(cardId, card);
       }
     }
+
+    if (tagsChanged) this.onCardTagsChanged?.();
 
     return ids;
   }
@@ -368,9 +379,8 @@ export class CardManager {
   }
 }
 
-function formatDate(d: Date): string {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${y}-${m}-${day}`;
+function sameTags(a: string[], b: string[]): boolean {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return false;
+  return true;
 }

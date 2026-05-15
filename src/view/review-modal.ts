@@ -4,13 +4,8 @@ import { CardManager } from '../card/card-manager';
 import { DataStore } from '../storage/data-store';
 import { GrindstoneStore } from '../store/GrindstoneStore';
 import { ReviewEngine, QueueItem } from '../review/review-engine';
-
-const RATING_DEFS: { rating: Rating; zh: string; en: string; key: string; cls: string }[] = [
-  { rating: 'again', zh: '重来', en: 'Again', key: '1', cls: 'rvm-r-again' },
-  { rating: 'hard',  zh: '难',   en: 'Hard',  key: '2', cls: 'rvm-r-hard' },
-  { rating: 'good',  zh: '可',   en: 'Good',  key: '3', cls: 'rvm-r-good' },
-  { rating: 'easy',  zh: '易',   en: 'Easy',  key: '4', cls: 'rvm-r-easy' },
-];
+import { RATING_LABELS, RATING_KEY_MAP } from '../review/rating-defs';
+import { renderCardAnswer } from '../review/card-render';
 
 export class ReviewModal extends Modal {
   private engine: ReviewEngine;
@@ -55,8 +50,7 @@ export class ReviewModal extends Modal {
         e.preventDefault();
         this.toggleAnswer();
       } else if (this.answerShown) {
-        const map: Record<string, Rating> = { '1': 'again', '2': 'hard', '3': 'good', '4': 'easy' };
-        const rating = map[e.key];
+        const rating = RATING_KEY_MAP[e.key];
         if (rating) {
           e.preventDefault();
           this.doRate(rating);
@@ -161,8 +155,8 @@ export class ReviewModal extends Modal {
     if (!autoShow) rateSection.style.display = 'none';
 
     const previews = this.engine.previewIntervals();
-    for (const def of RATING_DEFS) {
-      const btn = rateSection.createEl('button', { cls: `rvm-r ${def.cls}` });
+    for (const def of RATING_LABELS) {
+      const btn = rateSection.createEl('button', { cls: `rvm-r rvm-r-${def.rating}` });
       const inner = btn.createDiv({ cls: 'rvm-r-inner' });
       inner.createEl('kbd', { cls: 'rvm-r-kbd gs-mono', text: def.key });
       inner.createDiv({ cls: 'rvm-r-zh', text: def.zh });
@@ -217,8 +211,7 @@ export class ReviewModal extends Modal {
     container.empty();
     container.createDiv({ cls: 'rvm-card-divider' });
     const md = container.createDiv({ cls: 'rvm-card-back-md' });
-    const blockContent = await this.cardManager.getBlockContent(item.card, item.id);
-    await MarkdownRenderer.render(this.app, blockContent, md, item.card.file, this.component);
+    await renderCardAnswer(md, item.card, item.id, this.cardManager, this.app, this.component);
   }
 
   private async doRate(rating: Rating): Promise<void> {
@@ -243,9 +236,4 @@ export class ReviewModal extends Modal {
     const closeBtn = done.createEl('button', { cls: 'gs-btn gs-btn-primary', text: '关闭 →' });
     closeBtn.addEventListener('click', () => this.close());
   }
-}
-
-function shortTag(tag: string): string {
-  const parts = tag.split('/');
-  return parts.length > 2 ? parts.slice(-2).join('/') : tag;
 }

@@ -3,6 +3,8 @@ import { schedule } from '../srs/sm2';
 import { CardManager } from '../card/card-manager';
 import { DataStore } from '../storage/data-store';
 import { GrindstoneStore } from '../store/GrindstoneStore';
+import { formatDate } from '../util/date';
+import { cardHasAutoShowTag } from '../util/tag-match';
 
 export interface QueueItem {
   id: string;
@@ -60,10 +62,7 @@ export class ReviewEngine {
   isAutoShow(): boolean {
     const item = this.getCurrentItem();
     if (!item) return false;
-    const autoShowTags = this.store.getSettings().autoShowTags;
-    return item.card.tags.some((t) =>
-      autoShowTags.some((ast) => t === ast || t.startsWith(ast + '/')),
-    );
+    return cardHasAutoShowTag(item.card.tags, this.store.getSettings().autoShowTags);
   }
 
   previewIntervals(): IntervalPreview {
@@ -116,7 +115,7 @@ export class ReviewEngine {
       timestamp: today.toISOString().slice(0, 19),
       elapsed,
     });
-    this.gsStore.invalidatePrimaryDeckCache();
+    this.gsStore.notePrimaryDeckOnRate(id, card);
     await this.cardManager.writeStarsBack(card, id, rating);
 
     // Re-queue when Again produces interval 0
@@ -134,11 +133,4 @@ export function formatInterval(days: number): string {
   if (days < 30) return `+${days}d`;
   if (days < 365) return `+${Math.round(days / 30)}mo`;
   return `+${(days / 365).toFixed(1)}y`;
-}
-
-function formatDate(d: Date): string {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${y}-${m}-${day}`;
 }

@@ -8,25 +8,7 @@
 
 import { DataStore } from '../storage/data-store';
 import { CardData, Rating, ReviewLog, SrsParams, DeckResetMode, BUILTIN_PRESETS } from '../card/types';
-
-// ── Shared helpers ──────────────────────────────────────────
-
-function formatDate(d: Date): string {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${y}-${m}-${day}`;
-}
-
-function today(): string {
-  return formatDate(new Date());
-}
-
-function addDays(base: Date, n: number): Date {
-  const d = new Date(base);
-  d.setDate(d.getDate() + n);
-  return d;
-}
+import { formatDate, today, addDays } from '../util/date';
 
 // ── Types ───────────────────────────────────────────────────
 
@@ -137,6 +119,8 @@ export interface CardEntry {
 
 export class GrindstoneStore {
   private primaryDeckCache: Map<string, string> | null = null;
+  /** Per-card top-level-tag review counts, kept in sync with primaryDeckCache. */
+  private cardTagCounts: Map<string, Map<string, number>> | null = null;
 
   constructor(private dataStore: DataStore) {}
 
@@ -506,6 +490,31 @@ export class GrindstoneStore {
 
   invalidatePrimaryDeckCache(): void {
     this.primaryDeckCache = null;
+    this.cardTagCounts = null;
+  }
+
+  /**
+   * Incrementally fold a new review into the primary-deck cache. Cheaper than
+   * a full rebuild after every rating. No-op if cache is cold (lazy build will
+   * pick up the rating from the persisted log).
+   */
+  notePrimaryDeckOnRate(cardId: string, card: CardData): void {
+    if (!this.primaryDeckCache || !this.cardTagCounts) return;
+    let tagMap = this.cardTagCounts.get(cardId);
+    if (!tagMap) {
+      tagMap = new Map();
+      this.cardTagCounts.set(cardId, tagMap);
+    }
+    for (const tag of card.tags) {
+      const topTag = tag.split('/')[0];
+      tagMap.set(topTag, (tagMap.get(topTag) ?? 0) + 1);
+    }
+    let maxTag = '';
+    let maxCount = 0;
+    for (const [tag, count] of tagMap) {
+      if (count > maxCount) { maxCount = count; maxTag = tag; }
+    }
+    if (maxTag) this.primaryDeckCache.set(cardId, maxTag);
   }
 
   private buildPrimaryDeckCache(): Map<string, string> {
@@ -533,6 +542,7 @@ export class GrindstoneStore {
       }
       if (maxTag) result.set(cardId, maxTag);
     }
+    this.cardTagCounts = cardTagCounts;
     return result;
   }
 
@@ -593,7 +603,7 @@ export class GrindstoneStore {
 
     this.dataStore.bulkUpdateCards(updates);
     await this.dataStore.save();
-    this.primaryDeckCache = null;
+    this.invalidatePrimaryDeckCache();
   }
 
   // ── Review (launch pad) ─────────────────────────────────

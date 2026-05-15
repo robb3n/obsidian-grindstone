@@ -133,9 +133,9 @@ export class GrindstoneSettingTab extends PluginSettingTab {
 
     new Setting(section)
       .setName('嵌入卡片 ID')
-      .setDesc('在触发标签行末尾嵌入 HTML 注释形式的稳定 ID（推荐）。关闭后退回哈希 ID，文件重命名或标题修改会导致 SRS 数据丢失。')
+      .setDesc('⚠ 会修改你的笔记。开启后在触发行尾添加 <!-- gs:xxxxxxxx --> 注释（一次性，每张卡一个）。复习历史会随重命名、移动、编辑而保留；关闭则退回基于文件路径 + 题面哈希的 ID，重命名或改标题会丢历史。')
       .addToggle((toggle) => {
-        toggle.setValue(settings.embedCardIds ?? true).onChange(async (value) => {
+        toggle.setValue(settings.embedCardIds ?? false).onChange(async (value) => {
           await this.plugin.store.updateSettings({ embedCardIds: value });
         });
       });
@@ -167,7 +167,7 @@ export class GrindstoneSettingTab extends PluginSettingTab {
 
     new Setting(section)
       .setName('评分回写星号')
-      .setDesc('复习评分后在源文件行首写入星号:Again=⭐️⭐️⭐️, Hard=⭐️⭐️, Good=⭐️, Easy=无。')
+      .setDesc('⚠ 会修改你的笔记。每次评分后在触发行首写入星号: Again=⭐️⭐️⭐️ / Hard=⭐️⭐️ / Good=⭐️ / Easy=（清除）。')
       .addToggle((toggle) => {
         toggle.setValue(settings.writeStarsBack).onChange(async (value) => {
           await this.plugin.store.updateSettings({ writeStarsBack: value });

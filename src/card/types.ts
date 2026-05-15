@@ -175,17 +175,21 @@ export interface GrindstoneSettings {
   deckSrsOverrides?: Record<string, string | SrsParams>;
   /** One-time migration flag: Anki Standard step1/step2 swap fix. */
   _ankiStepFix?: boolean;
+  /** First-run onboarding completed (or auto-marked for upgrading users). */
+  _onboardingDone?: boolean;
 }
 
 export type DeckResetMode = 'gradual' | 'reset-ease' | 'full-reset';
 
+// Vault-read-only by default. The two note-modifying features (embedCardIds,
+// writeStarsBack) start OFF and are opt-in via the onboarding modal or Settings.
 export const DEFAULT_SETTINGS: GrindstoneSettings = {
-  triggerTags: ['#考研数学', '#408'],
+  triggerTags: ['#grind'],
   excludeTags: [],
   prefixMatch: true,
-  writeStarsBack: true,
-  embedCardIds: true,
-  autoShowTags: ['#Grind'],
+  writeStarsBack: false,
+  embedCardIds: false,
+  autoShowTags: [],
 };
 
 export const DEFAULT_DATA: PluginData = {

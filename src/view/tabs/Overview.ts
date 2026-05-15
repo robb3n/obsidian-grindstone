@@ -408,8 +408,8 @@ function renderEmptyState(parent: HTMLElement): void {
   const icon = empty.createDiv({ cls: 'gs-empty-icon' });
   icon.innerHTML = `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12L12 20l-9-9V3h8z"/><circle cx="7" cy="7" r="1.2"/></svg>`;
   empty.createDiv({ cls: 'gs-empty-title', text: '还没有卡片' });
-  empty.createDiv({ cls: 'gs-empty-sub', text: '在 Obsidian 笔记中添加触发标签，磨刀石会自动提取卡片进行间隔复习。' });
-  empty.createDiv({ cls: 'gs-empty-hint', text: '#考研数学 或 #flashcard' });
+  empty.createDiv({ cls: 'gs-empty-sub', text: '在 Obsidian 笔记中添加触发标签（默认 #grind），磨石会自动提取卡片进行间隔复习。' });
+  empty.createDiv({ cls: 'gs-empty-hint', text: '#grind' });
 }
 
 function pad(n: number): string {

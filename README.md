@@ -4,9 +4,11 @@ Inline-tag-driven spaced repetition (SM-2) for Obsidian.
 
 Zero extra syntax. Any line in your notes that contains a trigger tag becomes a review card — the title is the line itself, the answer is everything below it.
 
+**Vault-read-only by default.** Grindstone never modifies your notes unless you opt in. The two features that touch your files (embedded card IDs and star writeback) are off by default and exposed in the first-run welcome modal and Settings.
+
 ## How cards are detected
 
-A card **starts** at any line containing a trigger tag (e.g. `#考研数学/高数/极限`). A card **ends** at whichever comes first:
+A card **starts** at any line containing a trigger tag (e.g. `#grind` or `#grind/biology/cells`). A card **ends** at whichever comes first:
 
 1. a `---` separator
 2. the next trigger-tag line
@@ -16,15 +18,15 @@ A card **starts** at any line containing a trigger tag (e.g. `#考研数学/高�
 - The **question** is the non-tag text on the trigger line.
 - The **answer** is the content between the trigger line and the boundary.
 
-### Stable card IDs
+### Stable card IDs (opt-in)
 
-The plugin embeds a short HTML comment (`<!-- gs:k7m2x9p1 -->`) at the end of each trigger line on first scan. This ID is what binds review history to a card, so:
+By default Grindstone treats your vault as **read-only** and identifies cards by hashing file path + question text. That works as long as you don't rename files or edit card titles.
+
+If you want history that survives renames and edits, opt in to **embedded IDs** in Settings (or pick "Embed IDs" in the first-run welcome modal). The plugin then writes a short HTML comment (`<!-- gs:k7m2x9p1 -->`) once at the end of each trigger line. After that:
 
 - Rename the file → history follows
 - Edit the question text → history follows
 - Move the block within the file → history follows
-
-You can turn this off (legacy mode hashes file path + title instead), but embedded IDs are recommended.
 
 ## The workspace
 
@@ -59,9 +61,9 @@ Four built-in parameter sets:
 
 You can save custom presets and assign a different strategy **per deck** (deck = top-level tag). When switching strategies on an existing deck, you choose how to migrate existing cards: gradual, reset ease only, or full reset.
 
-## Star writeback
+## Star writeback (opt-in)
 
-When enabled, the plugin writes a visual difficulty marker back to the trigger line:
+Off by default. When enabled in Settings, the plugin writes a visual difficulty marker back to the trigger line on every rating:
 
 | Rating | Marker |
 |--------|--------|
@@ -70,19 +72,19 @@ When enabled, the plugin writes a visual difficulty marker back to the trigger l
 | Good   | ⭐️ |
 | Easy   | (cleared) |
 
-This is one of two features that modify your notes (the other is embedded card IDs); both have toggle switches in Settings.
+This is one of two features that modify your notes (the other is embedded card IDs); both are off by default and have toggle switches in Settings.
 
 ## Settings
 
 | Setting | Default | Description |
 |---------|---------|-------------|
-| Trigger tags | `#考研数学`, `#408` | Lines with these tags become cards. |
+| Trigger tags | `#grind` | Lines with these tags become cards. |
 | Exclude tags | (empty) | Lines also carrying these tags are skipped. |
-| Prefix match | on | `#考研数学` also matches `#考研数学/高数/极限`. |
-| Embed card IDs | on | Inject `<!-- gs:xxxxxxxx -->` for stable identity. |
-| Auto-show tags | `#Grind` | Cards with these tags skip the "show answer" step. |
-| Star writeback | on | Write ⭐️ markers back to source on rating. |
-| SRS strategy | 默认 SM-2 | Global preset; overridable per deck. |
+| Prefix match | on | `#grind` also matches `#grind/biology/cells`. |
+| Embed card IDs | **off** | ⚠ Modifies notes. Inject `<!-- gs:xxxxxxxx -->` for rename-stable identity. |
+| Auto-show tags | (empty) | Cards with these tags skip the "show answer" step. |
+| Star writeback | **off** | ⚠ Modifies notes. Write ⭐️ markers back to source on rating. |
+| SRS strategy | Default SM-2 | Global preset; overridable per deck. |
 | Theme | auto | `auto` / `dark` / `light` — independent of Obsidian's theme. Toggle from the workspace sidebar. |
 
 ## Custom fonts

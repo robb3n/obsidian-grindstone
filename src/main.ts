@@ -1,10 +1,11 @@
-import { Plugin, TFile, TAbstractFile } from 'obsidian';
+import { Plugin, TFile, TAbstractFile, Notice } from 'obsidian';
 import { DataStore } from './storage/data-store';
 import { CardManager } from './card/card-manager';
 import { GrindstoneStore } from './store/GrindstoneStore';
 import { ReviewModal } from './view/review-modal';
 import { GrindstoneWorkspaceView, WORKSPACE_VIEW_TYPE } from './view/WorkspaceView';
 import { addRibbonIcon } from './view/ribbon';
+import { OnboardingModal } from './view/onboarding-modal';
 import { GrindstoneSettingTab } from './settings/settings-tab';
 
 export default class GrindstonePlugin extends Plugin {
@@ -32,21 +33,8 @@ export default class GrindstonePlugin extends Plugin {
       ),
     );
 
-    // Full scan once layout is ready (with migration if needed)
-    this.app.workspace.onLayoutReady(async () => {
-      if (this.store.needsMigration() && this.store.getSettings().embedCardIds) {
-        console.log('[Grindstone] Migrating to embedded card IDs...');
-        const result = await this.cardManager.migrateToEmbeddedIds();
-        this.store.setVersion(2);
-        await this.store.save();
-        console.log(`[Grindstone] Migration complete: ${result.migrated} migrated, ${result.failed} failed`);
-      }
-
-      await this.cardManager.fullScan();
-      console.log(
-        `[Grindstone] Full scan complete. Cards: ${Object.keys(this.store.getAllCards()).length}`,
-      );
-    });
+    // Full scan once layout is ready — gated behind first-run onboarding.
+    this.app.workspace.onLayoutReady(() => this.runStartup());
 
     // Incremental update on metadata change (skip re-entrant scans from ID embedding).
     // Save is debounced — vault-wide edits would otherwise trigger many disk writes.
@@ -104,6 +92,71 @@ export default class GrindstonePlugin extends Plugin {
 
     // Load user fonts
     this.app.workspace.onLayoutReady(() => this.loadUserFonts());
+  }
+
+  /**
+   * Decide whether to show the onboarding modal before the first scan.
+   * Upgrading users (have cards or logs but no flag) get auto-marked done.
+   */
+  private async runStartup(): Promise<void> {
+    const settings = this.store.getSettings();
+    const hasExistingData =
+      Object.keys(this.store.getAllCards()).length > 0 ||
+      this.store.getReviewLogs().length > 0;
+
+    if (!settings._onboardingDone) {
+      if (hasExistingData) {
+        await this.store.updateSettings({ _onboardingDone: true });
+      } else {
+        new OnboardingModal(this.app, this.store, async (accepted) => {
+          if (accepted) {
+            await this.runFirstScan();
+          } else {
+            // User dismissed without committing — disable & persist so the
+            // toggle in Community Plugins reflects "off" and survives restart.
+            // `_onboardingDone` stays unset, so the prompt fires again on
+            // re-enable. Use *AndSave variant: the plain `disablePlugin` only
+            // unloads in memory and leaves community-plugins.json untouched.
+            await this.disableSelf();
+          }
+        }).open();
+        return;
+      }
+    }
+    await this.runFirstScan();
+  }
+
+  /**
+   * Disable & persist this plugin from within itself. The internal
+   * Settings → Community Plugins list does not auto-rerender on programmatic
+   * disable, so we explicitly nudge it after the call. Visible Notice gives
+   * the user feedback that the dismissal was honored.
+   */
+  private async disableSelf(): Promise<void> {
+    new Notice('Grindstone disabled. Re-enable in Settings → Community plugins to start over.', 5000);
+    const plugins = (this.app as any).plugins;
+    await plugins.disablePluginAndSave(this.manifest.id);
+    // Re-render community-plugins tab if it's the active settings tab — the
+    // toggle UI is otherwise stale until the user clicks away and back.
+    const setting = (this.app as any).setting;
+    if (setting?.activeTab?.id === 'community-plugins') {
+      try { setting.openTabById('community-plugins'); } catch { /* noop */ }
+    }
+  }
+
+  private async runFirstScan(): Promise<void> {
+    if (this.store.needsMigration() && this.store.getSettings().embedCardIds) {
+      console.log('[Grindstone] Migrating to embedded card IDs...');
+      const result = await this.cardManager.migrateToEmbeddedIds();
+      this.store.setVersion(2);
+      await this.store.save();
+      console.log(`[Grindstone] Migration complete: ${result.migrated} migrated, ${result.failed} failed`);
+    }
+
+    await this.cardManager.fullScan();
+    console.log(
+      `[Grindstone] Full scan complete. Cards: ${Object.keys(this.store.getAllCards()).length}`,
+    );
   }
 
   /** Scan fonts-user/ directory and register any found fonts as Grindstone-User. */

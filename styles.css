@@ -1013,6 +1013,71 @@ body.theme-dark .grindstone-workspace:not(.gs-force-light) .gs-rail-item-on,
 .dk-reset-warning { font-size: 11px; color: var(--text-error); margin-top: 4px; padding-left: 22px; }
 .dk-reset-actions { display: flex; justify-content: flex-end; gap: 8px; }
 
+/* ── Onboarding Modal ──────────────────────────────────── */
+.gs-onboarding-modal .modal-content { max-width: 520px; padding: 20px 24px; }
+
+.gs-ob-head { margin-bottom: 18px; }
+.gs-ob-eyebrow { font-size: 10px; letter-spacing: 0.22em; color: var(--text-muted); font-weight: 600; }
+.gs-ob-title { margin: 4px 0 6px; font-size: 18px; font-weight: 600; color: var(--text-normal); }
+.gs-ob-sub { margin: 0; font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+
+.gs-ob-section { margin-bottom: 18px; }
+.gs-ob-section-h { display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px; }
+.gs-ob-section-zh { font-size: 13px; font-weight: 600; color: var(--text-normal); }
+.gs-ob-section-en { font-size: 9px; letter-spacing: 0.16em; color: var(--text-muted); }
+
+.gs-ob-input {
+  width: 100%; box-sizing: border-box;
+  padding: 8px 12px; font-size: 13px;
+  border: 1.5px solid var(--background-modifier-border); border-radius: 8px;
+  background: var(--background-primary); color: var(--text-normal);
+  font-family: var(--font-monospace, monospace);
+  transition: border-color .15s;
+}
+.gs-ob-input:focus { outline: none; border-color: var(--interactive-accent); }
+
+.gs-ob-hint { font-size: 11px; color: var(--text-muted); margin-top: 6px; line-height: 1.5; }
+
+.gs-ob-options { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+.gs-ob-option {
+  padding: 10px 12px;
+  border: 1.5px solid var(--background-modifier-border); border-radius: 8px;
+  cursor: pointer; transition: border-color .15s;
+}
+.gs-ob-option:hover { border-color: var(--interactive-accent); }
+.gs-ob-option-active { border-color: var(--interactive-accent); background: rgba(var(--interactive-accent-rgb, 0,122,255), 0.04); }
+.gs-ob-option-h { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.gs-ob-radio {
+  width: 14px; height: 14px;
+  border: 2px solid var(--background-modifier-border); border-radius: 50%;
+  flex-shrink: 0; transition: border-color .15s;
+}
+.gs-ob-radio-on {
+  border-color: var(--interactive-accent); background: var(--interactive-accent);
+  box-shadow: inset 0 0 0 3px var(--background-primary);
+}
+.gs-ob-option-zh { font-size: 13px; font-weight: 600; }
+.gs-ob-option-en { font-size: 9px; letter-spacing: 0.12em; color: var(--text-muted); }
+.gs-ob-option-rec {
+  font-size: 9px; letter-spacing: 0.12em;
+  margin-left: auto;
+  color: var(--interactive-accent); font-weight: 600;
+}
+.gs-ob-option-desc { font-size: 11px; color: var(--text-muted); line-height: 1.5; padding-left: 22px; }
+.gs-ob-warning { font-size: 11px; color: var(--text-error); margin-top: 4px; padding-left: 22px; }
+
+.gs-ob-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
+.gs-onboarding-modal .gs-btn {
+  padding: 7px 16px; font-size: 13px;
+  border: 1px solid var(--background-modifier-border); border-radius: 6px;
+  background: var(--background-primary); color: var(--text-normal); cursor: pointer;
+}
+.gs-onboarding-modal .gs-btn-primary {
+  background: var(--interactive-accent); color: var(--text-on-accent);
+  border-color: var(--interactive-accent);
+}
+.gs-onboarding-modal .gs-btn-primary:hover { opacity: 0.9; }
+
 /* ══════════════════════════════════════
    Review Modal (rvm-*)
    ══════════════════════════════════════ */

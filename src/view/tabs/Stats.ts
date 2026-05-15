@@ -90,7 +90,7 @@ function downsample(data: number[], targetPoints: number): number[] {
 }
 
 function renderTrendCard(parent: HTMLElement, data: Array<{ date: string; count: number }>): void {
-  const card = parent.createDiv({ cls: 'st-card gs-card' });
+  const card = parent.createDiv({ cls: 'st-card gs-card gs-hoverable' });
   const head = card.createDiv({ cls: 'st-card-head' });
   const headL = head.createDiv({ cls: 'st-card-head-l' });
   headL.createDiv({ cls: 'st-card-en gs-en', text: 'REVIEW TREND' });
@@ -180,7 +180,7 @@ function renderTrendCard(parent: HTMLElement, data: Array<{ date: string; count:
 }
 
 function renderAccuracyCard(parent: HTMLElement, data: Array<{ tag: string; accuracy: number; reviewCount: number }>): void {
-  const card = parent.createDiv({ cls: 'st-card gs-card' });
+  const card = parent.createDiv({ cls: 'st-card gs-card gs-hoverable' });
   const head = card.createDiv({ cls: 'st-card-head' });
   const headL = head.createDiv({ cls: 'st-card-head-l' });
   headL.createDiv({ cls: 'st-card-en gs-en', text: 'ACCURACY BY TAG' });
@@ -216,7 +216,7 @@ function renderAccuracyCard(parent: HTMLElement, data: Array<{ tag: string; accu
 }
 
 function renderForgetCard(parent: HTMLElement, data: Array<{ intervalDays: number; retention: number; sampleSize: number }>): void {
-  const card = parent.createDiv({ cls: 'st-card gs-card' });
+  const card = parent.createDiv({ cls: 'st-card gs-card gs-hoverable' });
   const head = card.createDiv({ cls: 'st-card-head' });
   const headL = head.createDiv({ cls: 'st-card-head-l' });
   headL.createDiv({ cls: 'st-card-en gs-en', text: 'FORGETTING CURVE' });
@@ -293,7 +293,7 @@ function renderForgetCard(parent: HTMLElement, data: Array<{ intervalDays: numbe
 }
 
 function renderHeatmapCard(parent: HTMLElement, cells: number[]): void {
-  const card = parent.createDiv({ cls: 'st-card gs-card' });
+  const card = parent.createDiv({ cls: 'st-card gs-card gs-hoverable' });
   const head = card.createDiv({ cls: 'st-card-head' });
   const headL = head.createDiv({ cls: 'st-card-head-l' });
   headL.createDiv({ cls: 'st-card-en gs-en', text: 'STUDY HEATMAP' });
@@ -352,7 +352,7 @@ function renderHeatmapCard(parent: HTMLElement, cells: number[]): void {
 }
 
 function renderMinutesCard(parent: HTMLElement, data: Array<{ date: string; minutes: number }>): void {
-  const card = parent.createDiv({ cls: 'st-card gs-card' });
+  const card = parent.createDiv({ cls: 'st-card gs-card gs-hoverable' });
   const head = card.createDiv({ cls: 'st-card-head' });
   const headL = head.createDiv({ cls: 'st-card-head-l' });
   headL.createDiv({ cls: 'st-card-en gs-en', text: 'STUDY MINUTES' });

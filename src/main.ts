@@ -37,12 +37,12 @@ export default class GrindstonePlugin extends Plugin {
     this.app.workspace.onLayoutReady(() => this.runStartup());
 
     // Incremental update on metadata change (skip re-entrant scans from ID embedding).
-    // Save is debounced — vault-wide edits would otherwise trigger many disk writes.
+    // Both scan and save are debounced — without per-file scan coalescing, every
+    // keystroke in a large file would re-parse the whole file.
     this.registerEvent(
-      this.app.metadataCache.on('changed', async (file: TFile) => {
+      this.app.metadataCache.on('changed', (file: TFile) => {
         if (this.cardManager.isWritingIds(file.path)) return;
-        await this.cardManager.scanFile(file);
-        this.store.saveDebounced();
+        this.cardManager.scanFileDebounced(file);
       }),
     );
 
@@ -209,6 +209,7 @@ export default class GrindstonePlugin extends Plugin {
   }
 
   async onunload(): Promise<void> {
+    this.cardManager?.dispose();
     await this.store.flushSave();
   }
 }

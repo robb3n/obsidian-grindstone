@@ -1330,6 +1330,20 @@ body.theme-dark .grindstone-workspace:not(.gs-force-light) .gs-rail-item-on,
   font: 600 11px var(--gs-font-mono); color: var(--gs-ink-3);
   letter-spacing: 0.08em; white-space: nowrap; flex-shrink: 0;
 }
+.grindstone-workspace .rv-live-head-r {
+  display: flex; align-items: center; gap: 12px; flex-shrink: 0;
+}
+.grindstone-workspace .rv-live-jump {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 9px; border-radius: 6px;
+  font-size: 11px; color: var(--gs-ink-3);
+  background: transparent; border: 1px solid var(--gs-line);
+  cursor: pointer; transition: all .15s;
+}
+.grindstone-workspace .rv-live-jump:hover {
+  color: var(--gs-ink); border-color: var(--gs-ink-3); background: var(--gs-card);
+}
+.grindstone-workspace .rv-live-jump svg { flex-shrink: 0; }
 
 /* Section pattern: eyebrow + content */
 .grindstone-workspace .rv-live-section { display: flex; flex-direction: column; gap: 8px; }

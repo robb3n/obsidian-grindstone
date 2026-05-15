@@ -11,6 +11,8 @@ export class CardManager {
   private store: DataStore;
   private onCardTagsChanged?: () => void;
   private _idWriteInProgress = new Set<string>();
+  private _scanTimers = new Map<string, number>();
+  private _disposed = false;
 
   constructor(app: App, store: DataStore, onCardTagsChanged?: () => void) {
     this.app = app;
@@ -21,6 +23,41 @@ export class CardManager {
   /** True if the given file is currently being modified by ID embedding. */
   isWritingIds(filePath: string): boolean {
     return this._idWriteInProgress.has(filePath);
+  }
+
+  /**
+   * Coalesce rapid metadata-change events on the same file into a single scan.
+   * Live editing fires `metadataCache.changed` on every keystroke after a short
+   * internal delay — without this, every keystroke runs parseCardBlocks for
+   * the whole file. Save still goes through the store's own debounce, so the
+   * combined latency from keystroke to disk is roughly delayMs + 300ms.
+   *
+   * Only used by the live-edit listener. fullScan() and one-shot callers
+   * (e.g. demo note creation) still call scanFile directly because they need
+   * the synchronous return value.
+   */
+  scanFileDebounced(file: TFile, delayMs = 200): void {
+    if (this._disposed) return;
+    const existing = this._scanTimers.get(file.path);
+    if (existing != null) window.clearTimeout(existing);
+    const timer = window.setTimeout(async () => {
+      this._scanTimers.delete(file.path);
+      if (this._disposed) return;
+      try {
+        await this.scanFile(file);
+        this.store.saveDebounced();
+      } catch (err) {
+        console.error(`[Grindstone] scanFileDebounced failed for ${file.path}:`, err);
+      }
+    }, delayMs);
+    this._scanTimers.set(file.path, timer);
+  }
+
+  /** Cancel any pending scan timers and refuse new ones. Call from plugin onunload. */
+  dispose(): void {
+    this._disposed = true;
+    for (const timer of this._scanTimers.values()) window.clearTimeout(timer);
+    this._scanTimers.clear();
   }
 
   async fullScan(): Promise<void> {

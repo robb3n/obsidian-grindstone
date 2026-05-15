@@ -1,4 +1,4 @@
-import { Component, MarkdownRenderer } from 'obsidian';
+import { Component, MarkdownRenderer, TFile } from 'obsidian';
 import { Rating } from '../../card/types';
 import { ReviewEngine, formatInterval } from '../../review/review-engine';
 import { RATING_LABELS, RATING_KEY_MAP } from '../../review/rating-defs';
@@ -182,7 +182,7 @@ function renderLiveReview(container: HTMLElement, engine: ReviewEngine, ctx: Tab
 
   const card = body.createDiv({ cls: 'rv-live-card gs-card' });
 
-  // Card head: tags (left) + position (right)
+  // Card head: tags (left) + jump-to-source + position (right)
   const headRow = card.createDiv({ cls: 'rv-live-head' });
   const tagRow = headRow.createDiv({ cls: 'rv-live-tags' });
   const uniqueTags = [...new Set(item.card.tags)];
@@ -190,7 +190,13 @@ function renderLiveReview(container: HTMLElement, engine: ReviewEngine, ctx: Tab
     const display = tag.startsWith('#') ? tag : `#${tag}`;
     tagRow.createSpan({ cls: 'rv-live-tag', text: display });
   }
-  headRow.createSpan({ cls: 'rv-live-pos gs-mono gs-en', text: `${pos.current} / ${pos.total}` });
+
+  const headRight = headRow.createDiv({ cls: 'rv-live-head-r' });
+  const jumpBtn = headRight.createEl('button', { cls: 'rv-live-jump', attr: { title: '在新标签页打开源文件' } });
+  jumpBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3h7v7M10 14L21 3M21 14v7H3V3h7"/></svg>`;
+  jumpBtn.createSpan({ text: '原文' });
+  jumpBtn.addEventListener('click', () => jumpToSource(item, ctx));
+  headRight.createSpan({ cls: 'rv-live-pos gs-mono gs-en', text: `${pos.current} / ${pos.total}` });
 
   // Scrollable middle (Q + A)
   const scroll = card.createDiv({ cls: 'rv-live-scroll' });
@@ -316,6 +322,32 @@ async function loadInlineAnswer(
   container.empty();
   const md = container.createDiv({ cls: 'rv-live-answer-md' });
   await renderCardAnswer(md, item.card as any, item.id, ctx.cardManager, ctx.app, component);
+}
+
+/**
+ * Open the card's source file in a new tab and scroll to its trigger line.
+ * Inline review session is intentionally left running — user can come back
+ * and continue rating after peeking at context.
+ */
+async function jumpToSource(
+  item: { id: string; card: { file: string } & Record<string, any> },
+  ctx: TabContext,
+): Promise<void> {
+  const file = ctx.app.vault.getAbstractFileByPath(item.card.file);
+  if (!(file instanceof TFile)) return;
+  const startLine = await ctx.cardManager.getBlockStartLine(item.card as any, item.id);
+  const leaf = ctx.app.workspace.getLeaf('tab');
+  await leaf.openFile(file);
+  if (startLine != null) {
+    const editor = ctx.app.workspace.activeEditor?.editor;
+    if (editor) {
+      editor.setCursor({ line: startLine, ch: 0 });
+      editor.scrollIntoView(
+        { from: { line: startLine, ch: 0 }, to: { line: startLine, ch: 0 } },
+        true,
+      );
+    }
+  }
 }
 
 // ═══════════════════════════════════════════════════════

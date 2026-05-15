@@ -1,7 +1,7 @@
 {
   "id": "obsidian-grindstone",
   "name": "Grindstone",
-  "version": "1.0.12",
+  "version": "1.0.13",
   "minAppVersion": "1.0.0",
   "description": "Inline-tag-driven spaced repetition (SM-2) for Obsidian",
   "author": "robb3n",

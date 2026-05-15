@@ -7,7 +7,14 @@ import { matchesAnyPrefix } from '../../util/tag-match';
 type SortField = 'front' | 'ef' | 'due';
 type SortDir = 'asc' | 'desc';
 
-export function renderTags(container: HTMLElement, ctx: TabContext, initialTag?: string): void {
+export function renderTags(container: HTMLElement, ctx: TabContext, initialTag?: string): () => void {
+  // View-level Component owns all child Components spawned by MarkdownRenderer
+  // (latex, embeds, etc). Unloaded when the workspace navigates away — see the
+  // returned cleanup below — which prevents the leak that used to happen when
+  // every card row spawned its own Component and never unloaded it.
+  const component = new Component();
+  component.load();
+
   const selectedTags = new Set<string>(initialTag ? [initialTag] : []);
   let search = '';
   const expanded: Record<string, boolean> = {};
@@ -364,7 +371,7 @@ export function renderTags(container: HTMLElement, ctx: TabContext, initialTag?:
         const selectTag = (tag: string, e: MouseEvent) => {
           toggleTag(tag, e.metaKey || e.ctrlKey);
         };
-        const { row, loadPromise } = renderCardRow(table, entry, openRows, expandAll, renderCards, selectTag, ctx);
+        const { row, loadPromise } = renderCardRow(table, entry, openRows, expandAll, renderCards, selectTag, ctx, component);
         if (loadPromise) loadPromises.push(loadPromise);
         if (scrollTo === entry.id) scrollRow = row;
       }
@@ -385,12 +392,15 @@ export function renderTags(container: HTMLElement, ctx: TabContext, initialTag?:
   renderTree();
   renderFilterBar();
   renderMain();
+
+  return () => component.unload();
 }
 
 function renderCardRow(
   parent: HTMLElement, entry: CardEntry,
   openRows: Set<string>, expandAll: boolean, rerender: (scrollTo?: string) => void,
   onSelectTag: (tag: string, e: MouseEvent) => void, ctx: TabContext,
+  component: Component,
 ): { row: HTMLElement; loadPromise: Promise<void> | null } {
   const { id, card } = entry;
   const isOpen = openRows.has(id);
@@ -427,7 +437,7 @@ function renderCardRow(
   svg.appendChild(path); caretMini.appendChild(svg);
   const frontText = front.createSpan({ cls: 'tg-front-text' });
   setTooltip(frontText, card.blockTitle);
-  MarkdownRenderer.render(ctx.app, card.blockTitle, frontText, card.file, new Component());
+  MarkdownRenderer.render(ctx.app, card.blockTitle, frontText, card.file, component);
 
   // Tags
   const tagsDiv = mainDiv.createSpan({ cls: 'tg-c-tags' });
@@ -448,8 +458,12 @@ function renderCardRow(
     back.createDiv({ cls: 'tg-back-l gs-en', text: 'ANSWER' });
     const answerEl = back.createDiv({ cls: 'tg-back-answer' });
     loadPromise = ctx.cardManager.getBlockContent(card, id).then((content) => {
+      // Guard: tab may have switched while getBlockContent was resolving.
+      // answerEl is detached after mainEl.empty(); rendering into it would
+      // leak children into a discarded subtree.
+      if (!answerEl.isConnected) return;
       if (content) {
-        MarkdownRenderer.render(ctx.app, content, answerEl, card.file, new Component());
+        MarkdownRenderer.render(ctx.app, content, answerEl, card.file, component);
       } else {
         answerEl.createSpan({ cls: 'gs-placeholder', text: '无内容' });
       }

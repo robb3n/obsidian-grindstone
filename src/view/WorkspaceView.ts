@@ -23,6 +23,8 @@ export class GrindstoneWorkspaceView extends ItemView {
   private sidebarEl!: HTMLElement;
   private reviewEngine: ReviewEngine | null = null;
   private pendingTag: string | null = null;
+  /** Cleanup hook returned by the active tab renderer (e.g. unloading a markdown Component). */
+  private tabCleanup: (() => void) | null = null;
 
   constructor(
     leaf: WorkspaceLeaf,
@@ -72,7 +74,14 @@ export class GrindstoneWorkspaceView extends ItemView {
   }
 
   async onClose(): Promise<void> {
+    this.runTabCleanup();
     this.contentEl.empty();
+  }
+
+  private runTabCleanup(): void {
+    if (!this.tabCleanup) return;
+    try { this.tabCleanup(); } catch (err) { console.error('[Grindstone] Tab cleanup error:', err); }
+    this.tabCleanup = null;
   }
 
   refresh(): void {
@@ -108,6 +117,7 @@ export class GrindstoneWorkspaceView extends ItemView {
   }
 
   private renderActiveTab(): void {
+    this.runTabCleanup();
     this.mainEl.empty();
     const ctx = {
       store: this.store,
@@ -122,17 +132,19 @@ export class GrindstoneWorkspaceView extends ItemView {
     };
 
     try {
+      let cleanup: (() => void) | void;
       switch (this.activeTab) {
-        case 'overview': renderOverview(this.mainEl, ctx); break;
-        case 'review':   renderReview(this.mainEl, ctx); break;
-        case 'stats':    renderStats(this.mainEl, ctx); break;
+        case 'overview': cleanup = renderOverview(this.mainEl, ctx); break;
+        case 'review':   cleanup = renderReview(this.mainEl, ctx); break;
+        case 'stats':    cleanup = renderStats(this.mainEl, ctx); break;
         case 'tags': {
           const tag = this.pendingTag;
           this.pendingTag = null;
-          renderTags(this.mainEl, ctx, tag ?? undefined);
+          cleanup = renderTags(this.mainEl, ctx, tag ?? undefined);
           break;
         }
       }
+      this.tabCleanup = cleanup ?? null;
     } catch (err) {
       console.error('[Grindstone] Tab render error:', err);
       this.renderErrorState(err);

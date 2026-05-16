@@ -45,6 +45,8 @@ const MOTIVATIONAL = [
   '不积跬步，无以至千里',
 ];
 
+export const DEFAULT_SLOGANS = MOTIVATIONAL;
+
 export function renderOverview(container: HTMLElement, ctx: TabContext): void {
   const stats = ctx.store.getOverviewStats();
   const forecast = ctx.store.getForecast7D();
@@ -66,7 +68,9 @@ export function renderOverview(container: HTMLElement, ctx: TabContext): void {
   const headR = head.createDiv({ cls: 'gs-pagehead-r' });
 
   // Motivational quote — re-rolled every time Overview renders
-  const motiv = MOTIVATIONAL[Math.floor(Math.random() * MOTIVATIONAL.length)];
+  const userSlogans = ctx.store.getSettings().customSlogans?.filter((s) => s.trim().length > 0) ?? [];
+  const pool = userSlogans.length > 0 ? userSlogans : MOTIVATIONAL;
+  const motiv = pool[Math.floor(Math.random() * pool.length)];
   const quote = headR.createDiv({ cls: 'ov-quote' });
   quote.createSpan({ text: motiv });
 

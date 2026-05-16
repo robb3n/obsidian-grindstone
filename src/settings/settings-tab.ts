@@ -5,6 +5,7 @@ import {
 } from '../card/types';
 import { renderSrsVisualization } from './srs-visualization';
 import { DeckResetConfirmModal } from '../view/strategy-modals';
+import { DEFAULT_SLOGANS } from '../view/tabs/Overview';
 
 type SectionDef = {
   id: string;
@@ -30,6 +31,7 @@ export class GrindstoneSettingTab extends PluginSettingTab {
       { id: 'card-id',         zh: '卡片识别', icon: 'tag',        render: this.renderCardIdSection.bind(this) },
       { id: 'review-behavior', zh: '复习行为', icon: 'book-open',  render: this.renderReviewBehaviorSection.bind(this) },
       { id: 'srs-strategy',    zh: 'SRS 策略', icon: 'sliders',    render: this.renderSrsStrategySection.bind(this) },
+      { id: 'interface',       zh: '界面',     icon: 'palette',    render: this.renderInterfaceSection.bind(this) },
     ];
 
     // Maps from section id to nav-icon / section-element. Declared before
@@ -181,6 +183,31 @@ export class GrindstoneSettingTab extends PluginSettingTab {
         toggle.setValue(settings.strictStreakMode === true).onChange(async (value) => {
           await this.plugin.store.updateSettings({ strictStreakMode: value });
         });
+      });
+  }
+
+  // ════════════════════════════════════════════════
+  // Section: 界面
+  // ════════════════════════════════════════════════
+  private renderInterfaceSection(containerEl: HTMLElement): void {
+    const section = containerEl.createDiv({ cls: 'gs-set-section' });
+    this.sectionHeader(section, '界面', 'INTERFACE · 概览页与外观');
+
+    const settings = this.plugin.store.getSettings();
+
+    new Setting(section)
+      .setName('自定义 slogan')
+      .setDesc(`概览页右上角随机展示的标语。每行一条，留空使用内置默认（${DEFAULT_SLOGANS.join(' / ')}）。`)
+      .addTextArea((text) => {
+        text
+          .setPlaceholder(DEFAULT_SLOGANS.join('\n'))
+          .setValue((settings.customSlogans ?? []).join('\n'))
+          .onChange(async (value) => {
+            const slogans = value.split('\n').map((s) => s.trim()).filter((s) => s.length > 0);
+            await this.plugin.store.updateSettings({ customSlogans: slogans });
+          });
+        text.inputEl.rows = 6;
+        text.inputEl.cols = 30;
       });
   }
 

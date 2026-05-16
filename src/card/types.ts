@@ -189,6 +189,8 @@ export interface GrindstoneSettings {
   _ankiStepFix?: boolean;
   /** First-run onboarding completed (or auto-marked for upgrading users). */
   _onboardingDone?: boolean;
+  /** Custom slogans for Overview header. Empty / undefined → built-in defaults. */
+  customSlogans?: string[];
 }
 
 export type DeckResetMode = 'gradual' | 'reset-ease' | 'full-reset';

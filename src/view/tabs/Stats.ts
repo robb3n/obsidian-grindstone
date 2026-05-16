@@ -1,5 +1,6 @@
 import { TabContext } from './types';
 import { countUp } from '../anim';
+import { t, StringKey } from '../../i18n';
 
 export function renderStats(container: HTMLElement, ctx: TabContext): void {
   let range = 30;
@@ -8,20 +9,26 @@ export function renderStats(container: HTMLElement, ctx: TabContext): void {
   // ── Page Head ──
   const head = container.createDiv({ cls: 'gs-pagehead' });
   const headL = head.createDiv({ cls: 'gs-pagehead-l' });
-  headL.createDiv({ cls: 'gs-pagehead-eyebrow gs-en', text: 'WORKSPACE \u00B7 STATS' });
-  headL.createEl('h1', { cls: 'gs-pagehead-title', text: '统计' });
+  headL.createEl('h1', { cls: 'gs-pagehead-title', text: t('stats.title') });
 
   const headR = head.createDiv({ cls: 'gs-pagehead-r' });
   const rangeDiv = headR.createDiv({ cls: 'st-range' });
 
   const page = container.createDiv({ cls: 'gs-page st-page' });
 
+  const RANGE_LABELS: Record<string, StringKey> = {
+    '7d':  'stats.range.7d',
+    '30d': 'stats.range.30d',
+    '90d': 'stats.range.90d',
+    'all': 'stats.range.all',
+  };
+
   const renderAll = () => {
     rangeDiv.empty();
     for (const r of ['7d', '30d', '90d', 'all']) {
       const btn = rangeDiv.createEl('button', {
         cls: `st-range-btn${rangeDays[r] === range ? ' st-range-btn-on' : ''}`,
-        text: r,
+        text: t(RANGE_LABELS[r]),
       });
       btn.addEventListener('click', () => { range = rangeDays[r]; renderAll(); });
     }
@@ -36,10 +43,10 @@ export function renderStats(container: HTMLElement, ctx: TabContext): void {
 
     // ── KPI Row ──
     const kpis = page.createDiv({ cls: 'st-kpis' });
-    addKPI(kpis, 'REVIEWED', '复习卡片', kpi.reviewed, '张', kpi.reviewedDelta, 0);
-    addKPI(kpis, 'STUDY TIME', '学习时长', kpi.studyMinutes, '分钟', kpi.studyMinutesDelta, 80);
-    addKPI(kpis, 'ACTIVE DAYS', '活跃天数', kpi.activeDays, `/ ${range}天`, kpi.activeDaysDelta, 160);
-    addKPI(kpis, 'ACCURACY', '平均准确率', kpi.accuracy, '%', kpi.accuracyDelta, 240);
+    addKPI(kpis, t('stats.kpi.reviewed'),     kpi.reviewed,      t('stats.kpi.reviewed_unit'),                          kpi.reviewedDelta,     0);
+    addKPI(kpis, t('stats.kpi.study_time'),   kpi.studyMinutes,  t('stats.kpi.study_time_unit'),                        kpi.studyMinutesDelta, 80);
+    addKPI(kpis, t('stats.kpi.active_days'),  kpi.activeDays,    t('stats.kpi.active_days_unit', { days: range }),      kpi.activeDaysDelta,   160);
+    addKPI(kpis, t('stats.kpi.accuracy'),     kpi.accuracy,      t('stats.kpi.accuracy_unit'),                          kpi.accuracyDelta,     240);
 
     // ── Row 1: Trend + Accuracy ──
     const row1 = page.createDiv({ cls: 'st-row st-row-2-1' });
@@ -56,19 +63,18 @@ export function renderStats(container: HTMLElement, ctx: TabContext): void {
   renderAll();
 }
 
-function addKPI(parent: HTMLElement, en: string, zh: string, value: number, unit: string, delta: number | null, delay: number): void {
+function addKPI(parent: HTMLElement, label: string, value: number, unit: string, delta: number | null, delay: number): void {
   const tile = parent.createDiv({ cls: 'st-kpi gs-card gs-hoverable gs-rise' });
   tile.style.animationDelay = `${delay}ms`;
-  tile.createDiv({ cls: 'st-kpi-eyebrow gs-en', text: en });
-  tile.createDiv({ cls: 'st-kpi-zh', text: zh });
+  tile.createDiv({ cls: 'st-kpi-zh', text: label });
   const num = tile.createDiv({ cls: 'st-kpi-num gs-mono' });
   const valSpan = num.createSpan();
   countUp(valSpan, value, 900, delay, (n) => n.toLocaleString());
-  num.createSpan({ cls: 'st-kpi-unit', text: unit });
+  if (unit) num.createSpan({ cls: 'st-kpi-unit', text: unit });
 
   if (delta !== null) {
     const trend = delta >= 0 ? 'up' : 'down';
-    const deltaEl = tile.createDiv({ cls: `st-kpi-delta st-kpi-delta-${trend} gs-en` });
+    const deltaEl = tile.createDiv({ cls: `st-kpi-delta st-kpi-delta-${trend}` });
     deltaEl.innerHTML = `<svg width="10" height="10" viewBox="0 0 10 10"><path d="${trend === 'up' ? 'M2 7l3-3 3 3' : 'M2 3l3 3 3-3'}" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
     deltaEl.appendText(delta >= 0 ? `+${delta}%` : `${delta}%`);
   }
@@ -89,12 +95,16 @@ function downsample(data: number[], targetPoints: number): number[] {
   return result;
 }
 
-function renderTrendCard(parent: HTMLElement, data: Array<{ date: string; count: number }>): void {
+function statCardHead(parent: HTMLElement, title: string): HTMLElement {
   const card = parent.createDiv({ cls: 'st-card gs-card gs-hoverable' });
   const head = card.createDiv({ cls: 'st-card-head' });
   const headL = head.createDiv({ cls: 'st-card-head-l' });
-  headL.createDiv({ cls: 'st-card-en gs-en', text: 'REVIEW TREND' });
-  headL.createDiv({ cls: 'st-card-zh', text: '复习量趋势' });
+  headL.createDiv({ cls: 'st-card-zh', text: title });
+  return card;
+}
+
+function renderTrendCard(parent: HTMLElement, data: Array<{ date: string; count: number }>): void {
+  const card = statCardHead(parent, t('stats.card.trend'));
 
   const body = card.createDiv({ cls: 'st-card-body st-chart' });
   const W = 720, H = 200, P = { l: 32, r: 16, t: 16, b: 24 };
@@ -180,11 +190,7 @@ function renderTrendCard(parent: HTMLElement, data: Array<{ date: string; count:
 }
 
 function renderAccuracyCard(parent: HTMLElement, data: Array<{ tag: string; accuracy: number; reviewCount: number }>): void {
-  const card = parent.createDiv({ cls: 'st-card gs-card gs-hoverable' });
-  const head = card.createDiv({ cls: 'st-card-head' });
-  const headL = head.createDiv({ cls: 'st-card-head-l' });
-  headL.createDiv({ cls: 'st-card-en gs-en', text: 'ACCURACY BY TAG' });
-  headL.createDiv({ cls: 'st-card-zh', text: '标签准确率' });
+  const card = statCardHead(parent, t('stats.card.accuracy'));
 
   const body = card.createDiv({ cls: 'st-card-body st-acc' });
   const sorted = [...data].sort((a, b) => b.accuracy - a.accuracy).slice(0, 10);
@@ -198,7 +204,7 @@ function renderAccuracyCard(parent: HTMLElement, data: Array<{ tag: string; accu
     const row = body.createDiv({ cls: 'st-acc-row' });
     const label = row.createDiv({ cls: 'st-acc-l' });
     label.createDiv({ cls: 'st-acc-leaf', text: leaf });
-    if (parentPath) label.createDiv({ cls: 'st-acc-parent gs-en', text: parentPath });
+    if (parentPath) label.createDiv({ cls: 'st-acc-parent', text: parentPath });
 
     const barWrap = row.createDiv({ cls: 'st-acc-bar-wrap' });
     const bar = barWrap.createDiv({ cls: `st-acc-bar st-acc-bar-${tone}` });
@@ -216,16 +222,12 @@ function renderAccuracyCard(parent: HTMLElement, data: Array<{ tag: string; accu
 }
 
 function renderForgetCard(parent: HTMLElement, data: Array<{ intervalDays: number; retention: number; sampleSize: number }>): void {
-  const card = parent.createDiv({ cls: 'st-card gs-card gs-hoverable' });
-  const head = card.createDiv({ cls: 'st-card-head' });
-  const headL = head.createDiv({ cls: 'st-card-head-l' });
-  headL.createDiv({ cls: 'st-card-en gs-en', text: 'FORGETTING CURVE' });
-  headL.createDiv({ cls: 'st-card-zh', text: '记忆曲线' });
+  const card = statCardHead(parent, t('stats.card.forget'));
 
   const body = card.createDiv({ cls: 'st-card-body st-chart' });
 
   if (data.length === 0) {
-    body.createDiv({ cls: 'gs-placeholder', text: '数据不足' });
+    body.createDiv({ cls: 'gs-placeholder', text: t('stats.no_data') });
     return;
   }
 
@@ -238,7 +240,6 @@ function renderForgetCard(parent: HTMLElement, data: Array<{ intervalDays: numbe
   svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
   svg.style.width = '100%'; svg.style.height = '200px';
 
-  // Line
   let linePath: SVGPathElement | null = null;
   if (data.length > 1) {
     linePath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
@@ -247,7 +248,6 @@ function renderForgetCard(parent: HTMLElement, data: Array<{ intervalDays: numbe
     svg.appendChild(linePath);
   }
 
-  // Dots
   const dots: SVGCircleElement[] = [];
   for (let i = 0; i < data.length; i++) {
     const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
@@ -288,21 +288,17 @@ function renderForgetCard(parent: HTMLElement, data: Array<{ intervalDays: numbe
 
   const legend = body.createDiv({ cls: 'st-fc-legend' });
   const left = legend.createDiv();
-  left.innerHTML = '<span class="st-fc-dot"></span>实际记忆保持';
-  legend.createDiv({ cls: 'gs-en st-fc-axis', text: 'X: INTERVAL (LOG) \u00B7 Y: RETENTION' });
+  left.innerHTML = `<span class="st-fc-dot"></span>${escapeHtml(t('stats.fc.legend'))}`;
+  legend.createDiv({ cls: 'st-fc-axis', text: t('stats.fc.axis') });
 }
 
 function renderHeatmapCard(parent: HTMLElement, cells: number[]): void {
-  const card = parent.createDiv({ cls: 'st-card gs-card gs-hoverable' });
-  const head = card.createDiv({ cls: 'st-card-head' });
-  const headL = head.createDiv({ cls: 'st-card-head-l' });
-  headL.createDiv({ cls: 'st-card-en gs-en', text: 'STUDY HEATMAP' });
-  headL.createDiv({ cls: 'st-card-zh', text: '打卡热力图' });
+  const card = statCardHead(parent, t('stats.card.heatmap'));
 
   const body = card.createDiv({ cls: 'st-card-body st-chart' });
   const cols = 12, rows = 7, cell = 14, gap = 3;
   const palette = ['var(--gs-line)', 'var(--gs-green-soft)', '#9bbcaa', '#5b8d75', 'var(--gs-green)'];
-  const labels = ['一', '', '三', '', '五', '', '日'];
+  const labels = [t('stats.hm.day.mon'), '', t('stats.hm.day.wed'), '', t('stats.hm.day.fri'), '', t('stats.hm.day.sun')];
   const W = cols * (cell + gap) - gap + 16;
   const H = rows * (cell + gap) - gap + 18;
 
@@ -343,20 +339,16 @@ function renderHeatmapCard(parent: HTMLElement, cells: number[]): void {
   body.appendChild(svg);
 
   const legend = body.createDiv({ cls: 'st-hm-legend' });
-  legend.createSpan({ cls: 'gs-en', text: 'LESS' });
+  legend.createSpan({ text: t('stats.hm.less') });
   for (const c of palette) {
     const dot = legend.createSpan({ cls: 'st-hm-dot' });
     dot.style.background = c;
   }
-  legend.createSpan({ cls: 'gs-en', text: 'MORE' });
+  legend.createSpan({ text: t('stats.hm.more') });
 }
 
 function renderMinutesCard(parent: HTMLElement, data: Array<{ date: string; minutes: number }>): void {
-  const card = parent.createDiv({ cls: 'st-card gs-card gs-hoverable' });
-  const head = card.createDiv({ cls: 'st-card-head' });
-  const headL = head.createDiv({ cls: 'st-card-head-l' });
-  headL.createDiv({ cls: 'st-card-en gs-en', text: 'STUDY MINUTES' });
-  headL.createDiv({ cls: 'st-card-zh', text: '学习时长' });
+  const card = statCardHead(parent, t('stats.card.minutes'));
 
   const body = card.createDiv({ cls: 'st-card-body st-chart' });
   const values = data.map(d => d.minutes);
@@ -398,13 +390,17 @@ function renderMinutesCard(parent: HTMLElement, data: Array<{ date: string; minu
 
   body.appendChild(svg);
 
-  const legend = body.createDiv({ cls: 'st-mb-legend gs-en' });
+  const legend = body.createDiv({ cls: 'st-mb-legend' });
   const wd = legend.createDiv();
-  wd.innerHTML = '<span class="st-mb-dot" style="background:var(--gs-green-2)"></span> WEEKDAY';
+  wd.innerHTML = `<span class="st-mb-dot" style="background:var(--gs-green-2)"></span> ${escapeHtml(t('stats.mb.weekday'))}`;
   const we = legend.createDiv();
-  we.innerHTML = '<span class="st-mb-dot" style="background:var(--gs-gold)"></span> WEEKEND';
+  we.innerHTML = `<span class="st-mb-dot" style="background:var(--gs-gold)"></span> ${escapeHtml(t('stats.mb.weekend'))}`;
   const activeMin = values.filter(v => v > 0);
   const avg = activeMin.length > 0 ? Math.round(activeMin.reduce((a, b) => a + b, 0) / activeMin.length) : 0;
   const avgDiv = legend.createDiv({ cls: 'st-mb-avg' });
-  avgDiv.innerHTML = `AVG <strong class="gs-mono">${avg}</strong> min/active day`;
+  avgDiv.innerHTML = `${escapeHtml(t('stats.mb.avg'))} <strong class="gs-mono">${avg}</strong> ${escapeHtml(t('stats.mb.unit'))}`;
+}
+
+function escapeHtml(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }

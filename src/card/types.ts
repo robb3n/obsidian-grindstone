@@ -55,6 +55,12 @@ export interface SrsPreset {
   name: string;
   nameEn: string;
   description: string;
+  /**
+   * Optional i18n key for the description. When present, callers should look it
+   * up via `t(descriptionKey)` so the localized version wins over the literal
+   * `description` (which is the ZH source-of-truth, kept for back-compat).
+   */
+  descriptionKey?: string;
   params: SrsParams;
   builtin: boolean;
 }
@@ -65,6 +71,7 @@ export const BUILTIN_PRESETS: SrsPreset[] = [
     name: '默认 SM-2',
     nameEn: 'Default SM-2',
     description: '经典 SM-2 参数，平衡记忆效率与复习压力',
+    descriptionKey: 'preset.sm2_default.desc',
     params: { ...DEFAULT_SRS_PARAMS },
     builtin: true,
   },
@@ -73,6 +80,7 @@ export const BUILTIN_PRESETS: SrsPreset[] = [
     name: 'Anki 标准',
     nameEn: 'Anki Standard',
     description: '模拟 Anki 默认参数，适合从 Anki 迁移的用户',
+    descriptionKey: 'preset.anki_standard.desc',
     params: {
       ...DEFAULT_SRS_PARAMS,
       step1Interval: 4,
@@ -85,6 +93,7 @@ export const BUILTIN_PRESETS: SrsPreset[] = [
     name: '高频巩固',
     nameEn: 'High Frequency',
     description: '更短间隔、更严惩罚，适合考前冲刺或易遗忘内容',
+    descriptionKey: 'preset.high_freq.desc',
     params: {
       initialEase: 2.2,
       minEase: 1.3,
@@ -106,6 +115,7 @@ export const BUILTIN_PRESETS: SrsPreset[] = [
     name: '轻松记忆',
     nameEn: 'Gentle Memory',
     description: '更长间隔、较轻惩罚，适合长线记忆或低压学习',
+    descriptionKey: 'preset.relaxed.desc',
     params: {
       initialEase: 2.7,
       minEase: 1.5,
@@ -191,6 +201,11 @@ export interface GrindstoneSettings {
   _onboardingDone?: boolean;
   /** Custom slogans for Overview header. Empty / undefined → built-in defaults. */
   customSlogans?: string[];
+  /**
+   * UI language. Undefined = use `navigator.language` (ZH locale → 'zh', else 'en').
+   * Persisted only after the user explicitly picks one (in Settings or onboarding).
+   */
+  language?: 'zh' | 'en';
 }
 
 export type DeckResetMode = 'gradual' | 'reset-ease' | 'full-reset';

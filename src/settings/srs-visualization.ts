@@ -1,5 +1,6 @@
 import { CardState, Rating, SrsParams } from '../card/types';
 import { schedule } from '../srs/sm2';
+import { t, StringKey } from '../i18n';
 
 interface SimPoint {
   review: number;
@@ -18,11 +19,11 @@ function simulate(params: SrsParams, ratings: Rating[], count: number): SimPoint
   return points;
 }
 
-const SERIES = [
-  { label: '全 Good', ratings: ['good'] as Rating[], color: 'var(--gs-green, #1f4d3a)' },
-  { label: '全 Easy', ratings: ['easy'] as Rating[], color: 'var(--gs-green-2, #6fa68b)' },
-  { label: 'Good/Hard 交替', ratings: ['good', 'hard'] as Rating[], color: 'var(--gs-gold, #b8956a)' },
-  { label: 'Again → 恢复', ratings: ['again', 'good', 'good', 'good', 'good', 'good', 'good', 'good', 'good', 'good'] as Rating[], color: 'var(--gs-clay, #b83420)' },
+const SERIES: { labelKey: StringKey; ratings: Rating[]; color: string }[] = [
+  { labelKey: 'srs.scenario.all_good',    ratings: ['good'],                                                                       color: 'var(--gs-green, #1f4d3a)' },
+  { labelKey: 'srs.scenario.all_easy',    ratings: ['easy'],                                                                       color: 'var(--gs-green-2, #6fa68b)' },
+  { labelKey: 'srs.scenario.alternating', ratings: ['good', 'hard'],                                                               color: 'var(--gs-gold, #b8956a)' },
+  { labelKey: 'srs.scenario.recovery',    ratings: ['again', 'good', 'good', 'good', 'good', 'good', 'good', 'good', 'good', 'good'], color: 'var(--gs-clay, #b83420)' },
 ];
 
 const STEPS = 10;
@@ -124,7 +125,7 @@ export function renderSrsVisualization(container: HTMLElement, params: SrsParams
     const item = legend.createDiv({ cls: 'gs-srs-legend-item' });
     const dot = item.createSpan({ cls: 'gs-srs-legend-dot' });
     dot.style.background = s.color;
-    item.createSpan({ text: s.label });
+    item.createSpan({ text: t(s.labelKey) });
   }
 
   // Key callouts
@@ -138,14 +139,14 @@ export function renderSrsVisualization(container: HTMLElement, params: SrsParams
     c.createSpan({ cls: 'gs-srs-callout-label', text: label });
   };
 
-  addCallout('5×Good 间隔', `${goodSeries[4]?.interval ?? 0} 天`);
-  addCallout('10×Good 间隔', `${goodSeries[9]?.interval ?? 0} 天`);
-  addCallout('5×Easy 间隔', `${easySeries[4]?.interval ?? 0} 天`);
+  addCallout(t('srs.callout.good5'),  t('srs.callout.days', { n: goodSeries[4]?.interval ?? 0 }));
+  addCallout(t('srs.callout.good10'), t('srs.callout.days', { n: goodSeries[9]?.interval ?? 0 }));
+  addCallout(t('srs.callout.easy5'),  t('srs.callout.days', { n: easySeries[4]?.interval ?? 0 }));
 
   // Again recovery: how many Good reviews to recover to baseline from Again
   const againSeries = allSeries[3].points;
   const baseline = goodSeries[0]?.interval ?? 1;
   const recoveryIdx = againSeries.findIndex((p, i) => i > 0 && p.interval >= baseline);
-  const recoveryLabel = recoveryIdx > 0 ? `${recoveryIdx} 次 Good` : '—';
-  addCallout('Again 恢复', recoveryLabel);
+  const recoveryLabel = recoveryIdx > 0 ? t('srs.callout.recovery_n', { n: recoveryIdx }) : '—';
+  addCallout(t('srs.callout.recovery'), recoveryLabel);
 }

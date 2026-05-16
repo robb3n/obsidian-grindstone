@@ -7,6 +7,7 @@ import { renderOverview } from './tabs/Overview';
 import { renderReview } from './tabs/Review';
 import { renderStats } from './tabs/Stats';
 import { renderTags } from './tabs/Tags';
+import { t } from '../i18n';
 
 export const WORKSPACE_VIEW_TYPE = 'grindstone-workspace';
 
@@ -126,11 +127,10 @@ export class GrindstoneWorkspaceView extends ItemView {
   private renderNotice(): void {
     this.noticeEl.empty();
     this.noticeEl.createDiv({ cls: 'gs-too-narrow-icon', text: '↔' });
-    this.noticeEl.createDiv({ cls: 'gs-too-narrow-en gs-en', text: 'WIDEN VIEW' });
-    this.noticeEl.createDiv({ cls: 'gs-too-narrow-title', text: '视图太窄' });
+    this.noticeEl.createDiv({ cls: 'gs-too-narrow-title', text: t('narrow.title') });
     this.noticeEl.createDiv({
       cls: 'gs-too-narrow-sub',
-      text: '请拉宽窗口或减少分栏，让磨石有足够的空间展开。',
+      text: t('narrow.sub'),
     });
   }
 
@@ -234,9 +234,9 @@ export class GrindstoneWorkspaceView extends ItemView {
     const errorDiv = this.mainEl.createDiv({ cls: 'gs-error-state' });
     const icon = errorDiv.createDiv({ cls: 'gs-error-icon' });
     icon.textContent = '!';
-    errorDiv.createDiv({ cls: 'gs-error-title', text: '数据加载失败' });
+    errorDiv.createDiv({ cls: 'gs-error-title', text: t('error.load_failed') });
     errorDiv.createDiv({ cls: 'gs-error-sub', text: String(err) });
-    const retry = errorDiv.createEl('button', { cls: 'gs-error-retry', text: '重试' });
+    const retry = errorDiv.createEl('button', { cls: 'gs-error-retry', text: t('error.retry') });
     retry.addEventListener('click', () => this.renderActiveTab());
   }
 

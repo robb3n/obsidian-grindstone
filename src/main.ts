@@ -7,6 +7,7 @@ import { GrindstoneWorkspaceView, WORKSPACE_VIEW_TYPE } from './view/WorkspaceVi
 import { addRibbonIcon } from './view/ribbon';
 import { OnboardingModal } from './view/onboarding-modal';
 import { GrindstoneSettingTab } from './settings/settings-tab';
+import { setLang, detectSystemLang } from './i18n';
 
 export default class GrindstonePlugin extends Plugin {
   store!: DataStore;
@@ -16,6 +17,10 @@ export default class GrindstonePlugin extends Plugin {
   async onload(): Promise<void> {
     this.store = new DataStore(this);
     await this.store.load();
+
+    // Initialize i18n before any view renders. Persisted setting wins; otherwise
+    // fall back to the OS language so first-launch users see their native tongue.
+    setLang(this.store.getSettings().language ?? detectSystemLang());
 
     this.gsStore = new GrindstoneStore(this.store);
     this.cardManager = new CardManager(
@@ -194,6 +199,13 @@ export default class GrindstonePlugin extends Plugin {
   private startReviewModal(tag?: string): void {
     const queue = tag ? this.gsStore.getDueCardsByTag(tag) : this.gsStore.getDueCards();
     new ReviewModal(this.app, queue, this.cardManager, this.gsStore).open();
+  }
+
+  /** Re-render every open Grindstone workspace view (used after settings changes that affect display). */
+  refreshAllWorkspaceViews(): void {
+    for (const leaf of this.app.workspace.getLeavesOfType(WORKSPACE_VIEW_TYPE)) {
+      (leaf.view as GrindstoneWorkspaceView).refresh();
+    }
   }
 
   private async activateWorkspace(): Promise<void> {

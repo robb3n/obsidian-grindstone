@@ -3,22 +3,23 @@ import { TagTreeNode, CardEntry } from '../../store/GrindstoneStore';
 import { TabContext } from './types';
 import { today as formatToday } from '../../util/date';
 import { matchesAnyPrefix } from '../../util/tag-match';
+import { t, StringKey } from '../../i18n';
 
 type SortField = 'front' | 'ef' | 'due';
 type SortDir = 'asc' | 'desc';
 type Maturity = 'all' | 'new' | 'learning' | 'mature';
 
-const MATURITY_SEG: Array<{ id: Maturity; zh: string }> = [
-  { id: 'all', zh: '全部' },
-  { id: 'new', zh: '新' },
-  { id: 'learning', zh: '习' },
-  { id: 'mature', zh: '熟' },
+const MATURITY_SEG: Array<{ id: Maturity; labelKey: StringKey }> = [
+  { id: 'all',      labelKey: 'tags.mat.all' },
+  { id: 'new',      labelKey: 'tags.mat.new' },
+  { id: 'learning', labelKey: 'tags.mat.learning' },
+  { id: 'mature',   labelKey: 'tags.mat.mature' },
 ];
 
-const MATURITY_CHIP_LABEL: Record<Exclude<Maturity, 'all'>, string> = {
-  new: '新卡',
-  learning: '学习中',
-  mature: '已熟',
+const MATURITY_CHIP_KEY: Record<Exclude<Maturity, 'all'>, StringKey> = {
+  new:      'tags.chip.new',
+  learning: 'tags.chip.learning',
+  mature:   'tags.chip.mature',
 };
 
 function classifyMaturity(card: { reviewCount: number; interval: number }): Exclude<Maturity, 'all'> {
@@ -28,10 +29,6 @@ function classifyMaturity(card: { reviewCount: number; interval: number }): Excl
 }
 
 export function renderTags(container: HTMLElement, ctx: TabContext, initialTag?: string): () => void {
-  // View-level Component owns all child Components spawned by MarkdownRenderer
-  // (latex, embeds, etc). Unloaded when the workspace navigates away — see the
-  // returned cleanup below — which prevents the leak that used to happen when
-  // every card row spawned its own Component and never unloaded it.
   const component = new Component();
   component.load();
 
@@ -43,10 +40,8 @@ export function renderTags(container: HTMLElement, ctx: TabContext, initialTag?:
   let sortDir: SortDir = 'asc';
 
   const tree = ctx.store.getTagTree();
-  // Auto-expand top-level
   for (const node of tree) expanded[node.path] = true;
 
-  // Collect flat tag list for picker
   const allTagPaths: string[] = [];
   const collectTags = (nodes: TagTreeNode[]) => {
     for (const n of nodes) { allTagPaths.push(n.path); collectTags(n.children); }
@@ -56,8 +51,7 @@ export function renderTags(container: HTMLElement, ctx: TabContext, initialTag?:
   // ── Page Head ──
   const head = container.createDiv({ cls: 'gs-pagehead' });
   const headL = head.createDiv({ cls: 'gs-pagehead-l' });
-  headL.createDiv({ cls: 'gs-pagehead-eyebrow gs-en', text: 'WORKSPACE · TAGS' });
-  headL.createEl('h1', { cls: 'gs-pagehead-title', text: '标签' });
+  headL.createEl('h1', { cls: 'gs-pagehead-title', text: t('tags.title') });
 
   const headR = head.createDiv({ cls: 'gs-pagehead-r' });
   const tagCountPill = headR.createSpan({ cls: 'gs-pill' });
@@ -65,7 +59,7 @@ export function renderTags(container: HTMLElement, ctx: TabContext, initialTag?:
 
   const searchBox = headR.createDiv({ cls: 'tg-search' });
   searchBox.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>`;
-  const searchInput = searchBox.createEl('input', { placeholder: '搜索卡片...' });
+  const searchInput = searchBox.createEl('input', { placeholder: t('tags.search_placeholder') });
   searchInput.addEventListener('input', () => { search = searchInput.value; renderFilterBar(); renderMain(); });
 
   // Maturity segmented control
@@ -74,7 +68,7 @@ export function renderTags(container: HTMLElement, ctx: TabContext, initialTag?:
     matSeg.empty();
     for (const s of MATURITY_SEG) {
       const btn = matSeg.createEl('button', { cls: `tg-mat-tab${maturity === s.id ? ' tg-mat-tab-on' : ''}` });
-      btn.textContent = s.zh;
+      btn.textContent = t(s.labelKey);
       btn.addEventListener('click', () => {
         if (maturity === s.id) return;
         maturity = s.id;
@@ -90,13 +84,11 @@ export function renderTags(container: HTMLElement, ctx: TabContext, initialTag?:
   const treeSidebar = page.createEl('aside', { cls: 'tg-tree' });
   const main = page.createEl('section', { cls: 'tg-main' });
 
-  // ── Tag selection helpers ──
   const toggleTag = (tag: string, multi: boolean) => {
     if (multi) {
       if (selectedTags.has(tag)) {
         selectedTags.delete(tag);
       } else {
-        // Remove sibling/parent/child tags (same dimension) before adding
         const topLevel = tag.split('/')[0];
         for (const t of [...selectedTags]) {
           if (t.split('/')[0] === topLevel) selectedTags.delete(t);
@@ -133,12 +125,10 @@ export function renderTags(container: HTMLElement, ctx: TabContext, initialTag?:
     }
     filterBarEl.style.display = '';
 
-    // Wrap tags in parens when both tags and search are present
     const needParens = selectedTags.size > 1 && search.length > 0;
 
-    if (needParens) filterBarEl.createSpan({ cls: 'tg-filter-paren gs-en', text: '(' });
+    if (needParens) filterBarEl.createSpan({ cls: 'tg-filter-paren', text: '(' });
 
-    // Selected tag chips
     for (const tag of selectedTags) {
       const chip = filterBarEl.createDiv({ cls: 'tg-filter-chip' });
       const label = '#' + (tag.split('/').pop()?.replace(/^#/, '') || tag);
@@ -154,18 +144,16 @@ export function renderTags(container: HTMLElement, ctx: TabContext, initialTag?:
         renderMain();
       });
 
-      // Show AND separator between tags
       if ([...selectedTags].indexOf(tag) < selectedTags.size - 1) {
-        filterBarEl.createSpan({ cls: 'tg-filter-and gs-en', text: 'AND' });
+        filterBarEl.createSpan({ cls: 'tg-filter-and', text: t('tags.filter.and') });
       }
     }
 
-    if (needParens) filterBarEl.createSpan({ cls: 'tg-filter-paren gs-en', text: ')' });
+    if (needParens) filterBarEl.createSpan({ cls: 'tg-filter-paren', text: ')' });
 
-    // Search keyword chip
     if (search.length > 0) {
       if (selectedTags.size > 0) {
-        filterBarEl.createSpan({ cls: 'tg-filter-and gs-en', text: 'AND' });
+        filterBarEl.createSpan({ cls: 'tg-filter-and', text: t('tags.filter.and') });
       }
       const chip = filterBarEl.createDiv({ cls: 'tg-filter-chip tg-filter-chip-search' });
       chip.createSpan({ cls: 'tg-filter-chip-label', text: `"${search}"` });
@@ -180,13 +168,12 @@ export function renderTags(container: HTMLElement, ctx: TabContext, initialTag?:
       });
     }
 
-    // Maturity chip
     if (maturity !== 'all') {
       if (selectedTags.size > 0 || search.length > 0) {
-        filterBarEl.createSpan({ cls: 'tg-filter-and gs-en', text: 'AND' });
+        filterBarEl.createSpan({ cls: 'tg-filter-and', text: t('tags.filter.and') });
       }
       const chip = filterBarEl.createDiv({ cls: `tg-filter-chip tg-filter-chip-maturity tg-filter-chip-mat-${maturity}` });
-      chip.createSpan({ cls: 'tg-filter-chip-label', text: MATURITY_CHIP_LABEL[maturity] });
+      chip.createSpan({ cls: 'tg-filter-chip-label', text: t(MATURITY_CHIP_KEY[maturity]) });
       const removeBtn = chip.createSpan({ cls: 'tg-filter-chip-x' });
       removeBtn.innerHTML = `<svg width="8" height="8" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 2l6 6M8 2l-6 6"/></svg>`;
       removeBtn.addEventListener('click', (e) => {
@@ -198,30 +185,27 @@ export function renderTags(container: HTMLElement, ctx: TabContext, initialTag?:
       });
     }
 
-    // Tag picker (+) button
     const addBtn = filterBarEl.createEl('button', { cls: 'tg-filter-add' });
     addBtn.innerHTML = `<svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M5 1v8M1 5h8"/></svg>`;
-    addBtn.title = '添加标签筛选';
+    addBtn.title = t('tags.add_filter');
     addBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       openTagPicker(addBtn);
     });
 
-    // Accuracy pill (when exactly 1 tag selected)
     if (selectedTags.size === 1) {
       const tag = [...selectedTags][0];
       const acc = ctx.store.getAccuracyForTag(tag);
       if (acc !== null) {
         const pill = filterBarEl.createSpan({ cls: 'tg-bc-pill' });
         const tone = acc >= 85 ? 'green' : acc >= 70 ? 'gold' : 'clay';
-        pill.createSpan({ cls: `tg-bc-acc tg-bc-acc-${tone}`, text: `准确率 ${acc}%` });
+        pill.createSpan({ cls: `tg-bc-acc tg-bc-acc-${tone}`, text: t('tags.accuracy_pill', { n: acc }) });
       }
     }
 
-    // Clear all button — show when 2+ filters are active across tags/search/maturity
     const activeCount = selectedTags.size + (search.length > 0 ? 1 : 0) + (maturity !== 'all' ? 1 : 0);
     if (activeCount >= 2) {
-      const clearBtn = filterBarEl.createEl('button', { cls: 'tg-filter-clear gs-en', text: 'CLEAR' });
+      const clearBtn = filterBarEl.createEl('button', { cls: 'tg-filter-clear', text: t('tags.filter.clear') });
       clearBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         search = '';
@@ -247,18 +231,18 @@ export function renderTags(container: HTMLElement, ctx: TabContext, initialTag?:
     pickerEl = filterBarEl.createDiv({ cls: 'tg-picker' });
     pickerEl.addEventListener('click', (e) => e.stopPropagation());
 
-    const pickerInput = pickerEl.createEl('input', { cls: 'tg-picker-input', placeholder: '搜索标签...' });
+    const pickerInput = pickerEl.createEl('input', { cls: 'tg-picker-input', placeholder: t('tags.picker.placeholder') });
     const pickerList = pickerEl.createDiv({ cls: 'tg-picker-list' });
 
     const renderPickerList = (query: string) => {
       pickerList.empty();
       const q = query.toLowerCase();
-      const matches = allTagPaths.filter((t) => {
-        if (selectedTags.has(t)) return false; // hide already selected
-        return q === '' || t.toLowerCase().includes(q);
+      const matches = allTagPaths.filter((tag) => {
+        if (selectedTags.has(tag)) return false;
+        return q === '' || tag.toLowerCase().includes(q);
       });
       if (matches.length === 0) {
-        pickerList.createDiv({ cls: 'tg-picker-empty', text: '无匹配标签' });
+        pickerList.createDiv({ cls: 'tg-picker-empty', text: t('tags.picker.empty') });
         return;
       }
       for (const tag of matches.slice(0, 30)) {
@@ -285,15 +269,15 @@ export function renderTags(container: HTMLElement, ctx: TabContext, initialTag?:
   // ── Tree ──
   const renderTree = () => {
     treeSidebar.empty();
-    treeSidebar.createDiv({ cls: 'tg-tree-head' }).innerHTML = `<span class="gs-en">TAG TREE</span>`;
+    const head = treeSidebar.createDiv({ cls: 'tg-tree-head' });
+    head.createSpan({ text: t('tags.tree_head') });
 
-    // "All cards" row
     const allRow = treeSidebar.createDiv({ cls: `tg-tree-row tg-tree-all${selectedTags.size === 0 ? ' tg-tree-row-on' : ''}` });
     allRow.style.paddingLeft = '8px';
     const allIcon = allRow.createSpan({ cls: 'tg-tree-all-icon' });
     allIcon.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>`;
     const allNameBtn = allRow.createDiv({ cls: 'tg-tree-namebtn' });
-    allNameBtn.createSpan({ cls: 'tg-tree-name', text: '全部卡片' });
+    allNameBtn.createSpan({ cls: 'tg-tree-name', text: t('tags.all_cards') });
     allNameBtn.createSpan({ cls: 'tg-tree-n gs-mono', text: String(ctx.store.getTotalActiveCards()) });
     allNameBtn.addEventListener('click', () => clearAll());
 
@@ -310,7 +294,6 @@ export function renderTags(container: HTMLElement, ctx: TabContext, initialTag?:
     const row = parent.createDiv({ cls: `tg-tree-row${isSel ? ' tg-tree-row-on' : ''}` });
     row.style.paddingLeft = `${8 + level * 14}px`;
 
-    // Caret
     const caret = row.createEl('button', { cls: 'tg-tree-caret' });
     if (has) {
       const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -327,7 +310,6 @@ export function renderTags(container: HTMLElement, ctx: TabContext, initialTag?:
       caret.createSpan({ cls: 'tg-tree-bullet' });
     }
 
-    // Name button — normal click replaces, Cmd/Ctrl+click toggles
     const nameBtn = row.createDiv({ cls: 'tg-tree-namebtn' });
     nameBtn.createSpan({ cls: 'tg-tree-name', text: node.name.replace(/^#/, '') });
     nameBtn.createSpan({ cls: 'tg-tree-n gs-mono', text: String(node.count) });
@@ -342,7 +324,6 @@ export function renderTags(container: HTMLElement, ctx: TabContext, initialTag?:
 
   // ── Main content ──
   const renderMain = () => {
-    // Preserve the filter bar, clear everything else
     while (main.children.length > 1) main.removeChild(main.lastChild!);
 
     let entries = ctx.store.getCardsByTags(selectedTags, search || undefined);
@@ -351,23 +332,21 @@ export function renderTags(container: HTMLElement, ctx: TabContext, initialTag?:
     }
     const cards = sortCards(entries, sortField, sortDir);
 
-    tagCountPill.textContent = `${tree.length} 个标签`;
-    matchPill.textContent = `${cards.length} 张匹配`;
+    tagCountPill.textContent = t('tags.pill.count', { n: tree.length });
+    matchPill.textContent = t('tags.pill.match', { n: cards.length });
 
-    // autoShow detection
     const autoShowTags = ctx.store.getSettings().autoShowTags;
     const isAutoShowTag = selectedTags.size === 1
       && matchesAnyPrefix([...selectedTags][0], autoShowTags, true);
     let expandAll = false;
     const openRows = new Set<string>();
 
-    // Expand-all toggle (for autoShow tags) — inject into filter bar
     if (isAutoShowTag) {
-      const toggleBtn = filterBarEl.createEl('button', { cls: 'gs-pill tg-bc-toggle', text: '全部展开' });
-      filterBarEl.style.display = ''; // ensure visible even if no other filters
+      const toggleBtn = filterBarEl.createEl('button', { cls: 'gs-pill tg-bc-toggle', text: t('tags.expand_all') });
+      filterBarEl.style.display = '';
       toggleBtn.addEventListener('click', () => {
         expandAll = !expandAll;
-        toggleBtn.textContent = expandAll ? '逐张查看' : '全部展开';
+        toggleBtn.textContent = expandAll ? t('tags.collapse') : t('tags.expand_all');
         toggleBtn.classList.toggle('gs-pill-green', expandAll);
         if (expandAll) {
           cards.forEach(c => openRows.add(c.id));
@@ -378,11 +357,9 @@ export function renderTags(container: HTMLElement, ctx: TabContext, initialTag?:
       });
     }
 
-    // Table
     const table = main.createDiv({ cls: 'tg-table' });
 
-    // Table head
-    const headRow = table.createDiv({ cls: 'tg-row tg-row-head gs-en' });
+    const headRow = table.createDiv({ cls: 'tg-row tg-row-head' });
     const makeSortHead = (cls: string, field: SortField, label: string) => {
       const isActive = sortField === field;
       const el = headRow.createSpan({ cls: `${cls} tg-c-head-sortable${isActive ? ' tg-c-head-active' : ''}` });
@@ -401,19 +378,17 @@ export function renderTags(container: HTMLElement, ctx: TabContext, initialTag?:
         renderMain();
       });
     };
-    makeSortHead('tg-c-front', 'front', 'QUESTION');
-    headRow.createSpan({ cls: 'tg-c-tags', text: 'TAGS' });
-    makeSortHead('tg-c-ef', 'ef', 'EF');
-    makeSortHead('tg-c-due', 'due', 'DUE');
+    makeSortHead('tg-c-front', 'front', t('tags.col.question'));
+    headRow.createSpan({ cls: 'tg-c-tags', text: t('tags.col.tags') });
+    makeSortHead('tg-c-ef', 'ef', t('tags.col.ef'));
+    makeSortHead('tg-c-due', 'due', t('tags.col.due'));
 
     if (cards.length === 0) {
       const empty = table.createDiv({ cls: 'tg-empty' });
-      empty.createDiv({ cls: 'tg-empty-zh', text: '没有找到匹配的卡片' });
-      empty.createDiv({ cls: 'tg-empty-en gs-en', text: 'NO CARDS MATCH' });
+      empty.createDiv({ cls: 'tg-empty-zh', text: t('tags.empty.match') });
       return;
     }
 
-    // Render card rows with load-more for large sets
     const BATCH = 200;
     let shown = 0;
 
@@ -422,8 +397,8 @@ export function renderTags(container: HTMLElement, ctx: TabContext, initialTag?:
       while (table.children.length > 1) table.removeChild(table.lastChild!);
 
       if (cards.length > BATCH) {
-        const hint = table.createDiv({ cls: 'tg-load-hint gs-en' });
-        hint.textContent = `Showing ${Math.min(shown + BATCH, cards.length)} / ${cards.length} cards`;
+        const hint = table.createDiv({ cls: 'tg-load-hint' });
+        hint.textContent = t('tags.load_hint', { shown: Math.min(shown + BATCH, cards.length), total: cards.length });
       }
 
       const slice = cards.slice(0, shown + BATCH);
@@ -445,7 +420,7 @@ export function renderTags(container: HTMLElement, ctx: TabContext, initialTag?:
       }
 
       if (shown < cards.length) {
-        const more = table.createEl('button', { cls: 'tg-load-more', text: `加载更多 (${cards.length - shown} 剩余)` });
+        const more = table.createEl('button', { cls: 'tg-load-more', text: t('tags.load_more', { n: cards.length - shown }) });
         more.addEventListener('click', () => renderCards());
       }
     };
@@ -474,10 +449,9 @@ function renderCardRow(
   const row = parent.createDiv({ cls: `tg-row${isOpen ? ' tg-row-open' : ''}` });
   let loadPromise: Promise<void> | null = null;
 
-  // Make the main grid clickable
   const mainDiv = row.createDiv({ cls: 'tg-row-main' });
   mainDiv.addEventListener('click', () => {
-    if (expandAll) return; // In expand-all mode, clicks don't toggle
+    if (expandAll) return;
     if (openRows.has(id)) {
       openRows.delete(id);
       rerender();
@@ -488,7 +462,6 @@ function renderCardRow(
     }
   });
 
-  // Question
   const front = mainDiv.createSpan({ cls: 'tg-c-front' });
   const caretMini = front.createSpan({ cls: 'tg-caret-mini' });
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -503,7 +476,6 @@ function renderCardRow(
   setTooltip(frontText, card.blockTitle);
   MarkdownRenderer.render(ctx.app, card.blockTitle, frontText, card.file, component);
 
-  // Tags
   const tagsDiv = mainDiv.createSpan({ cls: 'tg-c-tags' });
   for (const tag of card.tags) {
     const chip = tagsDiv.createEl('button', { cls: 'tg-tag-chip' });
@@ -512,28 +484,23 @@ function renderCardRow(
     chip.addEventListener('click', (e) => { e.stopPropagation(); onSelectTag(tag, e); });
   }
 
-  // EF, Due
   mainDiv.createSpan({ cls: 'tg-c-ef gs-mono', text: card.ease.toFixed(2) });
   mainDiv.createSpan({ cls: `tg-c-due gs-mono tg-due-${dueTone}`, text: dueLabel });
 
-  // Expanded content
   if (isOpen) {
     const back = row.createDiv({ cls: 'tg-row-back' });
-    back.createDiv({ cls: 'tg-back-l gs-en', text: 'ANSWER' });
+    back.createDiv({ cls: 'tg-back-l', text: t('tags.row.answer') });
     const answerEl = back.createDiv({ cls: 'tg-back-answer' });
     loadPromise = ctx.cardManager.getBlockContent(card, id).then((content) => {
-      // Guard: tab may have switched while getBlockContent was resolving.
-      // answerEl is detached after mainEl.empty(); rendering into it would
-      // leak children into a discarded subtree.
       if (!answerEl.isConnected) return;
       if (content) {
         MarkdownRenderer.render(ctx.app, content, answerEl, card.file, component);
       } else {
-        answerEl.createSpan({ cls: 'gs-placeholder', text: '无内容' });
+        answerEl.createSpan({ cls: 'gs-placeholder', text: t('tags.row.no_content') });
       }
     });
     const meta = back.createDiv({ cls: 'tg-back-meta' });
-    meta.innerHTML = `<span class="gs-en">ID</span> <code>${id}</code> <span class="gs-en">REPS</span> <span class="gs-mono">${card.reviewCount}</span> <span class="gs-en">DUE</span> <span class="gs-mono">${card.due}</span> <span class="gs-en">FILE</span> <span class="gs-mono">${card.file}</span>`;
+    meta.innerHTML = `<span class="tg-meta-l">${escapeHtml(t('tags.row.meta.id'))}</span> <code>${escapeHtml(id)}</code> <span class="tg-meta-l">${escapeHtml(t('tags.row.meta.reps'))}</span> <span class="gs-mono">${card.reviewCount}</span> <span class="tg-meta-l">${escapeHtml(t('tags.row.meta.due'))}</span> <span class="gs-mono">${escapeHtml(card.due)}</span> <span class="tg-meta-l">${escapeHtml(t('tags.row.meta.file'))}</span> <span class="gs-mono">${escapeHtml(card.file)}</span>`;
   }
   return { row, loadPromise };
 }
@@ -562,8 +529,6 @@ function scrollRowToOffset(row: HTMLElement, topOffset: number): void {
   }
   if (!scroller) return;
 
-  // Overscroll padding: ensure the row can reach `topOffset` from container top
-  // even when it sits near the bottom of the content.
   const needed = Math.max(0, scroller.clientHeight - topOffset - row.offsetHeight);
   scroller.style.paddingBottom = `${needed}px`;
 
@@ -575,9 +540,13 @@ function scrollRowToOffset(row: HTMLElement, topOffset: number): void {
 
 function formatDue(due: string): string {
   const today = formatToday();
-  if (due === today) return '今天';
-  if (due < today) return '逾期';
+  if (due === today) return t('common.due_today');
+  if (due < today) return t('common.due_overdue');
   const d1 = new Date(today), d2 = new Date(due);
   const days = Math.round((d2.getTime() - d1.getTime()) / 86400000);
   return `+${days}d`;
+}
+
+function escapeHtml(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }

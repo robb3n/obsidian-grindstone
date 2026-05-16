@@ -1,20 +1,20 @@
 import { TabId } from './WorkspaceView';
+import { t, StringKey } from '../i18n';
 
 interface NavItem {
   id: TabId;
-  zh: string;
-  en: string;
+  labelKey: StringKey;
   iconPath: string;
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { id: 'overview', zh: '概览', en: 'Overview',
+  { id: 'overview', labelKey: 'nav.overview',
     iconPath: 'M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z' },
-  { id: 'review', zh: '复习', en: 'Review',
+  { id: 'review',   labelKey: 'nav.review',
     iconPath: 'M21 12a9 9 0 11-3-6.7M21 4v5h-5' },
-  { id: 'stats', zh: '统计', en: 'Stats',
+  { id: 'stats',    labelKey: 'nav.stats',
     iconPath: 'M4 20V10M10 20V4M16 20v-7M22 20H2' },
-  { id: 'tags', zh: '标签', en: 'Tags',
+  { id: 'tags',     labelKey: 'nav.tags',
     iconPath: 'M20 12L12 20l-9-9V3h8zM7 7h.01' },
 ];
 
@@ -49,16 +49,15 @@ function renderExpanded(el: HTMLElement, opts: SidebarOptions): void {
   mark.style.cursor = 'pointer';
   mark.addEventListener('click', () => opts.onToggleCollapse());
   const logoText = logo.createDiv();
-  logoText.createDiv({ cls: 'gs-rail-zh', text: '磨刀石' });
-  logoText.createDiv({ cls: 'gs-rail-en gs-en', text: 'GRINDSTONE' });
+  logoText.createDiv({ cls: 'gs-rail-zh', text: t('sidebar.logo') });
 
   const collapseBtn = logo.createEl('button', { cls: 'gs-rail-collapse-btn', text: '«' });
-  collapseBtn.setAttribute('aria-label', '收起侧栏');
+  collapseBtn.setAttribute('aria-label', t('sidebar.collapse_aria'));
   collapseBtn.addEventListener('click', () => opts.onToggleCollapse());
 
   // Navigation
   const navSection = el.createDiv();
-  navSection.createDiv({ cls: 'gs-rail-section gs-en', text: 'WORKSPACE' });
+  navSection.createDiv({ cls: 'gs-rail-section', text: t('sidebar.section') });
   const nav = navSection.createEl('nav', { cls: 'gs-rail-nav' });
 
   for (const item of NAV_ITEMS) {
@@ -70,7 +69,7 @@ function renderExpanded(el: HTMLElement, opts: SidebarOptions): void {
     const svg = createSvgIcon(item.iconPath);
     btn.appendChild(svg);
 
-    btn.createSpan({ text: item.zh });
+    btn.createSpan({ text: t(item.labelKey) });
 
     if (item.id === 'review' && opts.dueCount > 0) {
       btn.createSpan({ cls: 'gs-rail-item-badge', text: String(opts.dueCount) });
@@ -81,16 +80,16 @@ function renderExpanded(el: HTMLElement, opts: SidebarOptions): void {
   const foot = el.createDiv({ cls: 'gs-rail-foot' });
 
   const streak = foot.createDiv({ cls: 'gs-rail-streak' });
-  streak.createSpan({ cls: 'gs-rail-streak-flame', text: '\uD83D\uDD25' });
+  streak.createSpan({ cls: 'gs-rail-streak-flame', text: '🔥' });
   const streakText = streak.createDiv();
   streakText.createDiv({ cls: 'gs-rail-streak-num', text: String(opts.streak) });
-  streakText.createDiv({ cls: 'gs-rail-streak-cap', text: '连续打卡 \u00B7 day streak' });
+  streakText.createDiv({ cls: 'gs-rail-streak-cap', text: t('sidebar.streak_cap') });
   if (opts.freezes > 0) {
     const fz = streak.createSpan({
       cls: 'gs-rail-streak-freeze',
-      text: `\u2744\uFE0F\u00D7${opts.freezes}`,
+      text: `❄️×${opts.freezes}`,
     });
-    fz.setAttribute('title', `${opts.freezes} \u4E2A streak freeze \u5F85\u6D88\u8017\uFF08\u6F0F\u4E00\u5929\u4F1A\u81EA\u52A8\u7528\u6389\u4E00\u4E2A\uFF09`);
+    fz.setAttribute('title', t('sidebar.freeze_tooltip', { n: opts.freezes }));
   }
 
   renderThemeToggle(foot, opts, false);
@@ -103,16 +102,17 @@ function renderCollapsed(el: HTMLElement, opts: SidebarOptions): void {
   const logo = el.createDiv({ cls: 'gs-rail-logo' });
   const mark = logo.createDiv({ cls: 'gs-rail-mark', text: '磨' });
   mark.style.cursor = 'pointer';
-  mark.setAttribute('aria-label', '展开侧栏');
+  mark.setAttribute('aria-label', t('sidebar.expand_aria'));
   mark.addEventListener('click', () => opts.onToggleCollapse());
 
   // Navigation icons only
   const nav = el.createEl('nav', { cls: 'gs-rail-nav' });
 
   for (const item of NAV_ITEMS) {
+    const label = t(item.labelKey);
     const tooltip = item.id === 'review' && opts.dueCount > 0
-      ? `${item.zh} (${opts.dueCount})`
-      : item.zh;
+      ? `${label} (${opts.dueCount})`
+      : label;
     const btn = nav.createEl('button', {
       cls: `gs-rail-item${opts.activeTab === item.id ? ' gs-rail-item-on' : ''}`,
       attr: { 'aria-label': tooltip, title: tooltip },
@@ -132,14 +132,14 @@ function renderCollapsed(el: HTMLElement, opts: SidebarOptions): void {
   const foot = el.createDiv({ cls: 'gs-rail-foot' });
 
   const streak = foot.createDiv({ cls: 'gs-rail-streak' });
-  streak.createSpan({ cls: 'gs-rail-streak-flame', text: '\uD83D\uDD25' });
+  streak.createSpan({ cls: 'gs-rail-streak-flame', text: '🔥' });
   streak.createSpan({ cls: 'gs-rail-streak-num', text: String(opts.streak) });
   if (opts.freezes > 0) {
     const fz = streak.createSpan({
       cls: 'gs-rail-streak-freeze',
-      text: `\u2744\uFE0F${opts.freezes}`,
+      text: `❄️${opts.freezes}`,
     });
-    fz.setAttribute('title', `${opts.freezes} \u4E2A streak freeze`);
+    fz.setAttribute('title', t('sidebar.freeze_short', { n: opts.freezes }));
   }
 
   renderThemeToggle(foot, opts, true);
@@ -151,23 +151,24 @@ function renderThemeToggle(parent: HTMLElement, opts: SidebarOptions, iconOnly: 
   const toggle = parent.createEl('button', { cls: 'gs-themetoggle' });
   toggle.addEventListener('click', () => opts.onToggleTheme());
 
-  const label = !opts.themeMode ? 'Auto' : opts.themeMode === 'dark' ? 'Dark' : 'Light';
+  const label = !opts.themeMode
+    ? t('sidebar.theme_auto')
+    : opts.themeMode === 'dark'
+      ? t('sidebar.theme_dark')
+      : t('sidebar.theme_light');
   if (iconOnly) {
     toggle.setAttribute('aria-label', label);
     toggle.setAttribute('title', label);
   }
 
   if (!opts.themeMode) {
-    // Half sun / half moon circle — represents "auto / follow system"
     toggle.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3v18" /><path d="M12 3a9 9 0 0 1 0 18" fill="currentColor"/></svg>`;
-    if (!iconOnly) toggle.createSpan({ text: 'Auto' });
   } else if (opts.themeMode === 'dark') {
     toggle.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
-    if (!iconOnly) toggle.createSpan({ text: 'Dark' });
   } else {
     toggle.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>`;
-    if (!iconOnly) toggle.createSpan({ text: 'Light' });
   }
+  if (!iconOnly) toggle.createSpan({ text: label });
 }
 
 /* ── SVG helper ──────────────────────────────────── */

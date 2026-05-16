@@ -5,6 +5,7 @@ import { GrindstoneStore } from '../store/GrindstoneStore';
 import { ReviewEngine, QueueItem } from '../review/review-engine';
 import { RATING_LABELS, RATING_KEY_MAP } from '../review/rating-defs';
 import { renderCardAnswer } from '../review/card-render';
+import { t, StringKey } from '../i18n';
 
 export class ReviewModal extends Modal {
   private engine: ReviewEngine;
@@ -56,7 +57,6 @@ export class ReviewModal extends Modal {
       }
     };
     this.modalEl.addEventListener('keydown', this.keyHandler);
-    // Ensure modal can receive keyboard events
     this.modalEl.tabIndex = -1;
     this.modalEl.focus();
   }
@@ -81,10 +81,10 @@ export class ReviewModal extends Modal {
     const pos = this.engine.getPosition();
     const autoShow = this.engine.isAutoShow();
 
-    // Header
+    // Header — single-language title + position
     const head = this.contentEl.createDiv({ cls: 'rvm-head' });
-    const headL = head.createDiv({ cls: 'rvm-head-l gs-en' });
-    headL.createSpan({ cls: 'rvm-head-eyebrow', text: 'REVIEW SESSION' });
+    const headL = head.createDiv({ cls: 'rvm-head-l' });
+    headL.createSpan({ cls: 'rvm-head-title', text: t('review.title') });
     headL.createSpan({ cls: 'rvm-head-meta gs-mono', text: `${pos.current} / ${pos.total}` });
     // Progress bar
     const progress = this.contentEl.createDiv({ cls: 'rvm-progress' });
@@ -108,11 +108,11 @@ export class ReviewModal extends Modal {
 
     // Card metadata
     const metaEl = stage.createDiv({ cls: 'rvm-card-meta gs-mono' });
-    metaEl.createSpan({ text: `间隔 ${item.card.interval}d` });
-    metaEl.createSpan({ text: `EF ${item.card.ease.toFixed(2)}` });
-    metaEl.createSpan({ text: `复习 ${item.card.reviewCount} 次` });
+    metaEl.createSpan({ text: t('review.modal.meta_interval', { n: item.card.interval }) });
+    metaEl.createSpan({ text: t('review.modal.meta_ef', { n: item.card.ease.toFixed(2) }) });
+    metaEl.createSpan({ text: t('review.modal.meta_reviews', { n: item.card.reviewCount }) });
 
-    // Answer area (initially hidden unless autoShow)
+    // Answer area
     const backWrap = stage.createDiv({ cls: 'rvm-card-back' });
     if (autoShow) {
       this.answerShown = true;
@@ -122,12 +122,12 @@ export class ReviewModal extends Modal {
     // Action buttons
     const actions = stage.createDiv({ cls: 'rvm-card-actions' });
     const showBtn = actions.createEl('button', {
-      text: autoShow ? '隐藏内容' : '显示答案',
+      text: autoShow ? t('review.modal.hide') : t('review.modal.show'),
       cls: 'rvm-card-btn',
     });
     showBtn.addEventListener('click', () => this.toggleAnswer());
 
-    const jumpBtn = actions.createEl('button', { text: '跳到原文', cls: 'rvm-card-btn' });
+    const jumpBtn = actions.createEl('button', { text: t('review.modal.jump'), cls: 'rvm-card-btn' });
     jumpBtn.addEventListener('click', async () => {
       const file = this.app.vault.getAbstractFileByPath(item.card.file);
       if (file instanceof TFile) {
@@ -148,7 +148,7 @@ export class ReviewModal extends Modal {
       this.close();
     });
 
-    // Rating buttons (fixed at bottom, outside stage scroll)
+    // Rating buttons
     const rateSection = this.contentEl.createDiv({ cls: 'rvm-rate' });
     if (!autoShow) rateSection.style.display = 'none';
 
@@ -157,24 +157,17 @@ export class ReviewModal extends Modal {
       const btn = rateSection.createEl('button', { cls: `rvm-r rvm-r-${def.rating}` });
       const inner = btn.createDiv({ cls: 'rvm-r-inner' });
       inner.createEl('kbd', { cls: 'rvm-r-kbd gs-mono', text: def.key });
-      inner.createDiv({ cls: 'rvm-r-zh', text: def.zh });
-      inner.createDiv({ cls: 'rvm-r-en gs-en', text: def.en });
+      inner.createDiv({ cls: 'rvm-r-zh', text: t(`review.live.rate.${def.rating}` as StringKey) });
       inner.createDiv({ cls: 'rvm-r-interval gs-mono', text: previews[def.rating] });
       btn.addEventListener('click', () => this.doRate(def.rating));
     }
 
     // Hint
-    const hint = this.contentEl.createDiv({ cls: 'rvm-hint gs-en' });
-    if (!autoShow) {
-      hint.textContent = 'SPACE 显示答案 · ESC 退出';
-    } else {
-      hint.textContent = '1-4 评分 · ESC 退出';
-    }
+    const hint = this.contentEl.createDiv({ cls: 'rvm-hint' });
+    hint.textContent = autoShow ? t('review.modal.hint_rate') : t('review.modal.hint_show');
 
-    // Track display time
     this.cardDisplayedAt = Date.now();
 
-    // Store references for toggleAnswer
     (this as any)._backWrap = backWrap;
     (this as any)._showBtn = showBtn;
     (this as any)._rateSection = rateSection;
@@ -192,15 +185,15 @@ export class ReviewModal extends Modal {
     if (!this.answerShown) {
       this.answerShown = true;
       await this.loadAnswer(backWrap, item);
-      showBtn.setText('隐藏内容');
+      showBtn.setText(t('review.modal.hide'));
       rateSection.style.display = '';
-      hint.textContent = '1-4 评分 · ESC 退出';
+      hint.textContent = t('review.modal.hint_rate');
     } else {
       this.answerShown = false;
       backWrap.empty();
-      showBtn.setText('显示答案');
+      showBtn.setText(t('review.modal.show'));
       rateSection.style.display = 'none';
-      hint.textContent = 'SPACE 显示答案 · ESC 退出';
+      hint.textContent = t('review.modal.hint_show');
     }
     this.modalEl.focus();
   }
@@ -216,22 +209,19 @@ export class ReviewModal extends Modal {
     const elapsed = Date.now() - this.cardDisplayedAt;
     await this.engine.rate(rating, elapsed);
     this.renderCurrent();
-    // Re-focus modal for keyboard
     this.modalEl.focus();
   }
 
   private renderComplete(): void {
     this.contentEl.empty();
 
-    // Progress bar (full)
     const progress = this.contentEl.createDiv({ cls: 'rvm-progress' });
     progress.createDiv({ cls: 'rvm-progress-fill' }).style.width = '100%';
 
     const done = this.contentEl.createDiv({ cls: 'rvm-done' });
-    done.createDiv({ cls: 'rvm-done-eyebrow gs-en', text: 'SESSION COMPLETE' });
-    done.createEl('h2', { cls: 'rvm-done-title', text: '本次会话完成' });
-    done.createEl('p', { cls: 'rvm-done-sub', text: `${this.engine.getPosition().total} 张 · 所有到期卡片已复习` });
-    const closeBtn = done.createEl('button', { cls: 'gs-btn gs-btn-primary', text: '关闭 →' });
+    done.createEl('h2', { cls: 'rvm-done-title', text: t('review.modal.done_title') });
+    done.createEl('p', { cls: 'rvm-done-sub', text: t('review.modal.done_sub', { total: this.engine.getPosition().total }) });
+    const closeBtn = done.createEl('button', { cls: 'gs-btn gs-btn-primary', text: t('review.modal.close') });
     closeBtn.addEventListener('click', () => this.close());
   }
 }

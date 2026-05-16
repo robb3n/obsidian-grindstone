@@ -2,9 +2,10 @@ import { App, Notice } from 'obsidian';
 import { TabContext } from './types';
 import { RatingsData } from '../../store/GrindstoneStore';
 import { countUp } from '../anim';
+import { t, getLang, StringKey } from '../../i18n';
 
 const DEMO_FILE_BASENAME = 'Grindstone Demo';
-const DEMO_CONTENT = `# Grindstone Demo
+const DEMO_CONTENT_ZH = `# Grindstone Demo
 
 #grind 什么是间隔重复（Spaced Repetition）？
 一种根据"遗忘曲线"安排复习时机的学习方法：每复习一次，下次复习的间隔会变长，从而让长期记忆更稳。
@@ -36,7 +37,39 @@ const DEMO_CONTENT = `# Grindstone Demo
 你也可以在 Settings 里改触发标签，把 \`#grind\` 换成自己想用的标签（比如 \`#flashcard\`、\`#anki\`）。
 `;
 
-const MOTIVATIONAL = [
+const DEMO_CONTENT_EN = `# Grindstone Demo
+
+#grind What is spaced repetition?
+A study technique that schedules each review based on the forgetting curve: the better you remember a card, the longer the gap before you see it again — which lets long-term memory settle in with the least effort.
+
+---
+
+#grind How does Grindstone turn a line of text into a card?
+Any line that contains your trigger tag (default \`#grind\`) becomes the start of a card.
+- Question = the line itself, minus the tag
+- Answer = everything between that line and the next divider \`---\`, the next card, or the next heading
+
+---
+
+#grind What are the four rating buttons?
+- **1 Again** — didn't recall, retry on a short interval
+- **2 Hard** — recalled with effort; shorter interval
+- **3 Good** — recalled fine; standard interval growth
+- **4 Easy** — trivial; big interval jump
+
+---
+
+#grind What is a deck?
+A deck is the top-level tag. For example, in \`#grind/biology/cells\` the deck is \`grind\`; the sub-tags \`biology/cells\` are for organization and filtering.
+
+---
+
+#grind Can I delete this demo note?
+Yes. Delete the file and its cards drop out of the review queue automatically.
+You can also change the trigger tag in Settings — swap \`#grind\` for whatever you prefer (e.g. \`#flashcard\`, \`#anki\`).
+`;
+
+const MOTIVATIONAL_ZH = [
   '迈进',
   '纸上得来终觉浅',
   '博观约取',
@@ -45,7 +78,44 @@ const MOTIVATIONAL = [
   '不积跬步，无以至千里',
 ];
 
-export const DEFAULT_SLOGANS = MOTIVATIONAL;
+const MOTIVATIONAL_EN = [
+  'Step forward',
+  'Knowledge from books only takes you so far — practice is the rest',
+  'Read widely, take sparingly',
+  'Accumulate quietly, deliver decisively',
+  'Patience and hope',
+  'No journey begins without the first step',
+];
+
+/**
+ * Returned at call sites — locale-aware. Settings uses the same accessor so the
+ * placeholder list in "Custom slogans" matches the active language.
+ */
+export function getDefaultSlogans(): string[] {
+  return getLang() === 'zh' ? MOTIVATIONAL_ZH : MOTIVATIONAL_EN;
+}
+
+// Back-compat export: Settings imports this name. Kept as a getter so callers
+// see the active-language list at read time.
+export const DEFAULT_SLOGANS = new Proxy([] as string[], {
+  get(_t, prop) {
+    const list = getDefaultSlogans();
+    if (prop === 'length') return list.length;
+    if (prop === 'join') return list.join.bind(list);
+    if (prop === Symbol.iterator) return list[Symbol.iterator].bind(list);
+    return (list as any)[prop];
+  },
+});
+
+const DAY_KEYS: StringKey[] = [
+  'overview.day.sun',
+  'overview.day.mon',
+  'overview.day.tue',
+  'overview.day.wed',
+  'overview.day.thu',
+  'overview.day.fri',
+  'overview.day.sat',
+];
 
 export function renderOverview(container: HTMLElement, ctx: TabContext): void {
   const stats = ctx.store.getOverviewStats();
@@ -59,25 +129,20 @@ export function renderOverview(container: HTMLElement, ctx: TabContext): void {
   // ── Page Head ──
   const head = container.createDiv({ cls: 'gs-pagehead' });
   const headL = head.createDiv({ cls: 'gs-pagehead-l' });
-  const now = new Date();
-  const dayNames = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
-  const dateStr = `TODAY \u00B7 ${now.getFullYear()}.${pad(now.getMonth() + 1)}.${pad(now.getDate())} ${dayNames[now.getDay()]}`;
-  headL.createDiv({ cls: 'gs-pagehead-eyebrow gs-en', text: dateStr });
-  headL.createEl('h1', { cls: 'gs-pagehead-title', text: '概览' });
+  headL.createEl('h1', { cls: 'gs-pagehead-title', text: t('overview.title') });
 
   const headR = head.createDiv({ cls: 'gs-pagehead-r' });
 
   // Motivational quote — re-rolled every time Overview renders
   const userSlogans = ctx.store.getSettings().customSlogans?.filter((s) => s.trim().length > 0) ?? [];
-  const pool = userSlogans.length > 0 ? userSlogans : MOTIVATIONAL;
+  const pool = userSlogans.length > 0 ? userSlogans : getDefaultSlogans();
   const motiv = pool[Math.floor(Math.random() * pool.length)];
   const quote = headR.createDiv({ cls: 'ov-quote' });
   quote.createSpan({ text: motiv });
 
   // CTA — fast path: skip pre-flight, dive straight into the inline session.
-  // Sidebar Review tab still routes through pre-flight for "see today first" users.
   const cta = headR.createEl('button', { cls: 'gs-btn gs-btn-primary ov-cta' });
-  cta.textContent = `开始复习 \u00B7 ${stats.due}`;
+  cta.textContent = t('overview.cta_start', { due: stats.due });
   cta.disabled = stats.due === 0;
   cta.addEventListener('click', () => {
     if (stats.due > 0) ctx.startInlineReview();
@@ -95,42 +160,36 @@ export function renderOverview(container: HTMLElement, ctx: TabContext): void {
 
   // ── Stat Strip ──
   const strip = page.createDiv({ cls: 'ov-strip' });
-  addStat(strip, 'DUE', '今日目标', stats.due, undefined, true, 0);
-  addStat(strip, 'DONE', '已完成', stats.done, undefined, false, 60);
-  addStat(strip, 'LEFT', '剩余', stats.remaining, undefined, false, 120);
-  addStat(strip, 'STREAK', '连续打卡', stats.streak, 'd', false, 180);
-  addStat(strip, 'WEEK', '本周用功', stats.weekMinutes, 'm', false, 240);
-  addStat(strip, 'TAGS', '标签', stats.tagCount, undefined, false, 300);
+  addStat(strip, t('overview.stat.due'),    stats.due,         undefined, true,  0);
+  addStat(strip, t('overview.stat.done'),   stats.done,        undefined, false, 60);
+  addStat(strip, t('overview.stat.left'),   stats.remaining,   undefined, false, 120);
+  addStat(strip, t('overview.stat.streak'), stats.streak,      t('common.day_short'),    false, 180);
+  addStat(strip, t('overview.stat.week'),   stats.weekMinutes, t('common.minute_short'), false, 240);
+  addStat(strip, t('overview.stat.tags'),   stats.tagCount,    undefined, false, 300);
 
   // ── Tile Grid ──
   const grid = page.createDiv({ cls: 'ov-grid' });
 
   // Forecast tile
   renderForecastTile(grid, forecast);
-
   // Progress tile
   renderProgressTile(grid, progress);
-
   // Maturity tile
   renderMaturityTile(grid, maturity);
-
   // Ratings tile
   renderRatingsTile(grid, ratings);
-
   // Heatmap tile
   renderHeatmapTile(grid, heatmap);
-
   // Tags tile
   renderTagsTile(grid, topTags, ctx);
 }
 
 // ── Stat Strip Item ──
 
-function addStat(parent: HTMLElement, en: string, zh: string, value: number, suffix?: string, accent?: boolean, delay = 0): void {
+function addStat(parent: HTMLElement, label: string, value: number, suffix?: string, accent?: boolean, delay = 0): void {
   const stat = parent.createDiv({ cls: 'ov-stat' });
   const top = stat.createDiv({ cls: 'ov-stat-top' });
-  top.createSpan({ cls: 'ov-stat-en gs-en', text: en });
-  top.createSpan({ cls: 'ov-stat-zh', text: zh });
+  top.createSpan({ cls: 'ov-stat-zh', text: label });
   const numEl = stat.createDiv({ cls: `ov-stat-num gs-mono gs-tabular${accent ? ' ov-stat-accent' : ''}` });
   const valSpan = numEl.createSpan();
   countUp(valSpan, value, 900, delay);
@@ -141,15 +200,14 @@ function addStat(parent: HTMLElement, en: string, zh: string, value: number, suf
 
 // ── Tiles ──
 
-function tileHead(parent: HTMLElement, title: string, en: string): void {
+function tileHead(parent: HTMLElement, title: string): void {
   const th = parent.createDiv({ cls: 'ov-th' });
   th.createSpan({ cls: 'ov-th-zh', text: title });
-  th.createSpan({ cls: 'ov-th-en gs-en', text: en });
 }
 
 function renderForecastTile(grid: HTMLElement, forecast: ReturnType<typeof import('../../store/GrindstoneStore').GrindstoneStore.prototype.getForecast7D>): void {
   const tile = grid.createDiv({ cls: 'gs-card gs-hoverable ov-tile ov-t-forecast' });
-  tileHead(tile, '未来七日复习量', 'FORECAST \u00B7 7D');
+  tileHead(tile, t('overview.tile.forecast'));
 
   const max = Math.max(...forecast.map(f => f.count), 1);
   const fore = tile.createDiv({ cls: 'ov-fore' });
@@ -170,14 +228,33 @@ function renderForecastTile(grid: HTMLElement, forecast: ReturnType<typeof impor
 
     col.createDiv({
       cls: `ov-fc-d gs-mono${f.isToday ? ' ov-fc-d-today' : ''}`,
-      text: f.label,
+      text: localizeDayLabel(f.label, f.isToday),
     });
   });
 }
 
+/**
+ * Forecast labels come from the store as Chinese single-char abbreviations
+ * (今/一/二/...). Map them back to the i18n dictionary so EN users see Mon/Tue.
+ */
+function localizeDayLabel(raw: string, isToday: boolean): string {
+  if (isToday) return t('overview.day.today');
+  const map: Record<string, StringKey> = {
+    '一': 'overview.day.mon',
+    '二': 'overview.day.tue',
+    '三': 'overview.day.wed',
+    '四': 'overview.day.thu',
+    '五': 'overview.day.fri',
+    '六': 'overview.day.sat',
+    '日': 'overview.day.sun',
+  };
+  const key = map[raw];
+  return key ? t(key) : raw;
+}
+
 function renderProgressTile(grid: HTMLElement, progress: { done: number; total: number }): void {
   const tile = grid.createDiv({ cls: 'gs-card gs-hoverable ov-tile ov-t-progress' });
-  tileHead(tile, '今日进度', 'TODAY');
+  tileHead(tile, t('overview.tile.progress'));
 
   const prog = tile.createDiv({ cls: 'ov-prog' });
   const pct = progress.total === 0 ? 0 : Math.round((progress.done / progress.total) * 100);
@@ -193,7 +270,6 @@ function renderProgressTile(grid: HTMLElement, progress: { done: number; total: 
   svg.setAttribute('height', String(size));
   svg.setAttribute('viewBox', `0 0 ${size} ${size}`);
 
-  // Track
   const track = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
   track.setAttribute('cx', String(size / 2));
   track.setAttribute('cy', String(size / 2));
@@ -203,7 +279,6 @@ function renderProgressTile(grid: HTMLElement, progress: { done: number; total: 
   track.setAttribute('stroke-width', String(stroke));
   svg.appendChild(track);
 
-  // Fill
   const fill = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
   fill.setAttribute('cx', String(size / 2));
   fill.setAttribute('cy', String(size / 2));
@@ -233,25 +308,24 @@ function renderProgressTile(grid: HTMLElement, progress: { done: number; total: 
 
 function renderMaturityTile(grid: HTMLElement, maturity: { new: number; learning: number; mature: number }): void {
   const tile = grid.createDiv({ cls: 'gs-card gs-hoverable ov-tile ov-t-maturity' });
-  tileHead(tile, '卡片成熟度', 'MATURITY');
+  tileHead(tile, t('overview.tile.maturity'));
 
   const total = maturity.new + maturity.learning + maturity.mature;
   const rows = tile.createDiv({ cls: 'ov-mat-rows' });
 
-  addMatRow(rows, '新', 'NEW', maturity.new, total, 'var(--gs-clay)', 0);
-  addMatRow(rows, '习', 'LRN', maturity.learning, total, 'var(--gs-gold)', 1);
-  addMatRow(rows, '熟', 'MAT', maturity.mature, total, 'var(--gs-green)', 2);
+  addMatRow(rows, t('overview.maturity.new'),      maturity.new,      total, 'var(--gs-clay)',  0);
+  addMatRow(rows, t('overview.maturity.learning'), maturity.learning, total, 'var(--gs-gold)',  1);
+  addMatRow(rows, t('overview.maturity.mature'),   maturity.mature,   total, 'var(--gs-green)', 2);
 }
 
-function addMatRow(parent: HTMLElement, zh: string, en: string, value: number, total: number, color: string, idx: number): void {
+function addMatRow(parent: HTMLElement, label: string, value: number, total: number, color: string, idx: number): void {
   const pct = total === 0 ? 0 : (value / total) * 100;
   const row = parent.createDiv({ cls: 'ov-mat' });
 
   const left = row.createDiv({ cls: 'ov-mat-l' });
   const dot = left.createSpan({ cls: 'ov-mat-dot' });
   dot.style.background = color;
-  left.createSpan({ cls: 'ov-mat-zh', text: zh });
-  left.createSpan({ cls: 'ov-mat-en gs-en', text: en });
+  left.createSpan({ cls: 'ov-mat-zh', text: label });
 
   const bar = row.createDiv({ cls: 'ov-mat-bar' });
   const barFill = bar.createDiv();
@@ -267,12 +341,12 @@ function addMatRow(parent: HTMLElement, zh: string, en: string, value: number, t
 
 function renderRatingsTile(grid: HTMLElement, ratings: RatingsData): void {
   const tile = grid.createDiv({ cls: 'gs-card gs-hoverable ov-tile ov-t-ratings' });
-  tileHead(tile, '评分分布', 'RATINGS');
+  tileHead(tile, t('overview.tile.ratings'));
 
   const total = ratings.again + ratings.hard + ratings.good + ratings.easy;
 
   if (total === 0) {
-    tile.createDiv({ cls: 'ov-rate-empty', text: '尚无评分 \u00B7 NO DATA' });
+    tile.createDiv({ cls: 'ov-rate-empty', text: t('overview.ratings_empty') });
     return;
   }
 
@@ -332,7 +406,7 @@ function renderRatingsTile(grid: HTMLElement, ratings: RatingsData): void {
   const accuracy = ratings.goodPct + ratings.easyPct;
   const center = gaugeWrap.createDiv({ cls: 'ov-rate-center' });
   center.createDiv({ cls: 'ov-rate-acc gs-mono', text: `${accuracy}%` });
-  center.createDiv({ cls: 'ov-rate-acc-l gs-en', text: 'ACCURACY' });
+  center.createDiv({ cls: 'ov-rate-acc-l', text: t('overview.accuracy_label') });
 
   window.setTimeout(() => {
     for (const { el, len } of segPaths) {
@@ -342,24 +416,24 @@ function renderRatingsTile(grid: HTMLElement, ratings: RatingsData): void {
 
   // Legend
   const legend = rate.createDiv({ cls: 'ov-rate-legend' });
-  addLegendItem(legend, 'Again', ratings.againPct, 'var(--gs-clay)');
-  addLegendItem(legend, 'Hard',  ratings.hardPct,  'var(--gs-gold)');
-  addLegendItem(legend, 'Good',  ratings.goodPct,  'var(--gs-green)');
-  addLegendItem(legend, 'Easy',  ratings.easyPct,  'var(--gs-green-2)');
+  addLegendItem(legend, t('overview.rating.again'), ratings.againPct, 'var(--gs-clay)');
+  addLegendItem(legend, t('overview.rating.hard'),  ratings.hardPct,  'var(--gs-gold)');
+  addLegendItem(legend, t('overview.rating.good'),  ratings.goodPct,  'var(--gs-green)');
+  addLegendItem(legend, t('overview.rating.easy'),  ratings.easyPct,  'var(--gs-green-2)');
 }
 
 function addLegendItem(parent: HTMLElement, label: string, pct: number, color: string): void {
   const item = parent.createDiv({ cls: 'ov-rate-li' });
   const dot = item.createSpan({ cls: 'ov-rate-li-dot' });
   dot.style.background = color;
-  item.createSpan({ cls: 'ov-rate-li-name gs-en', text: label });
+  item.createSpan({ cls: 'ov-rate-li-name', text: label });
   const v = item.createSpan({ cls: 'ov-rate-li-pct gs-mono', text: `${pct}%` });
   v.style.color = color;
 }
 
 function renderHeatmapTile(grid: HTMLElement, cells: number[]): void {
   const tile = grid.createDiv({ cls: 'gs-card gs-hoverable ov-tile ov-t-heat' });
-  tileHead(tile, '活动热力 \u00B7 12 周', 'HEATMAP');
+  tileHead(tile, t('overview.tile.heatmap'));
 
   const cols = 12;
   const rows = 7;
@@ -404,8 +478,8 @@ function renderHeatmapTile(grid: HTMLElement, cells: number[]): void {
   tile.appendChild(svg);
 
   // Footer legend
-  const foot = tile.createDiv({ cls: 'ov-heat-foot gs-en gs-mono' });
-  foot.createSpan({ text: '12 weeks' });
+  const foot = tile.createDiv({ cls: 'ov-heat-foot gs-mono' });
+  foot.createSpan({ text: t('overview.heatmap_foot') });
   const scale = foot.createDiv({ cls: 'ov-heat-scale' });
   for (let i = 0; i < 5; i++) {
     const dot = scale.createDiv();
@@ -418,28 +492,28 @@ function renderHeatmapTile(grid: HTMLElement, cells: number[]): void {
 
 function renderTagsTile(grid: HTMLElement, tags: Array<{ path: string; count: number }>, ctx: TabContext): void {
   const tile = grid.createDiv({ cls: 'gs-card gs-hoverable ov-tile ov-t-tags' });
-  tileHead(tile, '标签', `TAGS \u00B7 ${tags.length}`);
+  tileHead(tile, t('overview.tile.tags'));
 
   const max = Math.max(...tags.map(t => t.count), 1);
   const list = tile.createDiv({ cls: 'ov-tags' });
 
-  tags.forEach((t, i) => {
+  tags.forEach((tag, i) => {
     const btn = list.createEl('button', { cls: 'ov-tag' });
-    btn.addEventListener('click', () => ctx.onNavigate('tags', { tag: t.path }));
-    btn.createSpan({ cls: 'ov-tag-path', text: t.path });
+    btn.addEventListener('click', () => ctx.onNavigate('tags', { tag: tag.path }));
+    btn.createSpan({ cls: 'ov-tag-path', text: tag.path });
     const meter = btn.createSpan({ cls: 'ov-tag-meter' });
     const fill = meter.createSpan();
     fill.style.width = '0%';
-    const targetW = (t.count / max) * 100;
+    const targetW = (tag.count / max) * 100;
     window.setTimeout(() => {
       if (!fill.isConnected) return;
       fill.style.width = `${targetW}%`;
     }, i * 60 + 40);
-    btn.createSpan({ cls: 'ov-tag-n gs-mono', text: String(t.count) });
+    btn.createSpan({ cls: 'ov-tag-n gs-mono', text: String(tag.count) });
   });
 
   const more = list.createEl('button', { cls: 'ov-tag-more' });
-  more.textContent = `查看全部 ${tags.length} 个 →`;
+  more.textContent = t('overview.tags_more', { n: tags.length });
   more.addEventListener('click', () => ctx.onNavigate('tags'));
 }
 
@@ -449,34 +523,34 @@ function renderEmptyState(parent: HTMLElement, ctx: TabContext): void {
   const empty = parent.createDiv({ cls: 'gs-empty-state' });
   const icon = empty.createDiv({ cls: 'gs-empty-icon' });
   icon.innerHTML = `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12L12 20l-9-9V3h8z"/><circle cx="7" cy="7" r="1.2"/></svg>`;
-  empty.createDiv({ cls: 'gs-empty-title', text: '还没有卡片' });
-  empty.createDiv({ cls: 'gs-empty-sub', text: '在 Obsidian 笔记中添加触发标签（默认 #grind），磨石会自动提取卡片进行间隔复习。' });
+  empty.createDiv({ cls: 'gs-empty-title', text: t('overview.empty_title') });
+  empty.createDiv({ cls: 'gs-empty-sub', text: t('overview.empty_sub') });
   empty.createDiv({ cls: 'gs-empty-hint', text: '#grind' });
 
-  // Quick-start: one-click demo note. Lets the user see SRS data flow without
-  // having to learn the syntax first.
+  // Quick-start: one-click demo note.
   const actions = empty.createDiv({ cls: 'gs-empty-actions' });
-  const demoBtn = actions.createEl('button', { cls: 'gs-btn gs-btn-primary', text: '创建演示笔记' });
+  const demoBtn = actions.createEl('button', { cls: 'gs-btn gs-btn-primary', text: t('overview.empty_cta') });
   demoBtn.addEventListener('click', () => createDemoNote(ctx, demoBtn));
-  actions.createDiv({ cls: 'gs-empty-actions-hint', text: '在 vault 根目录新建 Grindstone Demo.md（5 张示例卡）' });
+  actions.createDiv({ cls: 'gs-empty-actions-hint', text: t('overview.empty_hint') });
 }
 
 async function createDemoNote(ctx: TabContext, btn: HTMLButtonElement): Promise<void> {
   btn.disabled = true;
   const originalText = btn.textContent;
-  btn.textContent = '创建中…';
+  btn.textContent = t('overview.empty_creating');
   try {
     const path = pickAvailableDemoPath(ctx.app);
-    const file = await ctx.app.vault.create(path, DEMO_CONTENT);
+    const content = getLang() === 'zh' ? DEMO_CONTENT_ZH : DEMO_CONTENT_EN;
+    const file = await ctx.app.vault.create(path, content);
     // Metadata cache indexes asynchronously — give it a tick before scanning.
     await new Promise(r => setTimeout(r, 200));
     await ctx.cardManager.scanFile(file);
     await ctx.store.save();
-    new Notice(`已创建 ${path}（5 张示例卡）`);
+    new Notice(t('overview.demo_created', { path }));
     ctx.refreshTab();
   } catch (err) {
     console.error('[Grindstone] Demo creation failed:', err);
-    new Notice(`创建失败：${err instanceof Error ? err.message : String(err)}`);
+    new Notice(t('overview.demo_failed', { err: err instanceof Error ? err.message : String(err) }));
     btn.disabled = false;
     btn.textContent = originalText;
   }
@@ -490,8 +564,4 @@ function pickAvailableDemoPath(app: App): string {
     if (!app.vault.getAbstractFileByPath(candidate)) return candidate;
   }
   return `${DEMO_FILE_BASENAME} ${Date.now()}.md`;
-}
-
-function pad(n: number): string {
-  return String(n).padStart(2, '0');
 }

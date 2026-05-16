@@ -1,35 +1,32 @@
 import { App, Modal } from 'obsidian';
 import { DataStore } from '../storage/data-store';
+import { t, setLang, getLang, Lang, StringKey } from '../i18n';
 
 type WriteMode = 'readonly' | 'ids' | 'ids-stars';
 
 interface ModeOption {
   mode: WriteMode;
-  zh: string;
-  en: string;
-  desc: string;
-  warning?: string;
+  labelKey: StringKey;
+  descKey: StringKey;
+  warningKey?: StringKey;
 }
 
 const MODE_OPTIONS: ModeOption[] = [
   {
     mode: 'readonly',
-    zh: '完全只读',
-    en: 'READ-ONLY',
-    desc: '不修改任何笔记。卡片身份由文件路径 + 题面哈希推导。',
-    warning: '重命名文件或修改卡片标题会导致复习历史丢失。',
+    labelKey: 'onboarding.mode.readonly',
+    descKey:  'onboarding.mode.readonly_desc',
+    warningKey: 'onboarding.mode.readonly_warn',
   },
   {
     mode: 'ids',
-    zh: '嵌入卡片 ID',
-    en: 'EMBED IDS',
-    desc: '在触发标签行尾添加 <!-- gs:xxxxxxxx --> 注释（一次性）。复习历史在重命名、移动、编辑后依然保留。',
+    labelKey: 'onboarding.mode.ids',
+    descKey:  'onboarding.mode.ids_desc',
   },
   {
     mode: 'ids-stars',
-    zh: '嵌入 ID + 写回星号',
-    en: 'EMBED IDS + WRITE STARS',
-    desc: '在以上基础上，按评分写入 ⭐ 标记：Again=⭐⭐⭐ / Hard=⭐⭐ / Good=⭐ / Easy=（清除）。',
+    labelKey: 'onboarding.mode.ids_stars',
+    descKey:  'onboarding.mode.ids_stars_desc',
   },
 ];
 
@@ -49,23 +46,42 @@ export class OnboardingModal extends Modal {
 
   onOpen(): void {
     this.modalEl.addClass('gs-onboarding-modal');
+    this.renderContent();
+  }
+
+  private renderContent(): void {
     const { contentEl } = this;
     contentEl.empty();
 
+    // Language switcher — sits above the header since settings.language doesn't
+    // exist yet at onboarding time.
+    const langRow = contentEl.createDiv({ cls: 'gs-ob-lang-row' });
+    langRow.createSpan({ cls: 'gs-ob-lang-label', text: t('onboarding.lang_label') });
+    const langSeg = langRow.createDiv({ cls: 'gs-ob-lang-seg' });
+    const makeLangBtn = (lang: Lang, label: string) => {
+      const btn = langSeg.createEl('button', {
+        cls: `gs-ob-lang-btn${getLang() === lang ? ' gs-ob-lang-btn-on' : ''}`,
+        text: label,
+      });
+      btn.addEventListener('click', () => {
+        if (getLang() === lang) return;
+        setLang(lang);
+        // Re-render so the rest of the modal reflects the new language immediately.
+        this.renderContent();
+      });
+    };
+    makeLangBtn('zh', '中文');
+    makeLangBtn('en', 'English');
+
     // Header
     const head = contentEl.createDiv({ cls: 'gs-ob-head' });
-    head.createDiv({ cls: 'gs-ob-eyebrow gs-en', text: 'WELCOME · 欢迎' });
-    head.createEl('h2', { cls: 'gs-ob-title', text: '磨石 Grindstone' });
-    head.createEl('p', {
-      cls: 'gs-ob-sub',
-      text: '基于内联标签的间隔重复 — 笔记中含有触发标签的行会变成复习卡片。',
-    });
+    head.createEl('h2', { cls: 'gs-ob-title', text: t('onboarding.welcome_title') });
+    head.createEl('p', { cls: 'gs-ob-sub', text: t('onboarding.welcome_sub') });
 
     // ── Section 1: trigger tag ──
     const sec1 = contentEl.createDiv({ cls: 'gs-ob-section' });
     const sec1H = sec1.createDiv({ cls: 'gs-ob-section-h' });
-    sec1H.createSpan({ cls: 'gs-ob-section-zh', text: '触发标签' });
-    sec1H.createSpan({ cls: 'gs-ob-section-en gs-en', text: 'TRIGGER TAG' });
+    sec1H.createSpan({ cls: 'gs-ob-section-zh', text: t('onboarding.trigger_tag') });
 
     const tagInput = sec1.createEl('input', { cls: 'gs-ob-input', type: 'text' });
     tagInput.value = this.triggerTag;
@@ -76,18 +92,17 @@ export class OnboardingModal extends Modal {
 
     sec1.createDiv({
       cls: 'gs-ob-hint',
-      text: '稍后可在 Settings 里添加更多触发标签或排除规则。',
+      text: t('onboarding.trigger_hint'),
     });
 
     // ── Section 2: write mode ──
     const sec2 = contentEl.createDiv({ cls: 'gs-ob-section' });
     const sec2H = sec2.createDiv({ cls: 'gs-ob-section-h' });
-    sec2H.createSpan({ cls: 'gs-ob-section-zh', text: '与笔记的交互方式' });
-    sec2H.createSpan({ cls: 'gs-ob-section-en gs-en', text: 'NOTE WRITEBACK' });
+    sec2H.createSpan({ cls: 'gs-ob-section-zh', text: t('onboarding.writeback') });
 
     sec2.createDiv({
       cls: 'gs-ob-hint',
-      text: '默认情况下，磨石把 vault 视为只读。下列两项会修改你的笔记，按需开启。',
+      text: t('onboarding.writeback_hint'),
     });
 
     const optionsWrap = sec2.createDiv({ cls: 'gs-ob-options' });
@@ -99,14 +114,13 @@ export class OnboardingModal extends Modal {
       const header = el.createDiv({ cls: 'gs-ob-option-h' });
       const radio = header.createSpan({ cls: 'gs-ob-radio' });
       if (opt.mode === this.mode) radio.addClass('gs-ob-radio-on');
-      header.createSpan({ cls: 'gs-ob-option-zh', text: opt.zh });
-      header.createSpan({ cls: 'gs-ob-option-en gs-en', text: opt.en });
+      header.createSpan({ cls: 'gs-ob-option-zh', text: t(opt.labelKey) });
       if (opt.mode === 'ids') {
-        header.createSpan({ cls: 'gs-ob-option-rec gs-en', text: 'RECOMMENDED' });
+        header.createSpan({ cls: 'gs-ob-option-rec', text: t('onboarding.recommended') });
       }
-      el.createDiv({ cls: 'gs-ob-option-desc', text: opt.desc });
-      if (opt.warning) {
-        el.createDiv({ cls: 'gs-ob-warning', text: `⚠ ${opt.warning}` });
+      el.createDiv({ cls: 'gs-ob-option-desc', text: t(opt.descKey) });
+      if (opt.warningKey) {
+        el.createDiv({ cls: 'gs-ob-warning', text: `⚠ ${t(opt.warningKey)}` });
       }
 
       el.addEventListener('click', () => {
@@ -120,7 +134,7 @@ export class OnboardingModal extends Modal {
 
     // ── Actions ──
     const actions = contentEl.createDiv({ cls: 'gs-ob-actions' });
-    const startBtn = actions.createEl('button', { cls: 'gs-btn gs-btn-primary', text: '开始使用 →' });
+    const startBtn = actions.createEl('button', { cls: 'gs-btn gs-btn-primary', text: t('onboarding.start') });
     startBtn.addEventListener('click', () => this.finish());
   }
 
@@ -129,10 +143,13 @@ export class OnboardingModal extends Modal {
     this.finished = true;
 
     const triggerTags = this.triggerTag.length > 0 ? [this.triggerTag] : ['#grind'];
+    // Persist the language the user just confirmed (defaults to detected system
+    // lang via getLang()).
     await this.store.updateSettings({
       triggerTags,
       embedCardIds: this.mode !== 'readonly',
       writeStarsBack: this.mode === 'ids-stars',
+      language: getLang(),
       _onboardingDone: true,
     });
     this.close();
@@ -141,13 +158,6 @@ export class OnboardingModal extends Modal {
 
   onClose(): void {
     this.contentEl.empty();
-    // Dismiss-without-accept (X / Esc / click outside): leave _onboardingDone unset
-    // and signal the host to disable the plugin. Re-enabling re-prompts.
-    //
-    // Defer to next tick: self-disabling from within a modal lifecycle hook is
-    // a known Obsidian quirk — the plugin can be unloaded before the modal
-    // finishes tearing down, which silently swallows the disable. Letting the
-    // current call stack unwind first avoids that race.
     if (!this.finished) {
       this.finished = true;
       window.setTimeout(() => { void this.onFinish(false); }, 0);

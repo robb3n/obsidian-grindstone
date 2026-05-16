@@ -1,6 +1,7 @@
 import { App, Modal } from 'obsidian';
 import { GrindstoneStore } from '../store/GrindstoneStore';
 import { BUILTIN_PRESETS, SrsPreset, DeckResetMode, SrsParams } from '../card/types';
+import { t, getLang, StringKey } from '../i18n';
 
 // ── Reset Confirmation Modal ──
 //
@@ -36,31 +37,29 @@ export class DeckResetConfirmModal extends Modal {
     const { contentEl } = this;
     contentEl.empty();
 
-    contentEl.createEl('h3', { text: `切换策略: ${this.strategyName}` });
+    contentEl.createEl('h3', { text: t('strategy.switch_title', { name: this.strategyName }) });
     contentEl.createDiv({
       cls: 'dk-reset-desc',
-      text: `将 #${this.deckTag} 卡组的复习策略切换为「${this.strategyName}」。选择如何处理已有卡片：`,
+      text: t('strategy.body', { tag: this.deckTag, name: this.strategyName }),
     });
 
-    const options: Array<{ mode: DeckResetMode; zh: string; en: string; desc: string; warning?: string }> = [
+    const options: Array<{ mode: DeckResetMode; labelKey: StringKey; descKey: StringKey; descParams?: Record<string, string | number>; warningKey?: StringKey }> = [
       {
         mode: 'gradual',
-        zh: '渐进过渡',
-        en: 'GRADUAL',
-        desc: '仅后续复习使用新参数，已有卡片自然适应',
+        labelKey: 'strategy.gradual',
+        descKey:  'strategy.gradual_desc',
       },
       {
         mode: 'reset-ease',
-        zh: '重置 Ease',
-        en: 'RESET EASE',
-        desc: `卡组内所有卡片的 Ease 重置为 ${this.newParams.initialEase}，保留间隔和进度`,
+        labelKey: 'strategy.reset_ease',
+        descKey:  'strategy.reset_ease_desc',
+        descParams: { ease: this.newParams.initialEase },
       },
       {
         mode: 'full-reset',
-        zh: '完全重置',
-        en: 'FULL RESET',
-        desc: '卡片的 Ease、间隔、进度全部归零，相当于从头开始',
-        warning: '此操作不可逆，所有复习进度将丢失',
+        labelKey: 'strategy.full_reset',
+        descKey:  'strategy.full_reset_desc',
+        warningKey: 'strategy.full_reset_warn',
       },
     ];
 
@@ -72,11 +71,10 @@ export class DeckResetConfirmModal extends Modal {
       const header = el.createDiv({ cls: 'dk-reset-option-h' });
       const radio = header.createSpan({ cls: 'dk-reset-radio' });
       if (opt.mode === this.selectedMode) radio.addClass('dk-reset-radio-on');
-      header.createSpan({ cls: 'dk-reset-option-zh', text: opt.zh });
-      header.createSpan({ cls: 'dk-reset-option-en gs-en', text: opt.en });
-      el.createDiv({ cls: 'dk-reset-option-desc', text: opt.desc });
-      if (opt.warning) {
-        el.createDiv({ cls: 'dk-reset-warning', text: `⚠ ${opt.warning}` });
+      header.createSpan({ cls: 'dk-reset-option-zh', text: t(opt.labelKey) });
+      el.createDiv({ cls: 'dk-reset-option-desc', text: t(opt.descKey, opt.descParams) });
+      if (opt.warningKey) {
+        el.createDiv({ cls: 'dk-reset-warning', text: `⚠ ${t(opt.warningKey)}` });
       }
 
       el.addEventListener('click', () => {
@@ -89,12 +87,14 @@ export class DeckResetConfirmModal extends Modal {
     }
 
     const actions = contentEl.createDiv({ cls: 'dk-reset-actions' });
-    const cancelBtn = actions.createEl('button', { cls: 'gs-btn', text: '取消' });
+    const cancelBtn = actions.createEl('button', { cls: 'gs-btn', text: t('strategy.cancel') });
     cancelBtn.addEventListener('click', () => this.close());
 
-    const confirmBtn = actions.createEl('button', { cls: 'gs-btn gs-btn-primary', text: '确认切换' });
+    const confirmBtn = actions.createEl('button', { cls: 'gs-btn gs-btn-primary', text: t('strategy.confirm') });
     confirmBtn.addEventListener('click', async () => {
-      const presetValue = this.strategyName === '全局默认' ? null : this.findPresetId();
+      // Match the display name back to a preset by either localized name. The
+      // caller passes whatever it rendered (zh or en), so we accept both.
+      const presetValue = this.isGlobalDefault(this.strategyName) ? null : this.findPresetId();
       await this.gsStore.setDeckStrategy(this.deckTag, presetValue);
       await this.gsStore.resetDeckCards(this.deckTag, this.selectedMode, this.newParams);
       this.close();
@@ -102,12 +102,17 @@ export class DeckResetConfirmModal extends Modal {
     });
   }
 
+  private isGlobalDefault(name: string): boolean {
+    return name === t('srs.global_default') || name === '全局默认' || name === 'Global default';
+  }
+
   private findPresetId(): string | null {
     const allPresets: SrsPreset[] = [
       ...BUILTIN_PRESETS,
       ...(this.gsStore.getSettings().customPresets ?? []),
     ];
-    return allPresets.find(p => p.name === this.strategyName)?.id ?? null;
+    const isZh = getLang() === 'zh';
+    return allPresets.find(p => (isZh ? p.name : p.nameEn) === this.strategyName)?.id ?? null;
   }
 
   onClose(): void {

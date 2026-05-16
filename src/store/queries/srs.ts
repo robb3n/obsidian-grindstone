@@ -1,5 +1,6 @@
 import { DataStore } from '../../storage/data-store';
 import { SrsParams, BUILTIN_PRESETS } from '../../card/types';
+import { t, getLang } from '../../i18n';
 
 /** Resolve a preset id (built-in or user) to its SrsParams. Falls back to global default. */
 export function resolvePresetParams(ds: DataStore, presetId: string): SrsParams {
@@ -15,10 +16,12 @@ export function resolvePresetParams(ds: DataStore, presetId: string): SrsParams 
 export function resolveStrategyName(ds: DataStore, deckTag: string): string {
   const overrides = ds.getDeckSrsOverrides();
   const override = overrides[deckTag];
-  if (!override) return '全局默认';
+  if (!override) return t('srs.global_default');
   if (typeof override === 'string') {
     const allPresets = [...BUILTIN_PRESETS, ...(ds.getSettings().customPresets ?? [])];
-    return allPresets.find(p => p.id === override)?.name ?? '全局默认';
+    const p = allPresets.find(p => p.id === override);
+    if (!p) return t('srs.global_default');
+    return getLang() === 'zh' ? p.name : p.nameEn;
   }
-  return '自定义';
+  return t('srs.custom_label');
 }

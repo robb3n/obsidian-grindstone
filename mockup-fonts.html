@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>Grindstone — 英文字体选型 mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Cormorant+Garamond:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600;700&family=EB+Garamond:wght@400;500;600;700&family=Spectral:wght@300;400;500;600;700&family=Crimson+Pro:wght@400;500;600;700&family=Libre+Caslon+Display&family=Cardo:wght@400;700&family=DM+Serif+Display&family=Marcellus&family=Cinzel:wght@400;500;600;700&family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #f5f2eb;
+    --paper-2: #efeae0;
+    --card: #fffdf7;
+    --ink: #2a2520;
+    --ink-2: #5a544c;
+    --ink-3: #8a8278;
+    --line: #d8d1c2;
+    --green: #5a7a3f;
+    --green-soft: #e6ecd9;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--paper); color: var(--ink); font-family: -apple-system, "Helvetica Neue", "PingFang SC", sans-serif; }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 36px 28px 80px; }
+
+  h1 { font: 600 22px/1.3 "Cormorant Garamond", serif; margin: 0 0 6px; letter-spacing: 0.02em; }
+  .lede { color: var(--ink-2); font-size: 13px; line-height: 1.5; max-width: 640px; margin: 0 0 28px; }
+  .legend { display: flex; gap: 18px; font-size: 11px; color: var(--ink-3); margin-bottom: 28px; padding: 10px 14px; background: var(--paper-2); border-radius: 8px; border: 1px solid var(--line); }
+  .legend b { color: var(--ink-2); font-weight: 600; }
+
+  .grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 22px 26px;
+    display: grid;
+    grid-template-columns: 200px 1fr 1fr;
+    gap: 28px;
+    align-items: center;
+  }
+  .card.selected { border-color: var(--green); box-shadow: 0 0 0 2px var(--green-soft); }
+
+  .meta { border-right: 1px dashed var(--line); padding-right: 24px; }
+  .meta .name { font: 600 14px/1.3 -apple-system, "Helvetica Neue", sans-serif; color: var(--ink); margin-bottom: 4px; letter-spacing: 0.02em; }
+  .meta .kind { font-size: 11px; color: var(--ink-3); letter-spacing: 0.06em; text-transform: uppercase; }
+  .meta .note { font-size: 11px; color: var(--ink-2); line-height: 1.45; margin-top: 8px; }
+
+  /* === Sidebar mock === */
+  .sidebar-mock {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--paper-2);
+    padding: 14px 16px;
+    border-radius: 9px;
+    border: 1px solid var(--line);
+  }
+  .sb-mark {
+    width: 34px; height: 34px; border-radius: 9px;
+    background: var(--green); color: var(--card);
+    display: flex; align-items: center; justify-content: center;
+    font: 600 17px "Ma Shan Zheng", serif;
+    flex-shrink: 0;
+  }
+  .sb-word {
+    font-size: 22px;
+    line-height: 1;
+    color: var(--ink);
+    letter-spacing: 0.02em;
+  }
+
+  /* === Overview header mock === */
+  .ov-mock {
+    background: var(--paper-2);
+    padding: 14px 16px;
+    border-radius: 9px;
+    border: 1px solid var(--line);
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  }
+  .ov-title { font: 600 18px/1.3 -apple-system, sans-serif; color: var(--ink); letter-spacing: 0.04em; }
+  .ov-quote {
+    font-size: 16px;
+    color: var(--ink);
+    letter-spacing: 0.04em;
+    line-height: 1.3;
+    text-align: right;
+    max-width: 220px;
+  }
+  /* Chinese fallback inside the quote — uses Ma Shan Zheng to mirror real UI */
+  .ov-quote .zh { font-family: "Ma Shan Zheng", serif; font-size: 17px; }
+
+  /* === Per-font wordmark / slogan classes === */
+  .f-fraunces .sb-word, .f-fraunces .ov-quote .en { font-family: "Fraunces", serif; font-weight: 600; font-variation-settings: "opsz" 96, "SOFT" 50; }
+  .f-cormorant .sb-word, .f-cormorant .ov-quote .en { font-family: "Cormorant Garamond", serif; font-weight: 600; letter-spacing: 0.04em; }
+  .f-playfair .sb-word, .f-playfair .ov-quote .en { font-family: "Playfair Display", serif; font-weight: 600; }
+  .f-ebgaramond .sb-word, .f-ebgaramond .ov-quote .en { font-family: "EB Garamond", serif; font-weight: 600; letter-spacing: 0.03em; }
+  .f-spectral .sb-word, .f-spectral .ov-quote .en { font-family: "Spectral", serif; font-weight: 500; }
+  .f-crimson .sb-word, .f-crimson .ov-quote .en { font-family: "Crimson Pro", serif; font-weight: 600; }
+  .f-caslon .sb-word, .f-caslon .ov-quote .en { font-family: "Libre Caslon Display", serif; }
+  .f-cardo .sb-word, .f-cardo .ov-quote .en { font-family: "Cardo", serif; font-weight: 700; }
+  .f-dmserif .sb-word, .f-dmserif .ov-quote .en { font-family: "DM Serif Display", serif; }
+  .f-marcellus .sb-word, .f-marcellus .ov-quote .en { font-family: "Marcellus", serif; letter-spacing: 0.04em; }
+  .f-cinzel .sb-word, .f-cinzel .ov-quote .en { font-family: "Cinzel", serif; font-weight: 500; letter-spacing: 0.06em; font-size: 18px; }
+
+  /* Header for context-row test cases */
+  h2 { font: 600 13px/1 -apple-system, sans-serif; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-3); margin: 36px 0 12px; padding-left: 4px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Grindstone — 英文字体选型</h1>
+  <p class="lede">EN 模式下，Sidebar 软件名「Grindstone」和 Overview 右上角 slogan 容器，需要选一套原生英文字体（现在用的是中文毛笔体 Ma Shan Zheng 撑英文）。每一行：左 = 字体信息；中 = Sidebar logo 实际渲染效果；右 = Overview header 右上区域，含中文 slogan + 英文 fallback 句子。</p>
+
+  <div class="legend">
+    <span><b>Sidebar logo</b> 实际尺寸 22px / 34px 方块</span>
+    <span><b>Overview slogan</b> 16–17px 右对齐</span>
+    <span>中文 slogan 用 Ma Shan Zheng 渲染（不变）</span>
+  </div>
+
+  <h2>Modern Serif（现代衬线 — 显眼、有当代感）</h2>
+  <div class="grid">
+
+    <div class="card f-fraunces">
+      <div class="meta">
+        <div class="name">Fraunces</div>
+        <div class="kind">Variable serif · 600</div>
+        <div class="note">Undertone Foundry 出品的可变字体，柔润有温度，opsz 调到 96 适合 display 用。推荐首选。</div>
+      </div>
+      <div class="sidebar-mock"><div class="sb-mark">磨</div><div class="sb-word">Grindstone</div></div>
+      <div class="ov-mock">
+        <div class="ov-title">Overview</div>
+        <div class="ov-quote"><span class="zh">迈进</span><br><span class="en" style="font-size:13px;color:var(--ink-3)">Step forward</span></div>
+      </div>
+    </div>
+
+    <div class="card f-playfair">
+      <div class="meta">
+        <div class="name">Playfair Display</div>
+        <div class="kind">High-contrast serif · 600</div>
+        <div class="note">高对比、有杂志感。和中文毛笔体 Ma Shan Zheng 都是"显示型"调性，气质一致。</div>
+      </div>
+      <div class="sidebar-mock"><div class="sb-mark">磨</div><div class="sb-word">Grindstone</div></div>
+      <div class="ov-mock">
+        <div class="ov-title">Overview</div>
+        <div class="ov-quote"><span class="zh">博观约取</span><br><span class="en" style="font-size:13px;color:var(--ink-3)">Read widely, take sparingly</span></div>
+      </div>
+    </div>
+
+    <div class="card f-dmserif">
+      <div class="meta">
+        <div class="name">DM Serif Display</div>
+        <div class="kind">Display serif · regular</div>
+        <div class="note">CSS 里 .gs-rail-en 已经声明了这个字体（但没用上）。粗壮、字重感强，做小尺寸时不够柔。</div>
+      </div>
+      <div class="sidebar-mock"><div class="sb-mark">磨</div><div class="sb-word">Grindstone</div></div>
+      <div class="ov-mock">
+        <div class="ov-title">Overview</div>
+        <div class="ov-quote"><span class="zh">厚积薄发</span><br><span class="en" style="font-size:13px;color:var(--ink-3)">Accumulate quietly</span></div>
+      </div>
+    </div>
+
+  </div>
+
+  <h2>Old-style / Garalde（古典衬线 — 学究、书卷气）</h2>
+  <div class="grid">
+
+    <div class="card f-cormorant">
+      <div class="meta">
+        <div class="name">Cormorant Garamond</div>
+        <div class="kind">Old-style serif · 600</div>
+        <div class="note">Garamond 现代复刻，瘦长优雅，气质和 SRS / 慢学 app 非常贴。letter-spacing 加宽更有书脊感。</div>
+      </div>
+      <div class="sidebar-mock"><div class="sb-mark">磨</div><div class="sb-word">Grindstone</div></div>
+      <div class="ov-mock">
+        <div class="ov-title">Overview</div>
+        <div class="ov-quote"><span class="zh">等待与希望</span><br><span class="en" style="font-size:13px;color:var(--ink-3)">Patience and hope</span></div>
+      </div>
+    </div>
+
+    <div class="card f-ebgaramond">
+      <div class="meta">
+        <div class="name">EB Garamond</div>
+        <div class="kind">Garamond revival · 600</div>
+        <div class="note">最接近古籍字模的 Garamond 复刻，温暖、安静、不抢戏。和 Ma Shan Zheng 配起来像"中英双语扉页"。</div>
+      </div>
+      <div class="sidebar-mock"><div class="sb-mark">磨</div><div class="sb-word">Grindstone</div></div>
+      <div class="ov-mock">
+        <div class="ov-title">Overview</div>
+        <div class="ov-quote"><span class="zh">不积跬步</span><br><span class="en" style="font-size:13px;color:var(--ink-3)">No journey begins without the first step</span></div>
+      </div>
+    </div>
+
+    <div class="card f-cardo">
+      <div class="meta">
+        <div class="name">Cardo</div>
+        <div class="kind">Scholarly serif · 700</div>
+        <div class="note">为古典学者设计，专门服务希腊文 / 拉丁文转写，骨子里就是"研读"气质。</div>
+      </div>
+      <div class="sidebar-mock"><div class="sb-mark">磨</div><div class="sb-word">Grindstone</div></div>
+      <div class="ov-mock">
+        <div class="ov-title">Overview</div>
+        <div class="ov-quote"><span class="zh">迈进</span><br><span class="en" style="font-size:13px;color:var(--ink-3)">Step forward</span></div>
+      </div>
+    </div>
+
+    <div class="card f-crimson">
+      <div class="meta">
+        <div class="name">Crimson Pro</div>
+        <div class="kind">Academic serif · 600</div>
+        <div class="note">为长文阅读而设计，介于古典和现代之间，可读性最佳，最"中性"的学术感选项。</div>
+      </div>
+      <div class="sidebar-mock"><div class="sb-mark">磨</div><div class="sb-word">Grindstone</div></div>
+      <div class="ov-mock">
+        <div class="ov-title">Overview</div>
+        <div class="ov-quote"><span class="zh">纸上得来终觉浅</span><br><span class="en" style="font-size:13px;color:var(--ink-3)">Practice is the rest</span></div>
+      </div>
+    </div>
+
+    <div class="card f-spectral">
+      <div class="meta">
+        <div class="name">Spectral</div>
+        <div class="kind">Transitional · 500</div>
+        <div class="note">Google + Production Type 联合出品，专为屏幕长文阅读优化。气质冷一点、更工具感。</div>
+      </div>
+      <div class="sidebar-mock"><div class="sb-mark">磨</div><div class="sb-word">Grindstone</div></div>
+      <div class="ov-mock">
+        <div class="ov-title">Overview</div>
+        <div class="ov-quote"><span class="zh">博观约取</span><br><span class="en" style="font-size:13px;color:var(--ink-3)">Read widely, take sparingly</span></div>
+      </div>
+    </div>
+
+    <div class="card f-caslon">
+      <div class="meta">
+        <div class="name">Libre Caslon Display</div>
+        <div class="kind">Caslon revival · regular</div>
+        <div class="note">英国国宝级 Caslon 字体的 Libre 版本，传统书籍封面气质。display 版本只适合 logo / 大标题。</div>
+      </div>
+      <div class="sidebar-mock"><div class="sb-mark">磨</div><div class="sb-word">Grindstone</div></div>
+      <div class="ov-mock">
+        <div class="ov-title">Overview</div>
+        <div class="ov-quote"><span class="zh">厚积薄发</span><br><span class="en" style="font-size:13px;color:var(--ink-3)">Accumulate quietly, deliver decisively</span></div>
+      </div>
+    </div>
+
+  </div>
+
+  <h2>Inscriptional / Roman caps（碑刻、罗马大写 — 庄重、有仪式感）</h2>
+  <div class="grid">
+
+    <div class="card f-marcellus">
+      <div class="meta">
+        <div class="name">Marcellus</div>
+        <div class="kind">Inscriptional roman · regular</div>
+        <div class="note">仿罗马碑刻的优雅大写体（也有小写）。安静、不张扬、自带匠人气质。Grindstone 这个名字最配的可能就是它。</div>
+      </div>
+      <div class="sidebar-mock"><div class="sb-mark">磨</div><div class="sb-word">Grindstone</div></div>
+      <div class="ov-mock">
+        <div class="ov-title">Overview</div>
+        <div class="ov-quote"><span class="zh">迈进</span><br><span class="en" style="font-size:13px;color:var(--ink-3)">Step forward</span></div>
+      </div>
+    </div>
+
+    <div class="card f-cinzel">
+      <div class="meta">
+        <div class="name">Cinzel</div>
+        <div class="kind">Roman capitals only · 500</div>
+        <div class="note">纯大写罗马体，仅作 wordmark。会让"GRINDSTONE"变成石碑铭文风。气场最强，但小尺寸下偏占位。</div>
+      </div>
+      <div class="sidebar-mock"><div class="sb-mark">磨</div><div class="sb-word">GRINDSTONE</div></div>
+      <div class="ov-mock">
+        <div class="ov-title">Overview</div>
+        <div class="ov-quote"><span class="zh">等待与希望</span><br><span class="en" style="font-size:13px;color:var(--ink-3)">PATIENCE AND HOPE</span></div>
+      </div>
+    </div>
+
+  </div>
+
+  <p style="margin-top:48px;color:var(--ink-3);font-size:12px;line-height:1.6;">
+    选定后告诉我编号 / 名字，我会：<br>
+    ① 把 <code>getDefaultSlogans()</code> 改成永远返回 6 句中文；<br>
+    ② 把选中字体注册到 <code>--gs-font-en</code>，替换 <code>.gs-rail-zh</code>（EN 模式下）和 <code>.ov-quote span</code> 的中文 fallback 字体；<br>
+    ③ 同步更新 <code>.gs-rail-en</code> 已声明的 DM Serif Display（如果换了别的）。
+  </p>
+
+</div>
+</body>
+</html>

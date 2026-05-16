@@ -69,7 +69,7 @@ Yes. Delete the file and its cards drop out of the review queue automatically.
 You can also change the trigger tag in Settings — swap \`#grind\` for whatever you prefer (e.g. \`#flashcard\`, \`#anki\`).
 `;
 
-const MOTIVATIONAL_ZH = [
+export const DEFAULT_SLOGANS = [
   '迈进',
   '纸上得来终觉浅',
   '博观约取',
@@ -77,35 +77,6 @@ const MOTIVATIONAL_ZH = [
   '等待与希望',
   '不积跬步，无以至千里',
 ];
-
-const MOTIVATIONAL_EN = [
-  'Step forward',
-  'Knowledge from books only takes you so far — practice is the rest',
-  'Read widely, take sparingly',
-  'Accumulate quietly, deliver decisively',
-  'Patience and hope',
-  'No journey begins without the first step',
-];
-
-/**
- * Returned at call sites — locale-aware. Settings uses the same accessor so the
- * placeholder list in "Custom slogans" matches the active language.
- */
-export function getDefaultSlogans(): string[] {
-  return getLang() === 'zh' ? MOTIVATIONAL_ZH : MOTIVATIONAL_EN;
-}
-
-// Back-compat export: Settings imports this name. Kept as a getter so callers
-// see the active-language list at read time.
-export const DEFAULT_SLOGANS = new Proxy([] as string[], {
-  get(_t, prop) {
-    const list = getDefaultSlogans();
-    if (prop === 'length') return list.length;
-    if (prop === 'join') return list.join.bind(list);
-    if (prop === Symbol.iterator) return list[Symbol.iterator].bind(list);
-    return (list as any)[prop];
-  },
-});
 
 const DAY_KEYS: StringKey[] = [
   'overview.day.sun',
@@ -135,7 +106,7 @@ export function renderOverview(container: HTMLElement, ctx: TabContext): void {
 
   // Motivational quote — re-rolled every time Overview renders
   const userSlogans = ctx.store.getSettings().customSlogans?.filter((s) => s.trim().length > 0) ?? [];
-  const pool = userSlogans.length > 0 ? userSlogans : getDefaultSlogans();
+  const pool = userSlogans.length > 0 ? userSlogans : DEFAULT_SLOGANS;
   const motiv = pool[Math.floor(Math.random() * pool.length)];
   const quote = headR.createDiv({ cls: 'ov-quote' });
   quote.createSpan({ text: motiv });

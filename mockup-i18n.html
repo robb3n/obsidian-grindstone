@@ -1,0 +1,2697 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<title>Grindstone — language-selectable mockup</title>
+<style>
+  :root {
+    --gs-paper: #f4f1ec;
+    --gs-paper-2: #ebe6dd;
+    --gs-ink: #1a1d1b;
+    --gs-ink-2: #4a4d49;
+    --gs-ink-3: #8a8a82;
+    --gs-line: rgba(26,29,27,.08);
+    --gs-line-2: rgba(26,29,27,.14);
+    --gs-green: #1f4d3a;
+    --gs-green-2: #2d6b52;
+    --gs-green-soft: #d8e3dc;
+    --gs-gold: #b8956a;
+    --gs-clay: #b8533a;
+    --gs-card: #fff;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    padding: 56px 40px 96px;
+    background: #efece6;
+    font-family: "Noto Sans SC", -apple-system, "PingFang SC", sans-serif;
+    color: var(--gs-ink);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page-header {
+    max-width: 1280px;
+    margin: 0 auto 48px;
+  }
+  .page-header h1 {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0 0 8px;
+  }
+  .page-header .subtitle {
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--gs-ink-2);
+    margin: 0 0 16px;
+    max-width: 720px;
+  }
+  .page-header .legend {
+    display: flex;
+    gap: 24px;
+    font-size: 12px;
+    color: var(--gs-ink-3);
+  }
+  .page-header .legend code {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    background: #e3dfd7;
+    padding: 1px 6px;
+    border-radius: 3px;
+    color: var(--gs-ink-2);
+  }
+  .page-header .toc {
+    margin-top: 16px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .page-header .toc a {
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: var(--gs-card);
+    border: 1px solid var(--gs-line);
+    color: var(--gs-ink-2);
+    text-decoration: none;
+  }
+  .page-header .toc a:hover {
+    border-color: var(--gs-line-2);
+    color: var(--gs-ink);
+  }
+
+  /* ────────── View section ────────── */
+
+  .view {
+    max-width: 1280px;
+    margin: 0 auto 64px;
+  }
+  .view-title {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: .14em;
+    color: var(--gs-ink-3);
+    text-transform: uppercase;
+    font-family: "Manrope", sans-serif;
+    margin: 0 0 4px;
+    padding-left: 4px;
+  }
+  .view-note {
+    font-size: 12px;
+    color: var(--gs-ink-2);
+    margin: 0 0 16px;
+    padding-left: 4px;
+    line-height: 1.5;
+  }
+  .split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  .panel {
+    background: var(--gs-paper);
+    border-radius: 12px;
+    padding: 24px;
+    position: relative;
+    border: 1px solid var(--gs-line);
+  }
+  .panel-label {
+    position: absolute;
+    top: -10px;
+    left: 16px;
+    font: 600 10px/1 "Manrope", sans-serif;
+    letter-spacing: .18em;
+    background: var(--gs-ink);
+    color: #fff;
+    padding: 4px 8px;
+    border-radius: 3px;
+  }
+  .panel-label.zh { background: var(--gs-green); }
+  .panel-label.en { background: var(--gs-clay); }
+  .panel-label.current { background: var(--gs-ink-3); }
+
+  /* ────────── Shared atoms ────────── */
+
+  .gs-mono { font-family: "JetBrains Mono", ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+  .gs-en   { font-family: "Manrope", sans-serif; letter-spacing: .18em; text-transform: uppercase; font-size: 10px; color: var(--gs-ink-3); }
+
+  .gs-card {
+    background: var(--gs-card);
+    border-radius: 10px;
+    border: 1px solid var(--gs-line);
+    padding: 16px;
+  }
+  .gs-btn {
+    appearance: none;
+    border: 1px solid var(--gs-line-2);
+    background: var(--gs-card);
+    color: var(--gs-ink);
+    font-size: 13px;
+    padding: 8px 14px;
+    border-radius: 7px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .gs-btn-primary {
+    background: var(--gs-ink);
+    color: #fff;
+    border-color: var(--gs-ink);
+  }
+  .gs-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--gs-paper-2);
+    border: 1px solid var(--gs-line);
+    color: var(--gs-ink-2);
+    padding: 3px 9px;
+    border-radius: 999px;
+    font-size: 11px;
+  }
+  .gs-pill-clay  { background: rgba(184,83,58,.12); color: var(--gs-clay); border-color: rgba(184,83,58,.2); }
+  .gs-pill-green { background: rgba(31,77,58,.12); color: var(--gs-green); border-color: rgba(31,77,58,.2); }
+
+  /* ────────── pagehead ────────── */
+
+  .pagehead {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .pagehead-l h1 {
+    font-size: 22px;
+    font-weight: 700;
+    margin: 0;
+    line-height: 1.2;
+  }
+  .pagehead-eyebrow {
+    margin-bottom: 6px;
+  }
+  .pagehead-r {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .ov-quote {
+    font-size: 12px;
+    color: var(--gs-ink-3);
+    font-style: italic;
+  }
+
+  /* ────────── Overview: stat strip ────────── */
+
+  .ov-strip {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .ov-stat {
+    background: var(--gs-card);
+    border: 1px solid var(--gs-line);
+    border-radius: 8px;
+    padding: 8px 10px;
+  }
+  .ov-stat-top {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 4px;
+  }
+  .ov-stat-en { /* eyebrow EN — only in current bilingual */ }
+  .ov-stat-zh {
+    font-size: 11px;
+    color: var(--gs-ink-2);
+  }
+  .ov-stat-en-only {
+    font-size: 11px;
+    color: var(--gs-ink-2);
+    font-family: "Manrope", sans-serif;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+  .ov-stat-num {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--gs-ink);
+  }
+  .ov-stat-num.accent { color: var(--gs-clay); }
+  .ov-stat-suffix {
+    font-size: 11px;
+    color: var(--gs-ink-3);
+    margin-left: 2px;
+  }
+
+  /* ────────── Overview: tile grid ────────── */
+
+  .ov-grid {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr 1fr;
+    grid-auto-rows: minmax(120px, auto);
+    gap: 10px;
+  }
+  .ov-tile { padding: 14px 16px; }
+  .ov-th {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 12px;
+  }
+  .ov-th-zh {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--gs-ink);
+  }
+
+  /* forecast */
+  .ov-fore {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    height: 72px;
+    align-items: end;
+  }
+  .ov-fc {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    height: 100%;
+  }
+  .ov-fc-bar-wrap {
+    flex: 1;
+    width: 100%;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .ov-fc-bar {
+    width: 70%;
+    background: var(--gs-green-soft);
+    border-radius: 2px 2px 0 0;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    color: var(--gs-green);
+    font-size: 9px;
+    padding-top: 2px;
+    font-family: "JetBrains Mono", monospace;
+  }
+  .ov-fc-bar.today { background: var(--gs-green); color: #fff; }
+  .ov-fc-d { font-size: 9px; color: var(--gs-ink-3); font-family: "JetBrains Mono", monospace; }
+  .ov-fc-d.today { color: var(--gs-green); font-weight: 600; }
+
+  /* progress ring (static SVG) */
+  .ov-prog {
+    position: relative;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 110px;
+  }
+  .ov-prog-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .ov-prog-pct { font-size: 20px; font-weight: 700; color: var(--gs-green); }
+  .ov-prog-cap { font-size: 10px; color: var(--gs-ink-3); font-family: "JetBrains Mono", monospace; }
+
+  /* maturity */
+  .ov-mat-rows { display: flex; flex-direction: column; gap: 8px; }
+  .ov-mat {
+    display: grid;
+    grid-template-columns: 70px 1fr 28px;
+    align-items: center;
+    gap: 8px;
+  }
+  .ov-mat-l { display: flex; align-items: center; gap: 6px; font-size: 11px; }
+  .ov-mat-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .ov-mat-bar { background: var(--gs-line); height: 6px; border-radius: 3px; overflow: hidden; }
+  .ov-mat-bar div { height: 100%; border-radius: 3px; }
+  .ov-mat-n { text-align: right; font-size: 11px; color: var(--gs-ink-2); }
+
+  /* ratings — half-circle */
+  .ov-rate {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+  .ov-rate-gauge {
+    position: relative;
+    width: 100%;
+    max-width: 200px;
+    height: 100px;
+  }
+  .ov-rate-center {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    padding-bottom: 4px;
+  }
+  .ov-rate-acc { font-size: 18px; font-weight: 700; }
+  .ov-rate-acc-l { font-size: 9px; color: var(--gs-ink-3); }
+  .ov-rate-legend {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 4px;
+    width: 100%;
+    font-size: 10px;
+  }
+  .ov-rate-li { display: flex; align-items: center; gap: 4px; }
+  .ov-rate-li-dot { width: 7px; height: 7px; border-radius: 50%; }
+
+  /* heatmap */
+  .ov-heat-foot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+    font-size: 9px;
+    color: var(--gs-ink-3);
+  }
+  .ov-heat-foot .scale {
+    display: flex;
+    gap: 2px;
+  }
+  .ov-heat-foot .scale span {
+    width: 7px; height: 7px; border-radius: 1.5px;
+  }
+
+  /* tags tile */
+  .ov-tags { display: flex; flex-direction: column; gap: 4px; }
+  .ov-tag {
+    display: grid;
+    grid-template-columns: 1fr 50px 24px;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 6px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 11px;
+    border: none;
+    background: transparent;
+    text-align: left;
+    color: var(--gs-ink);
+    font-family: inherit;
+  }
+  .ov-tag:hover { background: var(--gs-paper-2); }
+  .ov-tag-path { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: "JetBrains Mono", monospace; font-size: 10px; color: var(--gs-ink-2); }
+  .ov-tag-meter { background: var(--gs-line); height: 4px; border-radius: 2px; overflow: hidden; }
+  .ov-tag-meter span { display: block; background: var(--gs-green); height: 100%; }
+  .ov-tag-n { text-align: right; font-family: "JetBrains Mono", monospace; font-size: 10px; color: var(--gs-ink-2); }
+
+  /* ────────── Review tabs ────────── */
+
+  .rv-tabs {
+    display: flex;
+    gap: 4px;
+    border-bottom: 1px solid var(--gs-line);
+    margin-bottom: 16px;
+  }
+  .rv-tab {
+    background: transparent;
+    border: none;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 13px;
+    color: var(--gs-ink-3);
+    position: relative;
+  }
+  .rv-tab.on { color: var(--gs-ink); font-weight: 600; }
+  .rv-tab.on::after {
+    content: "";
+    position: absolute;
+    left: 12px; right: 12px; bottom: -1px;
+    height: 2px;
+    background: var(--gs-ink);
+  }
+
+  .rv-launch-h h2 {
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0 0 4px;
+  }
+  .rv-launch-h p {
+    font-size: 12px;
+    color: var(--gs-ink-3);
+    margin: 0 0 16px;
+  }
+
+  .rv-auto-card {
+    padding: 14px 16px;
+    margin-bottom: 14px;
+  }
+  .rv-auto-h {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 12px;
+  }
+  .rv-auto-zh { font-size: 12px; font-weight: 600; }
+  .rv-auto-pill {
+    font-size: 10px;
+    color: var(--gs-ink-3);
+    background: var(--gs-paper-2);
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-family: "JetBrains Mono", monospace;
+  }
+  .rv-auto-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+  .rv-auto-cell {
+    text-align: center;
+    padding: 8px;
+    background: var(--gs-paper);
+    border-radius: 6px;
+  }
+  .rv-auto-num { font-size: 22px; font-weight: 700; }
+  .rv-auto-cap { font-size: 11px; color: var(--gs-ink-2); margin-top: 2px; }
+  .rv-auto-foot {
+    font-size: 10px;
+    color: var(--gs-ink-3);
+    margin-top: 10px;
+    line-height: 1.4;
+    font-family: inherit;
+    letter-spacing: normal;
+    text-transform: none;
+  }
+
+  .rv-cta {
+    width: 100%;
+    background: var(--gs-ink);
+    color: #fff;
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+  }
+  .rv-cta-meta {
+    font-size: 11px;
+    opacity: .65;
+    font-family: "JetBrains Mono", monospace;
+  }
+
+  .rv-kbds {
+    display: flex;
+    gap: 12px;
+    font-size: 11px;
+    color: var(--gs-ink-3);
+    align-items: center;
+  }
+  .rv-kbds kbd {
+    background: var(--gs-card);
+    border: 1px solid var(--gs-line-2);
+    border-radius: 3px;
+    padding: 1px 5px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px;
+    color: var(--gs-ink-2);
+  }
+
+  /* live review */
+  .rv-live-progress {
+    height: 3px;
+    background: var(--gs-line);
+    margin-bottom: 14px;
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .rv-live-progress-fill {
+    height: 100%;
+    background: var(--gs-green);
+    border-radius: 2px;
+  }
+  .rv-live-card { padding: 16px 18px; }
+  .rv-live-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  .rv-live-tags { display: flex; gap: 4px; }
+  .rv-live-tag {
+    background: var(--gs-paper-2);
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 10px;
+    color: var(--gs-ink-2);
+    font-family: "JetBrains Mono", monospace;
+  }
+  .rv-live-head-r { display: flex; align-items: center; gap: 8px; font-size: 10px; color: var(--gs-ink-3); }
+  .rv-live-jump {
+    display: inline-flex; gap: 3px; align-items: center;
+    background: transparent; border: 1px solid var(--gs-line-2);
+    padding: 2px 6px; border-radius: 4px; font-size: 10px;
+    color: var(--gs-ink-2); cursor: pointer;
+  }
+  .rv-live-section { padding: 8px 0; }
+  .rv-live-section-label {
+    font-size: 10px;
+    color: var(--gs-ink-3);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: .14em;
+  }
+  .rv-live-question {
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+  .rv-live-divider {
+    height: 1px;
+    background: var(--gs-line);
+    margin: 8px 0;
+  }
+  .rv-live-answer {
+    font-size: 13px;
+    color: var(--gs-ink-2);
+    line-height: 1.55;
+  }
+  .rv-live-ratings {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    margin-top: 12px;
+  }
+  .rv-live-r {
+    appearance: none;
+    background: var(--gs-paper-2);
+    border: 1px solid var(--gs-line);
+    border-top: 3px solid;
+    border-radius: 6px;
+    padding: 8px 4px 6px;
+    text-align: center;
+    cursor: pointer;
+    font-family: inherit;
+    position: relative;
+  }
+  .rv-live-r-zh { font-weight: 600; font-size: 13px; }
+  .rv-live-r-interval { font-size: 10px; color: var(--gs-ink-3); margin-top: 4px; font-family: "JetBrains Mono", monospace; }
+  .rv-live-r-key {
+    position: absolute;
+    top: 4px; right: 4px;
+    font-size: 9px;
+    background: var(--gs-card);
+    padding: 1px 4px;
+    border-radius: 2px;
+    color: var(--gs-ink-3);
+    font-family: "JetBrains Mono", monospace;
+    border: 1px solid var(--gs-line);
+  }
+  .rv-live-r.again { border-top-color: var(--gs-clay); }
+  .rv-live-r.hard  { border-top-color: var(--gs-gold); }
+  .rv-live-r.good  { border-top-color: var(--gs-green); }
+  .rv-live-r.easy  { border-top-color: var(--gs-green-2); }
+  .rv-live-r.again .rv-live-r-zh { color: var(--gs-clay); }
+  .rv-live-r.hard  .rv-live-r-zh { color: var(--gs-gold); }
+  .rv-live-r.good  .rv-live-r-zh { color: var(--gs-green); }
+  .rv-live-r.easy  .rv-live-r-zh { color: var(--gs-green-2); }
+
+  /* ────────── Stats ────────── */
+
+  .st-range { display: flex; gap: 2px; background: var(--gs-paper-2); padding: 3px; border-radius: 6px; }
+  .st-range-btn {
+    background: transparent;
+    border: none;
+    padding: 4px 10px;
+    font-size: 11px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: "JetBrains Mono", monospace;
+    color: var(--gs-ink-3);
+  }
+  .st-range-btn.on { background: var(--gs-card); color: var(--gs-ink); }
+
+  .st-kpis {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .st-kpi { padding: 12px 14px; position: relative; }
+  .st-kpi-eyebrow { margin-bottom: 2px; /* removed in single-lang */ }
+  .st-kpi-zh { font-size: 11px; color: var(--gs-ink-2); margin-bottom: 4px; }
+  .st-kpi-num { font-size: 22px; font-weight: 700; }
+  .st-kpi-unit { font-size: 11px; color: var(--gs-ink-3); margin-left: 3px; }
+  .st-kpi-delta {
+    position: absolute;
+    top: 12px; right: 14px;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    background: var(--gs-paper-2);
+    color: var(--gs-ink-3);
+    font-family: inherit;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+  .st-kpi-delta.up { background: rgba(31,77,58,.1); color: var(--gs-green); }
+  .st-kpi-delta.down { background: rgba(184,83,58,.1); color: var(--gs-clay); }
+
+  .st-row { display: grid; gap: 10px; margin-bottom: 10px; }
+  .st-row-2-1 { grid-template-columns: 2fr 1fr; }
+  .st-row-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .st-card-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px; }
+  .st-card-head-l > div + div { margin-top: 2px; }
+  .st-card-zh { font-size: 13px; font-weight: 600; }
+  .st-card-en { /* eyebrow — only in current */ }
+
+  .st-acc { display: flex; flex-direction: column; gap: 8px; }
+  .st-acc-row { display: grid; grid-template-columns: 90px 1fr 36px 36px; align-items: center; gap: 6px; font-size: 11px; }
+  .st-acc-leaf { font-weight: 600; }
+  .st-acc-parent { font-size: 9px; color: var(--gs-ink-3); font-family: "Manrope", sans-serif; }
+  .st-acc-bar-wrap { background: var(--gs-line); height: 6px; border-radius: 3px; overflow: hidden; }
+  .st-acc-bar { height: 100%; }
+  .st-acc-bar-green { background: var(--gs-green); }
+  .st-acc-bar-gold  { background: var(--gs-gold); }
+  .st-acc-bar-clay  { background: var(--gs-clay); }
+  .st-acc-pct { text-align: right; font-family: "JetBrains Mono", monospace; font-size: 11px; }
+  .st-acc-pct-green { color: var(--gs-green); }
+  .st-acc-pct-gold  { color: var(--gs-gold); }
+  .st-acc-pct-clay  { color: var(--gs-clay); }
+  .st-acc-n { font-family: "JetBrains Mono", monospace; font-size: 10px; color: var(--gs-ink-3); text-align: right; }
+
+  .st-fc-legend, .st-hm-legend, .st-mb-legend {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+    font-size: 10px;
+    color: var(--gs-ink-3);
+  }
+  .st-fc-axis { font-family: "Manrope", sans-serif; }
+  .st-fc-dot, .st-hm-dot, .st-mb-dot {
+    display: inline-block; width: 7px; height: 7px; border-radius: 50%;
+    margin-right: 4px;
+    background: var(--gs-clay);
+  }
+
+  /* ────────── Tags ────────── */
+
+  .tg-search {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--gs-card);
+    border: 1px solid var(--gs-line);
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    color: var(--gs-ink-3);
+    width: 180px;
+  }
+  .tg-mat-seg { display: flex; gap: 2px; background: var(--gs-paper-2); padding: 3px; border-radius: 6px; }
+  .tg-mat-tab {
+    background: transparent;
+    border: none;
+    padding: 4px 10px;
+    font-size: 11px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: inherit;
+    color: var(--gs-ink-3);
+  }
+  .tg-mat-tab.on { background: var(--gs-card); color: var(--gs-ink); font-weight: 600; }
+
+  .tg-page {
+    display: grid;
+    grid-template-columns: 160px 1fr;
+    gap: 12px;
+  }
+  .tg-tree {
+    background: var(--gs-card);
+    border: 1px solid var(--gs-line);
+    border-radius: 8px;
+    padding: 8px;
+    font-size: 11px;
+  }
+  .tg-tree-head { font-size: 9px; color: var(--gs-ink-3); padding: 4px 6px 8px; }
+  .tg-tree-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 6px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  .tg-tree-row.on { background: var(--gs-paper-2); font-weight: 600; }
+  .tg-tree-name { flex: 1; }
+  .tg-tree-n { font-size: 10px; color: var(--gs-ink-3); font-family: "JetBrains Mono", monospace; }
+
+  .tg-filter-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 10px;
+    font-size: 11px;
+    flex-wrap: wrap;
+  }
+  .tg-filter-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--gs-paper-2);
+    padding: 3px 8px;
+    border-radius: 999px;
+    border: 1px solid var(--gs-line);
+  }
+  .tg-filter-and {
+    font-size: 9px;
+    color: var(--gs-ink-3);
+    font-family: "Manrope", sans-serif;
+    letter-spacing: .12em;
+  }
+  .tg-bc-pill {
+    background: rgba(31,77,58,.1);
+    color: var(--gs-green);
+    border: 1px solid rgba(31,77,58,.2);
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+  }
+
+  .tg-table {
+    background: var(--gs-card);
+    border: 1px solid var(--gs-line);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .tg-row {
+    display: grid;
+    grid-template-columns: 2.4fr 1fr 50px 50px;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--gs-line);
+    font-size: 12px;
+  }
+  .tg-row:last-child { border-bottom: none; }
+  .tg-row-head {
+    background: var(--gs-paper);
+    color: var(--gs-ink-3);
+    font-size: 10px;
+    font-family: "Manrope", sans-serif;
+    letter-spacing: .12em;
+    padding: 6px 12px;
+  }
+  .tg-row-head-zh {
+    text-transform: none;
+    letter-spacing: 0;
+    font-family: inherit;
+    font-size: 11px;
+    color: var(--gs-ink-2);
+  }
+  .tg-c-tags { display: flex; gap: 3px; }
+  .tg-tag-chip {
+    background: var(--gs-paper-2);
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-size: 10px;
+    font-family: "JetBrains Mono", monospace;
+    border: none;
+    color: var(--gs-ink-2);
+  }
+  .tg-c-ef, .tg-c-due { font-family: "JetBrains Mono", monospace; font-size: 11px; color: var(--gs-ink-2); }
+  .tg-due-clay { color: var(--gs-clay); }
+
+  /* ────────── Settings ────────── */
+
+  .gs-nav-strip {
+    display: flex;
+    gap: 4px;
+    padding: 6px;
+    background: var(--gs-paper-2);
+    border-radius: 7px;
+    margin-bottom: 16px;
+  }
+  .gs-nav-icon {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 5px;
+    color: var(--gs-ink-3);
+    cursor: pointer;
+  }
+  .gs-nav-icon.active { background: var(--gs-card); color: var(--gs-ink); }
+
+  .gs-set-section { margin-bottom: 16px; }
+  .gs-set-header { margin-bottom: 12px; }
+  .gs-set-title {
+    font-size: 16px;
+    font-weight: 700;
+    margin: 0 0 4px;
+  }
+  .gs-set-sub {
+    /* keep gs-en class behavior in current only */
+  }
+  .gs-set-sub-zh {
+    font-size: 11px;
+    color: var(--gs-ink-3);
+    line-height: 1.4;
+  }
+
+  .gs-setting-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 0;
+    border-top: 1px solid var(--gs-line);
+  }
+  .gs-setting-row:first-child { border-top: none; }
+  .gs-setting-name {
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 2px;
+  }
+  .gs-setting-desc {
+    font-size: 11px;
+    color: var(--gs-ink-3);
+    line-height: 1.5;
+    max-width: 360px;
+  }
+  .gs-setting-control input[type="text"], .gs-setting-control textarea {
+    padding: 5px 8px;
+    border: 1px solid var(--gs-line-2);
+    border-radius: 5px;
+    background: var(--gs-card);
+    font-size: 12px;
+    font-family: inherit;
+    color: var(--gs-ink);
+  }
+  .gs-toggle {
+    width: 30px;
+    height: 18px;
+    background: var(--gs-line);
+    border-radius: 999px;
+    position: relative;
+    display: inline-block;
+  }
+  .gs-toggle::after {
+    content: "";
+    position: absolute;
+    top: 2px; left: 2px;
+    width: 14px; height: 14px;
+    background: #fff;
+    border-radius: 50%;
+    transition: left .15s;
+    box-shadow: 0 1px 2px rgba(0,0,0,.15);
+  }
+  .gs-toggle.on { background: var(--gs-green); }
+  .gs-toggle.on::after { left: 14px; }
+
+  /* Language picker — new control highlighted */
+  .lang-picker-row {
+    background: linear-gradient(180deg, rgba(31,77,58,.04), transparent);
+    border: 1px dashed rgba(31,77,58,.35);
+    border-radius: 8px;
+    padding: 12px;
+    margin-top: 8px;
+  }
+  .lang-picker-flag {
+    display: inline-block;
+    font-size: 9px;
+    background: var(--gs-green);
+    color: #fff;
+    padding: 2px 6px;
+    border-radius: 3px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    font-family: "Manrope", sans-serif;
+    margin-right: 8px;
+  }
+  .lang-seg {
+    display: inline-flex;
+    background: var(--gs-paper-2);
+    padding: 3px;
+    border-radius: 6px;
+    gap: 2px;
+  }
+  .lang-seg button {
+    background: transparent;
+    border: none;
+    padding: 5px 14px;
+    font-size: 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    color: var(--gs-ink-3);
+    font-family: inherit;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .lang-seg button.on {
+    background: var(--gs-card);
+    color: var(--gs-ink);
+    font-weight: 600;
+  }
+
+  /* ────────── Sidebar rail ────────── */
+
+  .sidebar-demo {
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    gap: 16px;
+  }
+  .gs-rail {
+    background: var(--gs-paper-2);
+    border-radius: 10px;
+    padding: 16px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    min-height: 360px;
+  }
+  .gs-rail-logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+  .gs-rail-mark {
+    width: 28px; height: 28px;
+    background: var(--gs-ink);
+    color: #fff;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 14px;
+  }
+  .gs-rail-zh { font-size: 14px; font-weight: 700; line-height: 1.1; }
+  .gs-rail-en { /* removed in single-lang */ }
+  .gs-rail-section {
+    font-family: "Manrope", sans-serif;
+    font-size: 9px;
+    letter-spacing: .18em;
+    color: var(--gs-ink-3);
+    margin-bottom: 6px;
+    padding-left: 4px;
+  }
+  .gs-rail-section-clean {
+    font-size: 11px;
+    color: var(--gs-ink-3);
+    margin-bottom: 6px;
+    padding-left: 4px;
+    font-family: inherit;
+    letter-spacing: normal;
+  }
+  .gs-rail-nav { display: flex; flex-direction: column; gap: 2px; }
+  .gs-rail-item {
+    background: transparent;
+    border: none;
+    padding: 7px 10px;
+    font-size: 13px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-family: inherit;
+    color: var(--gs-ink-2);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-align: left;
+  }
+  .gs-rail-item.on { background: var(--gs-card); color: var(--gs-ink); font-weight: 600; }
+  .gs-rail-item-badge {
+    margin-left: auto;
+    font-size: 10px;
+    background: var(--gs-clay);
+    color: #fff;
+    padding: 1px 5px;
+    border-radius: 999px;
+    font-family: "JetBrains Mono", monospace;
+  }
+  .gs-rail-foot {
+    margin-top: auto;
+    padding-top: 12px;
+    border-top: 1px solid var(--gs-line);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .gs-rail-streak {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .gs-rail-streak-num { font-size: 16px; font-weight: 700; line-height: 1; }
+  .gs-rail-streak-cap { font-size: 9px; color: var(--gs-ink-3); }
+
+  /* ────────── Onboarding modal ────────── */
+
+  .modal-demo {
+    background: rgba(26,29,27,.55);
+    padding: 24px;
+    border-radius: 10px;
+    display: flex;
+    justify-content: center;
+  }
+  .gs-onboarding {
+    background: var(--gs-paper);
+    border-radius: 10px;
+    padding: 22px;
+    width: 100%;
+    max-width: 460px;
+  }
+  .gs-ob-head { margin-bottom: 14px; }
+  .gs-ob-title { font-size: 18px; font-weight: 700; margin: 0 0 4px; }
+  .gs-ob-sub { font-size: 12px; color: var(--gs-ink-2); margin: 0; line-height: 1.5; }
+  .gs-ob-section { padding: 12px 0; border-top: 1px solid var(--gs-line); }
+  .gs-ob-section-h {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .gs-ob-section-zh { font-size: 12px; font-weight: 600; }
+  .gs-ob-input {
+    width: 100%;
+    padding: 6px 10px;
+    border: 1px solid var(--gs-line-2);
+    border-radius: 5px;
+    font-size: 13px;
+    font-family: "JetBrains Mono", monospace;
+    background: var(--gs-card);
+    color: var(--gs-ink);
+  }
+  .gs-ob-hint { font-size: 11px; color: var(--gs-ink-3); margin-top: 6px; line-height: 1.4; }
+  .gs-ob-options { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+  .gs-ob-option {
+    background: var(--gs-card);
+    border: 1px solid var(--gs-line-2);
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-size: 11px;
+    color: var(--gs-ink-2);
+    line-height: 1.4;
+  }
+  .gs-ob-option.active { border-color: var(--gs-green); background: rgba(31,77,58,.04); }
+  .gs-ob-option-h { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+  .gs-ob-radio {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    border: 1.5px solid var(--gs-line-2);
+  }
+  .gs-ob-option.active .gs-ob-radio {
+    border-color: var(--gs-green);
+    box-shadow: inset 0 0 0 2px var(--gs-green);
+    background: #fff;
+  }
+  .gs-ob-option-zh { font-size: 12px; font-weight: 600; color: var(--gs-ink); }
+  .gs-ob-option-rec {
+    font-size: 9px;
+    background: var(--gs-green);
+    color: #fff;
+    padding: 1px 5px;
+    border-radius: 2px;
+    font-family: "Manrope", sans-serif;
+    letter-spacing: .12em;
+  }
+  .gs-ob-actions {
+    margin-top: 16px;
+    display: flex;
+    justify-content: flex-end;
+  }
+
+</style>
+</head>
+<body>
+
+<header class="page-header">
+  <h1>Grindstone — 语言切换 Mockup / Language-Selectable Mockup</h1>
+  <p class="subtitle">
+    当前 UI 是分层双语：英文 ALL-CAPS 做装饰 eyebrow，中文做主内容。目标是改成"用户在设置里选一种语言（ZH / EN），UI 纯一种语言呈现"。
+    本 mockup 比对 7 个视图在两种模式下的最终样貌——所有装饰性英文 eyebrow（<code>TODAY</code>、<code>DUE</code>、<code>PRE-FLIGHT</code> 之类）一律丢弃，文字翻译对收敛为单一语言。
+    第八节展示新增的 Settings → 界面 → Language 控件位置。
+  </p>
+  <div class="legend">
+    <span><span class="lang-picker-flag" style="background:var(--gs-green)">ZH</span> 中文模式</span>
+    <span><span class="lang-picker-flag" style="background:var(--gs-clay)">EN</span> English mode</span>
+    <span><span class="lang-picker-flag" style="background:var(--gs-ink-3)">CURRENT</span> 现状参考</span>
+  </div>
+  <nav class="toc">
+    <a href="#sidebar">Sidebar</a>
+    <a href="#overview">Overview</a>
+    <a href="#review">Review</a>
+    <a href="#review-live">Review (Live)</a>
+    <a href="#stats">Stats</a>
+    <a href="#tags">Tags</a>
+    <a href="#onboarding">Onboarding</a>
+    <a href="#settings">Settings + 新 Language 控件</a>
+  </nav>
+</header>
+
+<!-- ════════════════════════════════════════════════════════════════
+     SIDEBAR
+     ════════════════════════════════════════════════════════════════ -->
+
+<section class="view" id="sidebar">
+  <h2 class="view-title">1 · Sidebar (navigation rail)</h2>
+  <p class="view-note">
+    当前侧栏 logo 是 "磨刀石 / GRINDSTONE" 双语堆叠；"WORKSPACE" 是装饰 section label。两种模式都收敛为单语言：纯文字 section label + 单行 logo。
+    Streak caption 当前是 "连续打卡 · day streak"（混排），改成单语 caption。
+  </p>
+  <div class="split">
+
+    <!-- ZH -->
+    <div class="panel">
+      <div class="panel-label zh">ZH MODE</div>
+      <div class="sidebar-demo">
+        <div class="gs-rail">
+          <div class="gs-rail-logo">
+            <div class="gs-rail-mark">磨</div>
+            <div>
+              <div class="gs-rail-zh">磨刀石</div>
+            </div>
+          </div>
+          <div>
+            <div class="gs-rail-section-clean">工作区</div>
+            <div class="gs-rail-nav">
+              <button class="gs-rail-item on">▦ 概览</button>
+              <button class="gs-rail-item">↻ 复习 <span class="gs-rail-item-badge">12</span></button>
+              <button class="gs-rail-item">▥ 统计</button>
+              <button class="gs-rail-item">⌗ 标签</button>
+            </div>
+          </div>
+          <div class="gs-rail-foot">
+            <div class="gs-rail-streak">
+              <span style="font-size:14px;">🔥</span>
+              <div>
+                <div class="gs-rail-streak-num">14</div>
+                <div class="gs-rail-streak-cap">连续打卡</div>
+              </div>
+            </div>
+            <button class="gs-btn" style="font-size:11px; padding:5px 8px;">☾ 暗色</button>
+          </div>
+        </div>
+        <div style="font-size:11px; color:var(--gs-ink-3); padding:8px; line-height:1.5;">
+          ⊳ 主内容区<br>（活动视图）
+        </div>
+      </div>
+    </div>
+
+    <!-- EN -->
+    <div class="panel">
+      <div class="panel-label en">EN MODE</div>
+      <div class="sidebar-demo">
+        <div class="gs-rail">
+          <div class="gs-rail-logo">
+            <div class="gs-rail-mark">G</div>
+            <div>
+              <div class="gs-rail-zh" style="font-family:'Manrope', sans-serif; letter-spacing:.02em;">Grindstone</div>
+            </div>
+          </div>
+          <div>
+            <div class="gs-rail-section-clean">Workspace</div>
+            <div class="gs-rail-nav">
+              <button class="gs-rail-item on">▦ Overview</button>
+              <button class="gs-rail-item">↻ Review <span class="gs-rail-item-badge">12</span></button>
+              <button class="gs-rail-item">▥ Stats</button>
+              <button class="gs-rail-item">⌗ Tags</button>
+            </div>
+          </div>
+          <div class="gs-rail-foot">
+            <div class="gs-rail-streak">
+              <span style="font-size:14px;">🔥</span>
+              <div>
+                <div class="gs-rail-streak-num">14</div>
+                <div class="gs-rail-streak-cap">day streak</div>
+              </div>
+            </div>
+            <button class="gs-btn" style="font-size:11px; padding:5px 8px;">☾ Dark</button>
+          </div>
+        </div>
+        <div style="font-size:11px; color:var(--gs-ink-3); padding:8px; line-height:1.5;">
+          ⊳ Main content<br>(active view)
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════
+     OVERVIEW
+     ════════════════════════════════════════════════════════════════ -->
+
+<section class="view" id="overview">
+  <h2 class="view-title">2 · Overview</h2>
+  <p class="view-note">
+    当前页头有 <code>TODAY · 2026.05.17 MON</code> 装饰 eyebrow。Stat strip 是 <code>DUE / 今日目标</code> 双行。Tile 标题是 <code>未来七日复习量 / FORECAST · 7D</code>。
+    单语模式下：eyebrow 一律丢弃；stat 简化为"标签 + 数字"单行；tile 标题保留单行。
+  </p>
+  <div class="split">
+
+    <!-- ZH -->
+    <div class="panel">
+      <div class="panel-label zh">ZH MODE</div>
+
+      <div class="pagehead">
+        <div class="pagehead-l">
+          <h1>概览</h1>
+        </div>
+        <div class="pagehead-r">
+          <div class="ov-quote">"博观约取"</div>
+          <button class="gs-btn gs-btn-primary">开始复习 · 12</button>
+        </div>
+      </div>
+
+      <div class="ov-strip">
+        <div class="ov-stat"><div class="ov-stat-top"><span class="ov-stat-zh">今日目标</span></div><div class="ov-stat-num accent">12</div></div>
+        <div class="ov-stat"><div class="ov-stat-top"><span class="ov-stat-zh">已完成</span></div><div class="ov-stat-num">5</div></div>
+        <div class="ov-stat"><div class="ov-stat-top"><span class="ov-stat-zh">剩余</span></div><div class="ov-stat-num">7</div></div>
+        <div class="ov-stat"><div class="ov-stat-top"><span class="ov-stat-zh">连续打卡</span></div><div class="ov-stat-num">14<span class="ov-stat-suffix">天</span></div></div>
+        <div class="ov-stat"><div class="ov-stat-top"><span class="ov-stat-zh">本周</span></div><div class="ov-stat-num">82<span class="ov-stat-suffix">分</span></div></div>
+        <div class="ov-stat"><div class="ov-stat-top"><span class="ov-stat-zh">标签</span></div><div class="ov-stat-num">23</div></div>
+      </div>
+
+      <div class="ov-grid">
+        <div class="gs-card ov-tile">
+          <div class="ov-th"><span class="ov-th-zh">未来七日复习量</span></div>
+          <div class="ov-fore">
+            <div class="ov-fc"><div class="ov-fc-bar-wrap"><div class="ov-fc-bar today" style="height:90%;">12</div></div><div class="ov-fc-d today">今</div></div>
+            <div class="ov-fc"><div class="ov-fc-bar-wrap"><div class="ov-fc-bar" style="height:55%;">7</div></div><div class="ov-fc-d">二</div></div>
+            <div class="ov-fc"><div class="ov-fc-bar-wrap"><div class="ov-fc-bar" style="height:70%;">9</div></div><div class="ov-fc-d">三</div></div>
+            <div class="ov-fc"><div class="ov-fc-bar-wrap"><div class="ov-fc-bar" style="height:30%;">4</div></div><div class="ov-fc-d">四</div></div>
+            <div class="ov-fc"><div class="ov-fc-bar-wrap"><div class="ov-fc-bar" style="height:45%;">6</div></div><div class="ov-fc-d">五</div></div>
+            <div class="ov-fc"><div class="ov-fc-bar-wrap"><div class="ov-fc-bar" style="height:25%;">3</div></div><div class="ov-fc-d">六</div></div>
+            <div class="ov-fc"><div class="ov-fc-bar-wrap"><div class="ov-fc-bar" style="height:60%;">8</div></div><div class="ov-fc-d">日</div></div>
+          </div>
+        </div>
+
+        <div class="gs-card ov-tile">
+          <div class="ov-th"><span class="ov-th-zh">今日进度</span></div>
+          <div class="ov-prog">
+            <svg width="100" height="100" viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="44" fill="none" stroke="var(--gs-line)" stroke-width="9"/>
+              <circle cx="50" cy="50" r="44" fill="none" stroke="var(--gs-green)" stroke-width="9" stroke-linecap="round"
+                stroke-dasharray="276" stroke-dashoffset="161" transform="rotate(-90 50 50)"/>
+            </svg>
+            <div class="ov-prog-overlay">
+              <div class="ov-prog-pct">42%</div>
+              <div class="ov-prog-cap">5 / 12</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="gs-card ov-tile">
+          <div class="ov-th"><span class="ov-th-zh">卡片成熟度</span></div>
+          <div class="ov-mat-rows">
+            <div class="ov-mat">
+              <div class="ov-mat-l"><span class="ov-mat-dot" style="background:var(--gs-clay)"></span>新卡</div>
+              <div class="ov-mat-bar"><div style="width:18%; background:var(--gs-clay)"></div></div>
+              <span class="ov-mat-n">18</span>
+            </div>
+            <div class="ov-mat">
+              <div class="ov-mat-l"><span class="ov-mat-dot" style="background:var(--gs-gold)"></span>学习中</div>
+              <div class="ov-mat-bar"><div style="width:42%; background:var(--gs-gold)"></div></div>
+              <span class="ov-mat-n">42</span>
+            </div>
+            <div class="ov-mat">
+              <div class="ov-mat-l"><span class="ov-mat-dot" style="background:var(--gs-green)"></span>已熟</div>
+              <div class="ov-mat-bar"><div style="width:89%; background:var(--gs-green)"></div></div>
+              <span class="ov-mat-n">89</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="gs-card ov-tile">
+          <div class="ov-th"><span class="ov-th-zh">评分分布</span></div>
+          <div class="ov-rate">
+            <div class="ov-rate-gauge">
+              <svg viewBox="0 0 200 110" preserveAspectRatio="xMidYMid meet" style="width:100%; height:100%;">
+                <path d="M 20 98 A 80 80 0 0 1 180 98" fill="none" stroke="var(--gs-line)" stroke-width="14"/>
+                <path d="M 20 98 A 80 80 0 0 1 60 30" fill="none" stroke="var(--gs-clay)" stroke-width="14"/>
+                <path d="M 64 28 A 80 80 0 0 1 105 18" fill="none" stroke="var(--gs-gold)" stroke-width="14"/>
+                <path d="M 109 19 A 80 80 0 0 1 160 35" fill="none" stroke="var(--gs-green)" stroke-width="14"/>
+                <path d="M 163 38 A 80 80 0 0 1 180 98" fill="none" stroke="var(--gs-green-2)" stroke-width="14"/>
+              </svg>
+              <div class="ov-rate-center">
+                <div class="ov-rate-acc">78%</div>
+                <div class="ov-rate-acc-l">正确率</div>
+              </div>
+            </div>
+            <div class="ov-rate-legend">
+              <div class="ov-rate-li"><span class="ov-rate-li-dot" style="background:var(--gs-clay)"></span>重来 12%</div>
+              <div class="ov-rate-li"><span class="ov-rate-li-dot" style="background:var(--gs-gold)"></span>难 10%</div>
+              <div class="ov-rate-li"><span class="ov-rate-li-dot" style="background:var(--gs-green)"></span>可 58%</div>
+              <div class="ov-rate-li"><span class="ov-rate-li-dot" style="background:var(--gs-green-2)"></span>易 20%</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="gs-card ov-tile">
+          <div class="ov-th"><span class="ov-th-zh">活动热力 · 近 12 周</span></div>
+          <svg viewBox="0 0 168 100" style="width:100%;">
+            <g>
+              <!-- Static dots, varied intensity -->
+              <rect x="0" y="0" width="11" height="11" rx="2" fill="var(--gs-green-soft)"/>
+              <rect x="0" y="14" width="11" height="11" rx="2" fill="#9bbcaa"/>
+              <rect x="0" y="28" width="11" height="11" rx="2" fill="var(--gs-green)"/>
+              <rect x="0" y="42" width="11" height="11" rx="2" fill="var(--gs-green-soft)"/>
+              <rect x="0" y="56" width="11" height="11" rx="2" fill="var(--gs-line)"/>
+              <rect x="0" y="70" width="11" height="11" rx="2" fill="#9bbcaa"/>
+              <rect x="0" y="84" width="11" height="11" rx="2" fill="var(--gs-green-soft)"/>
+              <!-- repeat pattern for ~12 cols -->
+              <g fill="var(--gs-green-soft)">
+                <rect x="14" y="0" width="11" height="11" rx="2"/>
+                <rect x="14" y="28" width="11" height="11" rx="2" fill="#5b8d75"/>
+                <rect x="14" y="56" width="11" height="11" rx="2" fill="var(--gs-green)"/>
+                <rect x="28" y="14" width="11" height="11" rx="2" fill="#9bbcaa"/>
+                <rect x="28" y="42" width="11" height="11" rx="2"/>
+                <rect x="28" y="70" width="11" height="11" rx="2" fill="var(--gs-green)"/>
+                <rect x="42" y="0" width="11" height="11" rx="2" fill="var(--gs-line)"/>
+                <rect x="42" y="28" width="11" height="11" rx="2"/>
+                <rect x="42" y="56" width="11" height="11" rx="2" fill="#5b8d75"/>
+                <rect x="56" y="14" width="11" height="11" rx="2" fill="var(--gs-green)"/>
+                <rect x="56" y="42" width="11" height="11" rx="2"/>
+                <rect x="56" y="70" width="11" height="11" rx="2" fill="#9bbcaa"/>
+                <rect x="70" y="0" width="11" height="11" rx="2"/>
+                <rect x="70" y="28" width="11" height="11" rx="2" fill="var(--gs-green)"/>
+                <rect x="70" y="56" width="11" height="11" rx="2" fill="#5b8d75"/>
+                <rect x="84" y="14" width="11" height="11" rx="2"/>
+                <rect x="84" y="42" width="11" height="11" rx="2" fill="var(--gs-green)"/>
+                <rect x="84" y="70" width="11" height="11" rx="2"/>
+                <rect x="98" y="0" width="11" height="11" rx="2" fill="#9bbcaa"/>
+                <rect x="98" y="28" width="11" height="11" rx="2"/>
+                <rect x="98" y="56" width="11" height="11" rx="2" fill="var(--gs-green)"/>
+                <rect x="112" y="14" width="11" height="11" rx="2" fill="#5b8d75"/>
+                <rect x="112" y="42" width="11" height="11" rx="2"/>
+                <rect x="112" y="70" width="11" height="11" rx="2" fill="#9bbcaa"/>
+                <rect x="126" y="0" width="11" height="11" rx="2" fill="var(--gs-green)"/>
+                <rect x="126" y="28" width="11" height="11" rx="2"/>
+                <rect x="126" y="56" width="11" height="11" rx="2" fill="#9bbcaa"/>
+                <rect x="140" y="14" width="11" height="11" rx="2"/>
+                <rect x="140" y="42" width="11" height="11" rx="2" fill="var(--gs-green)"/>
+                <rect x="140" y="70" width="11" height="11" rx="2" fill="var(--gs-line)"/>
+              </g>
+            </g>
+          </svg>
+          <div class="ov-heat-foot">
+            <span>近 12 周</span>
+            <div class="scale">
+              <span style="background:var(--gs-line)"></span>
+              <span style="background:var(--gs-green-soft)"></span>
+              <span style="background:#9bbcaa"></span>
+              <span style="background:#5b8d75"></span>
+              <span style="background:var(--gs-green)"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="gs-card ov-tile">
+          <div class="ov-th"><span class="ov-th-zh">热门标签</span></div>
+          <div class="ov-tags">
+            <button class="ov-tag"><span class="ov-tag-path">grind/algorithms</span><span class="ov-tag-meter"><span style="width:90%"></span></span><span class="ov-tag-n">142</span></button>
+            <button class="ov-tag"><span class="ov-tag-path">grind/biology</span><span class="ov-tag-meter"><span style="width:65%"></span></span><span class="ov-tag-n">98</span></button>
+            <button class="ov-tag"><span class="ov-tag-path">grind/history</span><span class="ov-tag-meter"><span style="width:50%"></span></span><span class="ov-tag-n">76</span></button>
+            <button class="ov-tag"><span class="ov-tag-path">grind/zh-vocab</span><span class="ov-tag-meter"><span style="width:38%"></span></span><span class="ov-tag-n">52</span></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EN -->
+    <div class="panel">
+      <div class="panel-label en">EN MODE</div>
+
+      <div class="pagehead">
+        <div class="pagehead-l">
+          <h1>Overview</h1>
+        </div>
+        <div class="pagehead-r">
+          <div class="ov-quote">"What we know is a drop, what we don't is an ocean."</div>
+          <button class="gs-btn gs-btn-primary">Start review · 12</button>
+        </div>
+      </div>
+
+      <div class="ov-strip">
+        <div class="ov-stat"><div class="ov-stat-top"><span class="ov-stat-en-only">Due today</span></div><div class="ov-stat-num accent">12</div></div>
+        <div class="ov-stat"><div class="ov-stat-top"><span class="ov-stat-en-only">Done</span></div><div class="ov-stat-num">5</div></div>
+        <div class="ov-stat"><div class="ov-stat-top"><span class="ov-stat-en-only">Left</span></div><div class="ov-stat-num">7</div></div>
+        <div class="ov-stat"><div class="ov-stat-top"><span class="ov-stat-en-only">Streak</span></div><div class="ov-stat-num">14<span class="ov-stat-suffix">d</span></div></div>
+        <div class="ov-stat"><div class="ov-stat-top"><span class="ov-stat-en-only">This week</span></div><div class="ov-stat-num">82<span class="ov-stat-suffix">m</span></div></div>
+        <div class="ov-stat"><div class="ov-stat-top"><span class="ov-stat-en-only">Tags</span></div><div class="ov-stat-num">23</div></div>
+      </div>
+
+      <div class="ov-grid">
+        <div class="gs-card ov-tile">
+          <div class="ov-th"><span class="ov-th-zh">7-day forecast</span></div>
+          <div class="ov-fore">
+            <div class="ov-fc"><div class="ov-fc-bar-wrap"><div class="ov-fc-bar today" style="height:90%;">12</div></div><div class="ov-fc-d today">Today</div></div>
+            <div class="ov-fc"><div class="ov-fc-bar-wrap"><div class="ov-fc-bar" style="height:55%;">7</div></div><div class="ov-fc-d">Tue</div></div>
+            <div class="ov-fc"><div class="ov-fc-bar-wrap"><div class="ov-fc-bar" style="height:70%;">9</div></div><div class="ov-fc-d">Wed</div></div>
+            <div class="ov-fc"><div class="ov-fc-bar-wrap"><div class="ov-fc-bar" style="height:30%;">4</div></div><div class="ov-fc-d">Thu</div></div>
+            <div class="ov-fc"><div class="ov-fc-bar-wrap"><div class="ov-fc-bar" style="height:45%;">6</div></div><div class="ov-fc-d">Fri</div></div>
+            <div class="ov-fc"><div class="ov-fc-bar-wrap"><div class="ov-fc-bar" style="height:25%;">3</div></div><div class="ov-fc-d">Sat</div></div>
+            <div class="ov-fc"><div class="ov-fc-bar-wrap"><div class="ov-fc-bar" style="height:60%;">8</div></div><div class="ov-fc-d">Sun</div></div>
+          </div>
+        </div>
+
+        <div class="gs-card ov-tile">
+          <div class="ov-th"><span class="ov-th-zh">Today's progress</span></div>
+          <div class="ov-prog">
+            <svg width="100" height="100" viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="44" fill="none" stroke="var(--gs-line)" stroke-width="9"/>
+              <circle cx="50" cy="50" r="44" fill="none" stroke="var(--gs-green)" stroke-width="9" stroke-linecap="round"
+                stroke-dasharray="276" stroke-dashoffset="161" transform="rotate(-90 50 50)"/>
+            </svg>
+            <div class="ov-prog-overlay">
+              <div class="ov-prog-pct">42%</div>
+              <div class="ov-prog-cap">5 / 12</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="gs-card ov-tile">
+          <div class="ov-th"><span class="ov-th-zh">Card maturity</span></div>
+          <div class="ov-mat-rows">
+            <div class="ov-mat">
+              <div class="ov-mat-l"><span class="ov-mat-dot" style="background:var(--gs-clay)"></span>New</div>
+              <div class="ov-mat-bar"><div style="width:18%; background:var(--gs-clay)"></div></div>
+              <span class="ov-mat-n">18</span>
+            </div>
+            <div class="ov-mat">
+              <div class="ov-mat-l"><span class="ov-mat-dot" style="background:var(--gs-gold)"></span>Learning</div>
+              <div class="ov-mat-bar"><div style="width:42%; background:var(--gs-gold)"></div></div>
+              <span class="ov-mat-n">42</span>
+            </div>
+            <div class="ov-mat">
+              <div class="ov-mat-l"><span class="ov-mat-dot" style="background:var(--gs-green)"></span>Mature</div>
+              <div class="ov-mat-bar"><div style="width:89%; background:var(--gs-green)"></div></div>
+              <span class="ov-mat-n">89</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="gs-card ov-tile">
+          <div class="ov-th"><span class="ov-th-zh">Ratings</span></div>
+          <div class="ov-rate">
+            <div class="ov-rate-gauge">
+              <svg viewBox="0 0 200 110" preserveAspectRatio="xMidYMid meet" style="width:100%; height:100%;">
+                <path d="M 20 98 A 80 80 0 0 1 180 98" fill="none" stroke="var(--gs-line)" stroke-width="14"/>
+                <path d="M 20 98 A 80 80 0 0 1 60 30" fill="none" stroke="var(--gs-clay)" stroke-width="14"/>
+                <path d="M 64 28 A 80 80 0 0 1 105 18" fill="none" stroke="var(--gs-gold)" stroke-width="14"/>
+                <path d="M 109 19 A 80 80 0 0 1 160 35" fill="none" stroke="var(--gs-green)" stroke-width="14"/>
+                <path d="M 163 38 A 80 80 0 0 1 180 98" fill="none" stroke="var(--gs-green-2)" stroke-width="14"/>
+              </svg>
+              <div class="ov-rate-center">
+                <div class="ov-rate-acc">78%</div>
+                <div class="ov-rate-acc-l">Accuracy</div>
+              </div>
+            </div>
+            <div class="ov-rate-legend">
+              <div class="ov-rate-li"><span class="ov-rate-li-dot" style="background:var(--gs-clay)"></span>Again 12%</div>
+              <div class="ov-rate-li"><span class="ov-rate-li-dot" style="background:var(--gs-gold)"></span>Hard 10%</div>
+              <div class="ov-rate-li"><span class="ov-rate-li-dot" style="background:var(--gs-green)"></span>Good 58%</div>
+              <div class="ov-rate-li"><span class="ov-rate-li-dot" style="background:var(--gs-green-2)"></span>Easy 20%</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="gs-card ov-tile">
+          <div class="ov-th"><span class="ov-th-zh">Activity heatmap · last 12 weeks</span></div>
+          <svg viewBox="0 0 168 100" style="width:100%;">
+            <g>
+              <rect x="0" y="0" width="11" height="11" rx="2" fill="var(--gs-green-soft)"/>
+              <rect x="0" y="14" width="11" height="11" rx="2" fill="#9bbcaa"/>
+              <rect x="0" y="28" width="11" height="11" rx="2" fill="var(--gs-green)"/>
+              <rect x="0" y="42" width="11" height="11" rx="2" fill="var(--gs-green-soft)"/>
+              <rect x="0" y="56" width="11" height="11" rx="2" fill="var(--gs-line)"/>
+              <rect x="0" y="70" width="11" height="11" rx="2" fill="#9bbcaa"/>
+              <rect x="0" y="84" width="11" height="11" rx="2" fill="var(--gs-green-soft)"/>
+              <g fill="var(--gs-green-soft)">
+                <rect x="14" y="0" width="11" height="11" rx="2"/>
+                <rect x="14" y="28" width="11" height="11" rx="2" fill="#5b8d75"/>
+                <rect x="14" y="56" width="11" height="11" rx="2" fill="var(--gs-green)"/>
+                <rect x="28" y="14" width="11" height="11" rx="2" fill="#9bbcaa"/>
+                <rect x="28" y="42" width="11" height="11" rx="2"/>
+                <rect x="28" y="70" width="11" height="11" rx="2" fill="var(--gs-green)"/>
+                <rect x="42" y="0" width="11" height="11" rx="2" fill="var(--gs-line)"/>
+                <rect x="42" y="28" width="11" height="11" rx="2"/>
+                <rect x="42" y="56" width="11" height="11" rx="2" fill="#5b8d75"/>
+                <rect x="56" y="14" width="11" height="11" rx="2" fill="var(--gs-green)"/>
+                <rect x="56" y="42" width="11" height="11" rx="2"/>
+                <rect x="56" y="70" width="11" height="11" rx="2" fill="#9bbcaa"/>
+                <rect x="70" y="0" width="11" height="11" rx="2"/>
+                <rect x="70" y="28" width="11" height="11" rx="2" fill="var(--gs-green)"/>
+                <rect x="70" y="56" width="11" height="11" rx="2" fill="#5b8d75"/>
+                <rect x="84" y="14" width="11" height="11" rx="2"/>
+                <rect x="84" y="42" width="11" height="11" rx="2" fill="var(--gs-green)"/>
+                <rect x="84" y="70" width="11" height="11" rx="2"/>
+                <rect x="98" y="0" width="11" height="11" rx="2" fill="#9bbcaa"/>
+                <rect x="98" y="28" width="11" height="11" rx="2"/>
+                <rect x="98" y="56" width="11" height="11" rx="2" fill="var(--gs-green)"/>
+                <rect x="112" y="14" width="11" height="11" rx="2" fill="#5b8d75"/>
+                <rect x="112" y="42" width="11" height="11" rx="2"/>
+                <rect x="112" y="70" width="11" height="11" rx="2" fill="#9bbcaa"/>
+                <rect x="126" y="0" width="11" height="11" rx="2" fill="var(--gs-green)"/>
+                <rect x="126" y="28" width="11" height="11" rx="2"/>
+                <rect x="126" y="56" width="11" height="11" rx="2" fill="#9bbcaa"/>
+                <rect x="140" y="14" width="11" height="11" rx="2"/>
+                <rect x="140" y="42" width="11" height="11" rx="2" fill="var(--gs-green)"/>
+                <rect x="140" y="70" width="11" height="11" rx="2" fill="var(--gs-line)"/>
+              </g>
+            </g>
+          </svg>
+          <div class="ov-heat-foot">
+            <span>Last 12 weeks</span>
+            <div class="scale">
+              <span style="background:var(--gs-line)"></span>
+              <span style="background:var(--gs-green-soft)"></span>
+              <span style="background:#9bbcaa"></span>
+              <span style="background:#5b8d75"></span>
+              <span style="background:var(--gs-green)"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="gs-card ov-tile">
+          <div class="ov-th"><span class="ov-th-zh">Top tags</span></div>
+          <div class="ov-tags">
+            <button class="ov-tag"><span class="ov-tag-path">grind/algorithms</span><span class="ov-tag-meter"><span style="width:90%"></span></span><span class="ov-tag-n">142</span></button>
+            <button class="ov-tag"><span class="ov-tag-path">grind/biology</span><span class="ov-tag-meter"><span style="width:65%"></span></span><span class="ov-tag-n">98</span></button>
+            <button class="ov-tag"><span class="ov-tag-path">grind/history</span><span class="ov-tag-meter"><span style="width:50%"></span></span><span class="ov-tag-n">76</span></button>
+            <button class="ov-tag"><span class="ov-tag-path">grind/zh-vocab</span><span class="ov-tag-meter"><span style="width:38%"></span></span><span class="ov-tag-n">52</span></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════
+     REVIEW — PRE-FLIGHT
+     ════════════════════════════════════════════════════════════════ -->
+
+<section class="view" id="review">
+  <h2 class="view-title">3 · Review — pre-flight</h2>
+  <p class="view-note">
+    当前 pre-flight 有 <code>REVIEW · 复习</code> eyebrow 混排，<code>PRE-FLIGHT · 进入会话前</code> 二级标题，"由 SM-2 调度 · 不可手动配置" 直接混排。
+    单语模式：eyebrow 全去，二级标题保留单语意思（"开始之前 / Before you start"），混排 caption 单语化。
+  </p>
+  <div class="split">
+
+    <!-- ZH -->
+    <div class="panel">
+      <div class="panel-label zh">ZH MODE</div>
+
+      <div class="pagehead">
+        <div class="pagehead-l"><h1>复习</h1></div>
+        <div class="pagehead-r">
+          <span class="gs-pill gs-pill-clay">12 待复习</span>
+          <span class="gs-pill">连续 14 天</span>
+        </div>
+      </div>
+
+      <div class="rv-tabs">
+        <button class="rv-tab on">启动</button>
+        <button class="rv-tab">复盘</button>
+      </div>
+
+      <div class="rv-launch-h">
+        <h2>今日复习</h2>
+        <p>由 SRS 算法调度的到期卡片队列；评分会计入统计、影响下次到期时间。</p>
+      </div>
+
+      <div class="gs-card rv-auto-card">
+        <div class="rv-auto-h">
+          <span class="rv-auto-zh">到期队列</span>
+          <span class="rv-auto-pill">计入统计</span>
+        </div>
+        <div class="rv-auto-grid">
+          <div class="rv-auto-cell"><div class="rv-auto-num">3</div><div class="rv-auto-cap">新卡</div></div>
+          <div class="rv-auto-cell"><div class="rv-auto-num">5</div><div class="rv-auto-cap">学习中</div></div>
+          <div class="rv-auto-cell"><div class="rv-auto-num">4</div><div class="rv-auto-cap">已熟</div></div>
+        </div>
+        <div class="rv-auto-foot">评分按"重来 / 难 / 可 / 易"四档写回卡片，决定下次到期时间。</div>
+      </div>
+
+      <button class="rv-cta">
+        <span>开始今日复习</span>
+        <span class="rv-cta-meta">12 张 · 约 6 分钟</span>
+      </button>
+
+      <div class="rv-kbds">
+        <span><kbd>Space</kbd> 显示答案</span>
+        <span><kbd>1</kbd> / <kbd>2</kbd> / <kbd>3</kbd> / <kbd>4</kbd> 评分</span>
+        <span><kbd>Esc</kbd> 退出</span>
+      </div>
+    </div>
+
+    <!-- EN -->
+    <div class="panel">
+      <div class="panel-label en">EN MODE</div>
+
+      <div class="pagehead">
+        <div class="pagehead-l"><h1>Review</h1></div>
+        <div class="pagehead-r">
+          <span class="gs-pill gs-pill-clay">12 due</span>
+          <span class="gs-pill">14-day streak</span>
+        </div>
+      </div>
+
+      <div class="rv-tabs">
+        <button class="rv-tab on">Launch</button>
+        <button class="rv-tab">Debrief</button>
+      </div>
+
+      <div class="rv-launch-h">
+        <h2>Today's review</h2>
+        <p>The SRS-scheduled queue of cards due now. Ratings are recorded in stats and shift each card's next due date.</p>
+      </div>
+
+      <div class="gs-card rv-auto-card">
+        <div class="rv-auto-h">
+          <span class="rv-auto-zh">Due queue</span>
+          <span class="rv-auto-pill">tracked</span>
+        </div>
+        <div class="rv-auto-grid">
+          <div class="rv-auto-cell"><div class="rv-auto-num">3</div><div class="rv-auto-cap">New</div></div>
+          <div class="rv-auto-cell"><div class="rv-auto-num">5</div><div class="rv-auto-cap">Learning</div></div>
+          <div class="rv-auto-cell"><div class="rv-auto-num">4</div><div class="rv-auto-cap">Mature</div></div>
+        </div>
+        <div class="rv-auto-foot">Each rating — Again / Hard / Good / Easy — writes back to the card and shapes its next interval.</div>
+      </div>
+
+      <button class="rv-cta">
+        <span>Start today's review</span>
+        <span class="rv-cta-meta">12 cards · ~6 min</span>
+      </button>
+
+      <div class="rv-kbds">
+        <span><kbd>Space</kbd> Reveal answer</span>
+        <span><kbd>1</kbd> / <kbd>2</kbd> / <kbd>3</kbd> / <kbd>4</kbd> Rate</span>
+        <span><kbd>Esc</kbd> Exit</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════
+     REVIEW — LIVE
+     ════════════════════════════════════════════════════════════════ -->
+
+<section class="view" id="review-live">
+  <h2 class="view-title">4 · Review — live session</h2>
+  <p class="view-note">
+    实际复习中是混排重灾区：<code>IN SESSION · 3 / 12</code> eyebrow、<code>QUESTION · 题面</code>、<code>ANSWER · 答案</code> 都是分隔符串联中英。评分按钮也有 <code>{ zh: '可', en: 'Good' }</code> 双标签。
+    单语化后：eyebrow 一律去掉，section label 单语，评分按钮仅留主语言标签 + interval 预览。
+  </p>
+  <div class="split">
+
+    <!-- ZH -->
+    <div class="panel">
+      <div class="panel-label zh">ZH MODE</div>
+
+      <div class="pagehead">
+        <div class="pagehead-l"><h1>复习</h1></div>
+        <div class="pagehead-r">
+          <span class="gs-pill gs-pill-green">2 已完成</span>
+          <span class="gs-pill gs-pill-clay">10 剩余</span>
+          <span class="gs-pill">3 / 12</span>
+        </div>
+      </div>
+
+      <div class="rv-live-progress"><div class="rv-live-progress-fill" style="width:25%;"></div></div>
+
+      <div class="gs-card rv-live-card">
+        <div class="rv-live-head">
+          <div class="rv-live-tags">
+            <span class="rv-live-tag">#grind/biology</span>
+            <span class="rv-live-tag">#grind/biology/cells</span>
+          </div>
+          <div class="rv-live-head-r">
+            <button class="rv-live-jump">↗ 原文</button>
+            <span>3 / 12</span>
+          </div>
+        </div>
+
+        <div class="rv-live-section">
+          <div class="rv-live-section-label">题面</div>
+          <div class="rv-live-question">线粒体的两层膜分别有什么功能？</div>
+        </div>
+
+        <div class="rv-live-divider"></div>
+
+        <div class="rv-live-section">
+          <div class="rv-live-section-label">答案</div>
+          <div class="rv-live-answer">
+            外膜：通透性高，富含孔蛋白，允许小分子（&lt; 5 kDa）自由通过。内膜：高度折叠形成嵴，富含 ATP 合酶与电子传递链，控制质子梯度——是 ATP 合成的核心位置。
+          </div>
+        </div>
+
+        <div class="rv-live-ratings">
+          <button class="rv-live-r again">
+            <span class="rv-live-r-key">1</span>
+            <div class="rv-live-r-zh">重来</div>
+            <div class="rv-live-r-interval">&lt;10m</div>
+          </button>
+          <button class="rv-live-r hard">
+            <span class="rv-live-r-key">2</span>
+            <div class="rv-live-r-zh">难</div>
+            <div class="rv-live-r-interval">1d</div>
+          </button>
+          <button class="rv-live-r good">
+            <span class="rv-live-r-key">3</span>
+            <div class="rv-live-r-zh">可</div>
+            <div class="rv-live-r-interval">3d</div>
+          </button>
+          <button class="rv-live-r easy">
+            <span class="rv-live-r-key">4</span>
+            <div class="rv-live-r-zh">易</div>
+            <div class="rv-live-r-interval">6d</div>
+          </button>
+        </div>
+      </div>
+
+      <div class="rv-kbds" style="margin-top:12px;">
+        <span><kbd>Space</kbd> 显示答案</span>
+        <span><kbd>1-4</kbd> 评分</span>
+        <span><kbd>Esc</kbd> 退出</span>
+      </div>
+    </div>
+
+    <!-- EN -->
+    <div class="panel">
+      <div class="panel-label en">EN MODE</div>
+
+      <div class="pagehead">
+        <div class="pagehead-l"><h1>Review</h1></div>
+        <div class="pagehead-r">
+          <span class="gs-pill gs-pill-green">2 done</span>
+          <span class="gs-pill gs-pill-clay">10 left</span>
+          <span class="gs-pill">3 / 12</span>
+        </div>
+      </div>
+
+      <div class="rv-live-progress"><div class="rv-live-progress-fill" style="width:25%;"></div></div>
+
+      <div class="gs-card rv-live-card">
+        <div class="rv-live-head">
+          <div class="rv-live-tags">
+            <span class="rv-live-tag">#grind/biology</span>
+            <span class="rv-live-tag">#grind/biology/cells</span>
+          </div>
+          <div class="rv-live-head-r">
+            <button class="rv-live-jump">↗ Source</button>
+            <span>3 / 12</span>
+          </div>
+        </div>
+
+        <div class="rv-live-section">
+          <div class="rv-live-section-label">Question</div>
+          <div class="rv-live-question">What are the functions of the two mitochondrial membranes?</div>
+        </div>
+
+        <div class="rv-live-divider"></div>
+
+        <div class="rv-live-section">
+          <div class="rv-live-section-label">Answer</div>
+          <div class="rv-live-answer">
+            Outer membrane: highly permeable, packed with porins, lets small molecules (&lt; 5 kDa) pass freely. Inner membrane: heavily folded into cristae, hosts ATP synthase and the electron-transport chain, controls the proton gradient — the core site of ATP synthesis.
+          </div>
+        </div>
+
+        <div class="rv-live-ratings">
+          <button class="rv-live-r again">
+            <span class="rv-live-r-key">1</span>
+            <div class="rv-live-r-zh">Again</div>
+            <div class="rv-live-r-interval">&lt;10m</div>
+          </button>
+          <button class="rv-live-r hard">
+            <span class="rv-live-r-key">2</span>
+            <div class="rv-live-r-zh">Hard</div>
+            <div class="rv-live-r-interval">1d</div>
+          </button>
+          <button class="rv-live-r good">
+            <span class="rv-live-r-key">3</span>
+            <div class="rv-live-r-zh">Good</div>
+            <div class="rv-live-r-interval">3d</div>
+          </button>
+          <button class="rv-live-r easy">
+            <span class="rv-live-r-key">4</span>
+            <div class="rv-live-r-zh">Easy</div>
+            <div class="rv-live-r-interval">6d</div>
+          </button>
+        </div>
+      </div>
+
+      <div class="rv-kbds" style="margin-top:12px;">
+        <span><kbd>Space</kbd> Reveal answer</span>
+        <span><kbd>1-4</kbd> Rate</span>
+        <span><kbd>Esc</kbd> Exit</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════
+     STATS
+     ════════════════════════════════════════════════════════════════ -->
+
+<section class="view" id="stats">
+  <h2 class="view-title">5 · Stats</h2>
+  <p class="view-note">
+    当前 KPI 每张卡有 <code>REVIEWED / 复习卡片</code> 双行；每张图表标题是 <code>REVIEW TREND / 复习量趋势</code> 双行；图例 <code>X: INTERVAL (LOG) · Y: RETENTION</code> 是纯英文混入。
+    单语化：仅保留单行标题、单语图例、单语单位。
+  </p>
+  <div class="split">
+
+    <!-- ZH -->
+    <div class="panel">
+      <div class="panel-label zh">ZH MODE</div>
+
+      <div class="pagehead">
+        <div class="pagehead-l"><h1>统计</h1></div>
+        <div class="pagehead-r">
+          <div class="st-range">
+            <button class="st-range-btn">7天</button>
+            <button class="st-range-btn on">30天</button>
+            <button class="st-range-btn">90天</button>
+            <button class="st-range-btn">全部</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="st-kpis">
+        <div class="gs-card st-kpi">
+          <div class="st-kpi-zh">复习卡片</div>
+          <div class="st-kpi-num">348<span class="st-kpi-unit">张</span></div>
+          <div class="st-kpi-delta up">+12%</div>
+        </div>
+        <div class="gs-card st-kpi">
+          <div class="st-kpi-zh">学习时长</div>
+          <div class="st-kpi-num">412<span class="st-kpi-unit">分钟</span></div>
+          <div class="st-kpi-delta up">+8%</div>
+        </div>
+        <div class="gs-card st-kpi">
+          <div class="st-kpi-zh">活跃天数</div>
+          <div class="st-kpi-num">23<span class="st-kpi-unit">/ 30天</span></div>
+          <div class="st-kpi-delta down">-3%</div>
+        </div>
+        <div class="gs-card st-kpi">
+          <div class="st-kpi-zh">平均准确率</div>
+          <div class="st-kpi-num">78<span class="st-kpi-unit">%</span></div>
+          <div class="st-kpi-delta up">+4%</div>
+        </div>
+      </div>
+
+      <div class="st-row st-row-2-1">
+        <div class="gs-card">
+          <div class="st-card-head">
+            <div class="st-card-head-l"><div class="st-card-zh">复习量趋势</div></div>
+          </div>
+          <svg viewBox="0 0 720 200" style="width:100%; height:140px;">
+            <line x1="32" y1="16"  x2="704" y2="16"  stroke="var(--gs-line)"/>
+            <line x1="32" y1="62"  x2="704" y2="62"  stroke="var(--gs-line)"/>
+            <line x1="32" y1="108" x2="704" y2="108" stroke="var(--gs-line)"/>
+            <line x1="32" y1="154" x2="704" y2="154" stroke="var(--gs-line)"/>
+            <path d="M 32 140 L 100 100 L 180 110 L 260 70 L 340 90 L 420 50 L 500 75 L 580 40 L 660 60 L 704 45"
+              fill="none" stroke="var(--gs-green)" stroke-width="2"/>
+            <path d="M 32 140 L 100 100 L 180 110 L 260 70 L 340 90 L 420 50 L 500 75 L 580 40 L 660 60 L 704 45 L 704 176 L 32 176 Z"
+              fill="var(--gs-green)" fill-opacity=".12"/>
+          </svg>
+        </div>
+
+        <div class="gs-card">
+          <div class="st-card-head">
+            <div class="st-card-head-l"><div class="st-card-zh">标签准确率</div></div>
+          </div>
+          <div class="st-acc">
+            <div class="st-acc-row">
+              <div><div class="st-acc-leaf">数学</div></div>
+              <div class="st-acc-bar-wrap"><div class="st-acc-bar st-acc-bar-green" style="width:92%;"></div></div>
+              <div class="st-acc-pct st-acc-pct-green">92<span>%</span></div>
+              <div class="st-acc-n">n=58</div>
+            </div>
+            <div class="st-acc-row">
+              <div><div class="st-acc-leaf">细胞</div></div>
+              <div class="st-acc-bar-wrap"><div class="st-acc-bar st-acc-bar-gold" style="width:78%;"></div></div>
+              <div class="st-acc-pct st-acc-pct-gold">78<span>%</span></div>
+              <div class="st-acc-n">n=42</div>
+            </div>
+            <div class="st-acc-row">
+              <div><div class="st-acc-leaf">历史</div></div>
+              <div class="st-acc-bar-wrap"><div class="st-acc-bar st-acc-bar-clay" style="width:62%;"></div></div>
+              <div class="st-acc-pct st-acc-pct-clay">62<span>%</span></div>
+              <div class="st-acc-n">n=31</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="st-row st-row-3">
+        <div class="gs-card">
+          <div class="st-card-head"><div class="st-card-head-l"><div class="st-card-zh">记忆曲线</div></div></div>
+          <svg viewBox="0 0 320 200" style="width:100%; height:140px;">
+            <path d="M 30 30 Q 100 60 160 100 T 308 170" fill="none" stroke="var(--gs-clay)" stroke-width="2"/>
+            <circle cx="30"  cy="30"  r="3" fill="#fff" stroke="var(--gs-clay)" stroke-width="1.6"/>
+            <circle cx="100" cy="55"  r="3" fill="#fff" stroke="var(--gs-clay)" stroke-width="1.6"/>
+            <circle cx="160" cy="100" r="3" fill="#fff" stroke="var(--gs-clay)" stroke-width="1.6"/>
+            <circle cx="230" cy="135" r="3" fill="#fff" stroke="var(--gs-clay)" stroke-width="1.6"/>
+            <circle cx="290" cy="160" r="3" fill="#fff" stroke="var(--gs-clay)" stroke-width="1.6"/>
+          </svg>
+          <div class="st-fc-legend">
+            <div><span class="st-fc-dot"></span>实际记忆保持</div>
+            <div>横轴：间隔（对数） · 纵轴：保持率</div>
+          </div>
+        </div>
+
+        <div class="gs-card">
+          <div class="st-card-head"><div class="st-card-head-l"><div class="st-card-zh">打卡热力图</div></div></div>
+          <svg viewBox="0 0 200 120" style="width:100%; height:140px;">
+            <g fill="var(--gs-green-soft)">
+              <rect x="0"   y="0" width="14" height="14" rx="2"/>
+              <rect x="0"  y="17" width="14" height="14" rx="2" fill="var(--gs-green)"/>
+              <rect x="0"  y="34" width="14" height="14" rx="2" fill="#9bbcaa"/>
+              <rect x="0"  y="51" width="14" height="14" rx="2"/>
+              <rect x="0"  y="68" width="14" height="14" rx="2" fill="var(--gs-line)"/>
+              <rect x="0"  y="85" width="14" height="14" rx="2" fill="#9bbcaa"/>
+              <rect x="0" y="102" width="14" height="14" rx="2"/>
+              <rect x="17" y="0" width="14" height="14" rx="2"/>
+              <rect x="17" y="34" width="14" height="14" rx="2" fill="var(--gs-green)"/>
+              <rect x="17" y="68" width="14" height="14" rx="2" fill="#5b8d75"/>
+              <rect x="34" y="17" width="14" height="14" rx="2" fill="#9bbcaa"/>
+              <rect x="34" y="51" width="14" height="14" rx="2"/>
+              <rect x="34" y="85" width="14" height="14" rx="2" fill="var(--gs-green)"/>
+              <rect x="51" y="34" width="14" height="14" rx="2"/>
+              <rect x="51" y="68" width="14" height="14" rx="2" fill="#5b8d75"/>
+              <rect x="68" y="0" width="14" height="14" rx="2" fill="var(--gs-green)"/>
+              <rect x="68" y="51" width="14" height="14" rx="2"/>
+              <rect x="68" y="85" width="14" height="14" rx="2" fill="#9bbcaa"/>
+              <rect x="85" y="17" width="14" height="14" rx="2"/>
+              <rect x="85" y="68" width="14" height="14" rx="2" fill="var(--gs-green)"/>
+              <rect x="102" y="0" width="14" height="14" rx="2" fill="#9bbcaa"/>
+              <rect x="102" y="34" width="14" height="14" rx="2"/>
+              <rect x="102" y="85" width="14" height="14" rx="2" fill="var(--gs-green)"/>
+              <rect x="119" y="17" width="14" height="14" rx="2" fill="#5b8d75"/>
+              <rect x="119" y="68" width="14" height="14" rx="2"/>
+              <rect x="136" y="0" width="14" height="14" rx="2" fill="var(--gs-green)"/>
+              <rect x="136" y="51" width="14" height="14" rx="2" fill="#9bbcaa"/>
+              <rect x="153" y="34" width="14" height="14" rx="2"/>
+              <rect x="153" y="85" width="14" height="14" rx="2" fill="var(--gs-green)"/>
+            </g>
+          </svg>
+          <div class="st-hm-legend">
+            <span>少</span>
+            <span style="display:inline-flex; gap:2px;">
+              <span style="width:7px; height:7px; border-radius:1.5px; background:var(--gs-line); display:inline-block;"></span>
+              <span style="width:7px; height:7px; border-radius:1.5px; background:var(--gs-green-soft); display:inline-block;"></span>
+              <span style="width:7px; height:7px; border-radius:1.5px; background:#9bbcaa; display:inline-block;"></span>
+              <span style="width:7px; height:7px; border-radius:1.5px; background:#5b8d75; display:inline-block;"></span>
+              <span style="width:7px; height:7px; border-radius:1.5px; background:var(--gs-green); display:inline-block;"></span>
+            </span>
+            <span>多</span>
+          </div>
+        </div>
+
+        <div class="gs-card">
+          <div class="st-card-head"><div class="st-card-head-l"><div class="st-card-zh">学习时长</div></div></div>
+          <svg viewBox="0 0 320 200" style="width:100%; height:140px;">
+            <g>
+              <rect x="20" y="120" width="10" height="60" fill="var(--gs-green-2)"/>
+              <rect x="35" y="85"  width="10" height="95" fill="var(--gs-green-2)"/>
+              <rect x="50" y="100" width="10" height="80" fill="var(--gs-green-2)"/>
+              <rect x="65" y="70"  width="10" height="110" fill="var(--gs-green-2)"/>
+              <rect x="80" y="55"  width="10" height="125" fill="var(--gs-green-2)"/>
+              <rect x="95" y="90"  width="10" height="90" fill="var(--gs-gold)"/>
+              <rect x="110" y="105" width="10" height="75" fill="var(--gs-gold)"/>
+              <rect x="125" y="115" width="10" height="65" fill="var(--gs-green-2)"/>
+              <rect x="140" y="60"  width="10" height="120" fill="var(--gs-green-2)"/>
+              <rect x="155" y="75"  width="10" height="105" fill="var(--gs-green-2)"/>
+              <rect x="170" y="80"  width="10" height="100" fill="var(--gs-green-2)"/>
+              <rect x="185" y="50"  width="10" height="130" fill="var(--gs-green-2)"/>
+              <rect x="200" y="98"  width="10" height="82" fill="var(--gs-gold)"/>
+              <rect x="215" y="110" width="10" height="70" fill="var(--gs-gold)"/>
+              <rect x="230" y="65"  width="10" height="115" fill="var(--gs-green-2)"/>
+              <rect x="245" y="80"  width="10" height="100" fill="var(--gs-green-2)"/>
+              <rect x="260" y="55"  width="10" height="125" fill="var(--gs-green-2)"/>
+              <rect x="275" y="68"  width="10" height="112" fill="var(--gs-green-2)"/>
+              <rect x="290" y="90"  width="10" height="90" fill="var(--gs-gold)"/>
+            </g>
+          </svg>
+          <div class="st-mb-legend">
+            <div><span class="st-mb-dot" style="background:var(--gs-green-2)"></span>工作日</div>
+            <div><span class="st-mb-dot" style="background:var(--gs-gold)"></span>周末</div>
+            <div>日均 <strong style="font-family:'JetBrains Mono', monospace;">18</strong> 分钟</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EN -->
+    <div class="panel">
+      <div class="panel-label en">EN MODE</div>
+
+      <div class="pagehead">
+        <div class="pagehead-l"><h1>Stats</h1></div>
+        <div class="pagehead-r">
+          <div class="st-range">
+            <button class="st-range-btn">7d</button>
+            <button class="st-range-btn on">30d</button>
+            <button class="st-range-btn">90d</button>
+            <button class="st-range-btn">All</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="st-kpis">
+        <div class="gs-card st-kpi">
+          <div class="st-kpi-zh">Cards reviewed</div>
+          <div class="st-kpi-num">348</div>
+          <div class="st-kpi-delta up">+12%</div>
+        </div>
+        <div class="gs-card st-kpi">
+          <div class="st-kpi-zh">Study time</div>
+          <div class="st-kpi-num">412<span class="st-kpi-unit">min</span></div>
+          <div class="st-kpi-delta up">+8%</div>
+        </div>
+        <div class="gs-card st-kpi">
+          <div class="st-kpi-zh">Active days</div>
+          <div class="st-kpi-num">23<span class="st-kpi-unit">/ 30d</span></div>
+          <div class="st-kpi-delta down">-3%</div>
+        </div>
+        <div class="gs-card st-kpi">
+          <div class="st-kpi-zh">Avg accuracy</div>
+          <div class="st-kpi-num">78<span class="st-kpi-unit">%</span></div>
+          <div class="st-kpi-delta up">+4%</div>
+        </div>
+      </div>
+
+      <div class="st-row st-row-2-1">
+        <div class="gs-card">
+          <div class="st-card-head">
+            <div class="st-card-head-l"><div class="st-card-zh">Review trend</div></div>
+          </div>
+          <svg viewBox="0 0 720 200" style="width:100%; height:140px;">
+            <line x1="32" y1="16"  x2="704" y2="16"  stroke="var(--gs-line)"/>
+            <line x1="32" y1="62"  x2="704" y2="62"  stroke="var(--gs-line)"/>
+            <line x1="32" y1="108" x2="704" y2="108" stroke="var(--gs-line)"/>
+            <line x1="32" y1="154" x2="704" y2="154" stroke="var(--gs-line)"/>
+            <path d="M 32 140 L 100 100 L 180 110 L 260 70 L 340 90 L 420 50 L 500 75 L 580 40 L 660 60 L 704 45"
+              fill="none" stroke="var(--gs-green)" stroke-width="2"/>
+            <path d="M 32 140 L 100 100 L 180 110 L 260 70 L 340 90 L 420 50 L 500 75 L 580 40 L 660 60 L 704 45 L 704 176 L 32 176 Z"
+              fill="var(--gs-green)" fill-opacity=".12"/>
+          </svg>
+        </div>
+
+        <div class="gs-card">
+          <div class="st-card-head">
+            <div class="st-card-head-l"><div class="st-card-zh">Accuracy by tag</div></div>
+          </div>
+          <div class="st-acc">
+            <div class="st-acc-row">
+              <div><div class="st-acc-leaf">Math</div></div>
+              <div class="st-acc-bar-wrap"><div class="st-acc-bar st-acc-bar-green" style="width:92%;"></div></div>
+              <div class="st-acc-pct st-acc-pct-green">92<span>%</span></div>
+              <div class="st-acc-n">n=58</div>
+            </div>
+            <div class="st-acc-row">
+              <div><div class="st-acc-leaf">Cells</div></div>
+              <div class="st-acc-bar-wrap"><div class="st-acc-bar st-acc-bar-gold" style="width:78%;"></div></div>
+              <div class="st-acc-pct st-acc-pct-gold">78<span>%</span></div>
+              <div class="st-acc-n">n=42</div>
+            </div>
+            <div class="st-acc-row">
+              <div><div class="st-acc-leaf">History</div></div>
+              <div class="st-acc-bar-wrap"><div class="st-acc-bar st-acc-bar-clay" style="width:62%;"></div></div>
+              <div class="st-acc-pct st-acc-pct-clay">62<span>%</span></div>
+              <div class="st-acc-n">n=31</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="st-row st-row-3">
+        <div class="gs-card">
+          <div class="st-card-head"><div class="st-card-head-l"><div class="st-card-zh">Forgetting curve</div></div></div>
+          <svg viewBox="0 0 320 200" style="width:100%; height:140px;">
+            <path d="M 30 30 Q 100 60 160 100 T 308 170" fill="none" stroke="var(--gs-clay)" stroke-width="2"/>
+            <circle cx="30"  cy="30"  r="3" fill="#fff" stroke="var(--gs-clay)" stroke-width="1.6"/>
+            <circle cx="100" cy="55"  r="3" fill="#fff" stroke="var(--gs-clay)" stroke-width="1.6"/>
+            <circle cx="160" cy="100" r="3" fill="#fff" stroke="var(--gs-clay)" stroke-width="1.6"/>
+            <circle cx="230" cy="135" r="3" fill="#fff" stroke="var(--gs-clay)" stroke-width="1.6"/>
+            <circle cx="290" cy="160" r="3" fill="#fff" stroke="var(--gs-clay)" stroke-width="1.6"/>
+          </svg>
+          <div class="st-fc-legend">
+            <div><span class="st-fc-dot"></span>Retention</div>
+            <div>X: interval (log) · Y: retention</div>
+          </div>
+        </div>
+
+        <div class="gs-card">
+          <div class="st-card-head"><div class="st-card-head-l"><div class="st-card-zh">Study heatmap</div></div></div>
+          <svg viewBox="0 0 200 120" style="width:100%; height:140px;">
+            <g fill="var(--gs-green-soft)">
+              <rect x="0"   y="0" width="14" height="14" rx="2"/>
+              <rect x="0"  y="17" width="14" height="14" rx="2" fill="var(--gs-green)"/>
+              <rect x="0"  y="34" width="14" height="14" rx="2" fill="#9bbcaa"/>
+              <rect x="0"  y="51" width="14" height="14" rx="2"/>
+              <rect x="0"  y="68" width="14" height="14" rx="2" fill="var(--gs-line)"/>
+              <rect x="0"  y="85" width="14" height="14" rx="2" fill="#9bbcaa"/>
+              <rect x="0" y="102" width="14" height="14" rx="2"/>
+              <rect x="17" y="0" width="14" height="14" rx="2"/>
+              <rect x="17" y="34" width="14" height="14" rx="2" fill="var(--gs-green)"/>
+              <rect x="17" y="68" width="14" height="14" rx="2" fill="#5b8d75"/>
+              <rect x="34" y="17" width="14" height="14" rx="2" fill="#9bbcaa"/>
+              <rect x="34" y="51" width="14" height="14" rx="2"/>
+              <rect x="34" y="85" width="14" height="14" rx="2" fill="var(--gs-green)"/>
+              <rect x="51" y="34" width="14" height="14" rx="2"/>
+              <rect x="51" y="68" width="14" height="14" rx="2" fill="#5b8d75"/>
+              <rect x="68" y="0" width="14" height="14" rx="2" fill="var(--gs-green)"/>
+              <rect x="68" y="51" width="14" height="14" rx="2"/>
+              <rect x="68" y="85" width="14" height="14" rx="2" fill="#9bbcaa"/>
+              <rect x="85" y="17" width="14" height="14" rx="2"/>
+              <rect x="85" y="68" width="14" height="14" rx="2" fill="var(--gs-green)"/>
+              <rect x="102" y="0" width="14" height="14" rx="2" fill="#9bbcaa"/>
+              <rect x="102" y="34" width="14" height="14" rx="2"/>
+              <rect x="102" y="85" width="14" height="14" rx="2" fill="var(--gs-green)"/>
+              <rect x="119" y="17" width="14" height="14" rx="2" fill="#5b8d75"/>
+              <rect x="119" y="68" width="14" height="14" rx="2"/>
+              <rect x="136" y="0" width="14" height="14" rx="2" fill="var(--gs-green)"/>
+              <rect x="136" y="51" width="14" height="14" rx="2" fill="#9bbcaa"/>
+              <rect x="153" y="34" width="14" height="14" rx="2"/>
+              <rect x="153" y="85" width="14" height="14" rx="2" fill="var(--gs-green)"/>
+            </g>
+          </svg>
+          <div class="st-hm-legend">
+            <span>Less</span>
+            <span style="display:inline-flex; gap:2px;">
+              <span style="width:7px; height:7px; border-radius:1.5px; background:var(--gs-line); display:inline-block;"></span>
+              <span style="width:7px; height:7px; border-radius:1.5px; background:var(--gs-green-soft); display:inline-block;"></span>
+              <span style="width:7px; height:7px; border-radius:1.5px; background:#9bbcaa; display:inline-block;"></span>
+              <span style="width:7px; height:7px; border-radius:1.5px; background:#5b8d75; display:inline-block;"></span>
+              <span style="width:7px; height:7px; border-radius:1.5px; background:var(--gs-green); display:inline-block;"></span>
+            </span>
+            <span>More</span>
+          </div>
+        </div>
+
+        <div class="gs-card">
+          <div class="st-card-head"><div class="st-card-head-l"><div class="st-card-zh">Study minutes</div></div></div>
+          <svg viewBox="0 0 320 200" style="width:100%; height:140px;">
+            <g>
+              <rect x="20" y="120" width="10" height="60" fill="var(--gs-green-2)"/>
+              <rect x="35" y="85"  width="10" height="95" fill="var(--gs-green-2)"/>
+              <rect x="50" y="100" width="10" height="80" fill="var(--gs-green-2)"/>
+              <rect x="65" y="70"  width="10" height="110" fill="var(--gs-green-2)"/>
+              <rect x="80" y="55"  width="10" height="125" fill="var(--gs-green-2)"/>
+              <rect x="95" y="90"  width="10" height="90" fill="var(--gs-gold)"/>
+              <rect x="110" y="105" width="10" height="75" fill="var(--gs-gold)"/>
+              <rect x="125" y="115" width="10" height="65" fill="var(--gs-green-2)"/>
+              <rect x="140" y="60"  width="10" height="120" fill="var(--gs-green-2)"/>
+              <rect x="155" y="75"  width="10" height="105" fill="var(--gs-green-2)"/>
+              <rect x="170" y="80"  width="10" height="100" fill="var(--gs-green-2)"/>
+              <rect x="185" y="50"  width="10" height="130" fill="var(--gs-green-2)"/>
+              <rect x="200" y="98"  width="10" height="82" fill="var(--gs-gold)"/>
+              <rect x="215" y="110" width="10" height="70" fill="var(--gs-gold)"/>
+              <rect x="230" y="65"  width="10" height="115" fill="var(--gs-green-2)"/>
+              <rect x="245" y="80"  width="10" height="100" fill="var(--gs-green-2)"/>
+              <rect x="260" y="55"  width="10" height="125" fill="var(--gs-green-2)"/>
+              <rect x="275" y="68"  width="10" height="112" fill="var(--gs-green-2)"/>
+              <rect x="290" y="90"  width="10" height="90" fill="var(--gs-gold)"/>
+            </g>
+          </svg>
+          <div class="st-mb-legend">
+            <div><span class="st-mb-dot" style="background:var(--gs-green-2)"></span>Weekday</div>
+            <div><span class="st-mb-dot" style="background:var(--gs-gold)"></span>Weekend</div>
+            <div>Avg <strong style="font-family:'JetBrains Mono', monospace;">18</strong> min/day</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════
+     TAGS
+     ════════════════════════════════════════════════════════════════ -->
+
+<section class="view" id="tags">
+  <h2 class="view-title">6 · Tags</h2>
+  <p class="view-note">
+    Tags 视图当前表头是纯英文 <code>QUESTION / TAGS / EF / DUE</code>（功能性英文术语，混在中文界面里）。
+    搜索 placeholder、maturity 段落、filter chip 标签 (<code>AND</code> / <code>CLEAR</code>) 都需切换。EF 这种术语保留缩写但单语化标签头。
+  </p>
+  <div class="split">
+
+    <!-- ZH -->
+    <div class="panel">
+      <div class="panel-label zh">ZH MODE</div>
+
+      <div class="pagehead">
+        <div class="pagehead-l"><h1>标签</h1></div>
+        <div class="pagehead-r">
+          <span class="gs-pill">23 个标签</span>
+          <span class="gs-pill gs-pill-green">42 张匹配</span>
+          <div class="tg-search">⌕ <input style="border:none; background:transparent; outline:none; font-size:12px; flex:1;" placeholder="搜索卡片…"></div>
+          <div class="tg-mat-seg">
+            <button class="tg-mat-tab on">全部</button>
+            <button class="tg-mat-tab">新</button>
+            <button class="tg-mat-tab">习</button>
+            <button class="tg-mat-tab">熟</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="tg-filter-bar">
+        <div class="tg-filter-chip"><span>#cells</span><span style="opacity:.5">×</span></div>
+        <span class="tg-filter-and" style="text-transform:none; letter-spacing:0; font-family:inherit;">且</span>
+        <div class="tg-filter-chip"><span>"线粒体"</span><span style="opacity:.5">×</span></div>
+        <span class="tg-bc-pill">准确率 78%</span>
+      </div>
+
+      <div class="tg-page">
+        <aside class="tg-tree">
+          <div class="tg-tree-head" style="font-family:inherit; letter-spacing:normal; font-size:11px; color:var(--gs-ink-3);">标签树</div>
+          <div class="tg-tree-row"><span style="opacity:.4">▸</span><span class="tg-tree-name">全部卡片</span><span class="tg-tree-n">149</span></div>
+          <div class="tg-tree-row"><span style="opacity:.4">▾</span><span class="tg-tree-name">grind</span><span class="tg-tree-n">149</span></div>
+          <div class="tg-tree-row" style="padding-left:22px;"><span style="opacity:.4">▾</span><span class="tg-tree-name">biology</span><span class="tg-tree-n">62</span></div>
+          <div class="tg-tree-row on" style="padding-left:36px;"><span style="opacity:.4">·</span><span class="tg-tree-name">cells</span><span class="tg-tree-n">42</span></div>
+          <div class="tg-tree-row" style="padding-left:36px;"><span style="opacity:.4">·</span><span class="tg-tree-name">organs</span><span class="tg-tree-n">20</span></div>
+          <div class="tg-tree-row" style="padding-left:22px;"><span style="opacity:.4">▸</span><span class="tg-tree-name">math</span><span class="tg-tree-n">58</span></div>
+          <div class="tg-tree-row" style="padding-left:22px;"><span style="opacity:.4">▸</span><span class="tg-tree-name">history</span><span class="tg-tree-n">29</span></div>
+        </aside>
+        <section>
+          <div class="tg-table">
+            <div class="tg-row tg-row-head" style="font-family:inherit; letter-spacing:normal; text-transform:none;">
+              <span class="tg-row-head-zh">题面</span>
+              <span class="tg-row-head-zh">标签</span>
+              <span class="tg-row-head-zh">EF</span>
+              <span class="tg-row-head-zh">到期</span>
+            </div>
+            <div class="tg-row">
+              <span><span style="opacity:.5">▸</span> 线粒体的两层膜分别有什么功能？</span>
+              <span class="tg-c-tags"><button class="tg-tag-chip">cells</button></span>
+              <span class="tg-c-ef">2.50</span>
+              <span class="tg-c-due tg-due-clay">今天</span>
+            </div>
+            <div class="tg-row">
+              <span><span style="opacity:.5">▸</span> 内质网与高尔基体协同的运输路径？</span>
+              <span class="tg-c-tags"><button class="tg-tag-chip">cells</button></span>
+              <span class="tg-c-ef">2.38</span>
+              <span class="tg-c-due">+3d</span>
+            </div>
+            <div class="tg-row">
+              <span><span style="opacity:.5">▸</span> 细胞自噬的核心调控通路？</span>
+              <span class="tg-c-tags"><button class="tg-tag-chip">cells</button><button class="tg-tag-chip">grind</button></span>
+              <span class="tg-c-ef">2.22</span>
+              <span class="tg-c-due tg-due-clay">逾期</span>
+            </div>
+            <div class="tg-row">
+              <span><span style="opacity:.5">▸</span> 染色体凝缩在分裂期的意义？</span>
+              <span class="tg-c-tags"><button class="tg-tag-chip">cells</button></span>
+              <span class="tg-c-ef">2.60</span>
+              <span class="tg-c-due">+7d</span>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <!-- EN -->
+    <div class="panel">
+      <div class="panel-label en">EN MODE</div>
+
+      <div class="pagehead">
+        <div class="pagehead-l"><h1>Tags</h1></div>
+        <div class="pagehead-r">
+          <span class="gs-pill">23 tags</span>
+          <span class="gs-pill gs-pill-green">42 matches</span>
+          <div class="tg-search">⌕ <input style="border:none; background:transparent; outline:none; font-size:12px; flex:1;" placeholder="Search cards…"></div>
+          <div class="tg-mat-seg">
+            <button class="tg-mat-tab on">All</button>
+            <button class="tg-mat-tab">New</button>
+            <button class="tg-mat-tab">Learning</button>
+            <button class="tg-mat-tab">Mature</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="tg-filter-bar">
+        <div class="tg-filter-chip"><span>#cells</span><span style="opacity:.5">×</span></div>
+        <span class="tg-filter-and" style="text-transform:none; letter-spacing:0; font-family:inherit;">and</span>
+        <div class="tg-filter-chip"><span>"mitochondria"</span><span style="opacity:.5">×</span></div>
+        <span class="tg-bc-pill">78% accuracy</span>
+      </div>
+
+      <div class="tg-page">
+        <aside class="tg-tree">
+          <div class="tg-tree-head" style="font-family:inherit; letter-spacing:normal; font-size:11px; color:var(--gs-ink-3);">Tag tree</div>
+          <div class="tg-tree-row"><span style="opacity:.4">▸</span><span class="tg-tree-name">All cards</span><span class="tg-tree-n">149</span></div>
+          <div class="tg-tree-row"><span style="opacity:.4">▾</span><span class="tg-tree-name">grind</span><span class="tg-tree-n">149</span></div>
+          <div class="tg-tree-row" style="padding-left:22px;"><span style="opacity:.4">▾</span><span class="tg-tree-name">biology</span><span class="tg-tree-n">62</span></div>
+          <div class="tg-tree-row on" style="padding-left:36px;"><span style="opacity:.4">·</span><span class="tg-tree-name">cells</span><span class="tg-tree-n">42</span></div>
+          <div class="tg-tree-row" style="padding-left:36px;"><span style="opacity:.4">·</span><span class="tg-tree-name">organs</span><span class="tg-tree-n">20</span></div>
+          <div class="tg-tree-row" style="padding-left:22px;"><span style="opacity:.4">▸</span><span class="tg-tree-name">math</span><span class="tg-tree-n">58</span></div>
+          <div class="tg-tree-row" style="padding-left:22px;"><span style="opacity:.4">▸</span><span class="tg-tree-name">history</span><span class="tg-tree-n">29</span></div>
+        </aside>
+        <section>
+          <div class="tg-table">
+            <div class="tg-row tg-row-head" style="font-family:inherit; letter-spacing:normal; text-transform:none;">
+              <span class="tg-row-head-zh">Question</span>
+              <span class="tg-row-head-zh">Tags</span>
+              <span class="tg-row-head-zh">EF</span>
+              <span class="tg-row-head-zh">Due</span>
+            </div>
+            <div class="tg-row">
+              <span><span style="opacity:.5">▸</span> What do the two mitochondrial membranes do?</span>
+              <span class="tg-c-tags"><button class="tg-tag-chip">cells</button></span>
+              <span class="tg-c-ef">2.50</span>
+              <span class="tg-c-due tg-due-clay">today</span>
+            </div>
+            <div class="tg-row">
+              <span><span style="opacity:.5">▸</span> ER → Golgi transport pathway?</span>
+              <span class="tg-c-tags"><button class="tg-tag-chip">cells</button></span>
+              <span class="tg-c-ef">2.38</span>
+              <span class="tg-c-due">+3d</span>
+            </div>
+            <div class="tg-row">
+              <span><span style="opacity:.5">▸</span> Core regulatory pathway of autophagy?</span>
+              <span class="tg-c-tags"><button class="tg-tag-chip">cells</button><button class="tg-tag-chip">grind</button></span>
+              <span class="tg-c-ef">2.22</span>
+              <span class="tg-c-due tg-due-clay">overdue</span>
+            </div>
+            <div class="tg-row">
+              <span><span style="opacity:.5">▸</span> Why do chromosomes condense in mitosis?</span>
+              <span class="tg-c-tags"><button class="tg-tag-chip">cells</button></span>
+              <span class="tg-c-ef">2.60</span>
+              <span class="tg-c-due">+7d</span>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════
+     ONBOARDING MODAL
+     ════════════════════════════════════════════════════════════════ -->
+
+<section class="view" id="onboarding">
+  <h2 class="view-title">7 · Onboarding modal</h2>
+  <p class="view-note">
+    首次启动 modal 当前是 <code>WELCOME · 欢迎</code> eyebrow + "磨石 Grindstone" 双语标题，section 头是 <code>触发标签 / TRIGGER TAG</code>，写入模式是 <code>{ zh, en, desc }</code> 三件套。
+    单语化后：标题单语，section 头单行，模式选项仅留 zh-or-en 标题 + desc。RECOMMENDED 徽章保留单语。
+  </p>
+  <p class="view-note">
+    <strong>注意：</strong>onboarding modal 在用户首次启动时呈现——彼时 Language 设置还未存在，所以默认语言需要通过 (a) 浏览器/OS 语言探测 (<code>navigator.language</code>) 或 (b) modal 顶部放一个语言切换器二选一。下方两版各示意一种系统语言导向。
+  </p>
+  <div class="split">
+
+    <!-- ZH -->
+    <div class="panel">
+      <div class="panel-label zh">ZH MODE</div>
+      <div class="modal-demo">
+        <div class="gs-onboarding">
+          <div class="gs-ob-head">
+            <h2 class="gs-ob-title">欢迎使用磨石</h2>
+            <p class="gs-ob-sub">基于内联标签的间隔重复——笔记中含有触发标签的行会被识别为复习卡片。</p>
+          </div>
+          <div class="gs-ob-section">
+            <div class="gs-ob-section-h"><span class="gs-ob-section-zh">触发标签</span></div>
+            <input class="gs-ob-input" value="#grind">
+            <div class="gs-ob-hint">稍后可在「设置」里添加更多触发标签或排除规则。</div>
+          </div>
+          <div class="gs-ob-section">
+            <div class="gs-ob-section-h"><span class="gs-ob-section-zh">与笔记的交互方式</span></div>
+            <div class="gs-ob-hint">默认情况下，磨石把 vault 视为只读。下列两项会修改你的笔记，按需开启。</div>
+            <div class="gs-ob-options">
+              <div class="gs-ob-option">
+                <div class="gs-ob-option-h"><span class="gs-ob-radio"></span><span class="gs-ob-option-zh">完全只读</span></div>
+                不修改任何笔记。卡片身份由文件路径 + 题面哈希推导。⚠ 重命名文件或修改卡片标题会导致复习历史丢失。
+              </div>
+              <div class="gs-ob-option active">
+                <div class="gs-ob-option-h"><span class="gs-ob-radio"></span><span class="gs-ob-option-zh">嵌入卡片 ID</span><span class="gs-ob-option-rec">推荐</span></div>
+                在触发标签行尾添加 <code>&lt;!-- gs:xxxxxxxx --&gt;</code> 注释（一次性）。复习历史在重命名、移动、编辑后依然保留。
+              </div>
+              <div class="gs-ob-option">
+                <div class="gs-ob-option-h"><span class="gs-ob-radio"></span><span class="gs-ob-option-zh">嵌入 ID + 写回星号</span></div>
+                在以上基础上按评分写入 ⭐ 标记：重来=⭐⭐⭐ / 难=⭐⭐ / 可=⭐ / 易=（清除）。
+              </div>
+            </div>
+          </div>
+          <div class="gs-ob-actions">
+            <button class="gs-btn gs-btn-primary">开始使用 →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EN -->
+    <div class="panel">
+      <div class="panel-label en">EN MODE</div>
+      <div class="modal-demo">
+        <div class="gs-onboarding">
+          <div class="gs-ob-head">
+            <h2 class="gs-ob-title">Welcome to Grindstone</h2>
+            <p class="gs-ob-sub">Spaced repetition driven by inline tags — any note line that contains your trigger tag becomes a review card.</p>
+          </div>
+          <div class="gs-ob-section">
+            <div class="gs-ob-section-h"><span class="gs-ob-section-zh">Trigger tag</span></div>
+            <input class="gs-ob-input" value="#grind">
+            <div class="gs-ob-hint">You can add more trigger tags or exclusion rules later in Settings.</div>
+          </div>
+          <div class="gs-ob-section">
+            <div class="gs-ob-section-h"><span class="gs-ob-section-zh">Note writeback</span></div>
+            <div class="gs-ob-hint">By default Grindstone treats your vault as read-only. The two options below modify your notes — opt in only if you need them.</div>
+            <div class="gs-ob-options">
+              <div class="gs-ob-option">
+                <div class="gs-ob-option-h"><span class="gs-ob-radio"></span><span class="gs-ob-option-zh">Read-only</span></div>
+                Never edits notes. Card identity is derived from file path + question hash. ⚠ Renaming a file or editing a card's title will lose its review history.
+              </div>
+              <div class="gs-ob-option active">
+                <div class="gs-ob-option-h"><span class="gs-ob-radio"></span><span class="gs-ob-option-zh">Embed card IDs</span><span class="gs-ob-option-rec">Recommended</span></div>
+                Appends a one-time <code>&lt;!-- gs:xxxxxxxx --&gt;</code> comment to each trigger line. Review history survives renames, moves, and edits.
+              </div>
+              <div class="gs-ob-option">
+                <div class="gs-ob-option-h"><span class="gs-ob-radio"></span><span class="gs-ob-option-zh">Embed IDs + write stars</span></div>
+                On top of the above, write ⭐ marks based on rating: Again=⭐⭐⭐ / Hard=⭐⭐ / Good=⭐ / Easy=(cleared).
+              </div>
+            </div>
+          </div>
+          <div class="gs-ob-actions">
+            <button class="gs-btn gs-btn-primary">Get started →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════
+     SETTINGS — with new Language picker
+     ════════════════════════════════════════════════════════════════ -->
+
+<section class="view" id="settings">
+  <h2 class="view-title">8 · Settings — with new Language picker</h2>
+  <p class="view-note">
+    Settings 当前 4 个章节（卡片识别 / 复习行为 / SRS 策略 / 界面），每个有 <code>CARD IDENTIFICATION · 哪些 tag 行算卡片</code> 这种双语副标题。
+    单语化后：副标题单语，setting name/desc 单语。<strong>新增 Language 控件位于"界面"章节顶部</strong>（虚线框高亮），用 segmented control 让用户在 中文 / English 之间二选一，即时切换全局语言。
+  </p>
+  <div class="split">
+
+    <!-- ZH -->
+    <div class="panel">
+      <div class="panel-label zh">ZH MODE</div>
+
+      <div class="gs-nav-strip">
+        <div class="gs-nav-icon">⊞</div>
+        <div class="gs-nav-icon">↻</div>
+        <div class="gs-nav-icon">≡</div>
+        <div class="gs-nav-icon active">◐</div>
+      </div>
+
+      <div class="gs-set-section">
+        <div class="gs-set-header">
+          <div class="gs-set-title">界面</div>
+          <div class="gs-set-sub-zh">界面外观与语言</div>
+        </div>
+
+        <!-- NEW: Language picker -->
+        <div class="lang-picker-row">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <div style="display:flex; align-items:center; gap:6px; margin-bottom:2px;">
+                <span class="lang-picker-flag">新增</span>
+                <span class="gs-setting-name">界面语言</span>
+              </div>
+              <div class="gs-setting-desc">切换 UI 显示语言。整个工作区视图、设置面板、复习界面同步更新。</div>
+            </div>
+            <div class="lang-seg">
+              <button class="on">中文</button>
+              <button>English</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="gs-setting-row">
+          <div>
+            <div class="gs-setting-name">自定义标语</div>
+            <div class="gs-setting-desc">概览页右上角随机展示的标语，每行一条。留空则使用内置默认。</div>
+          </div>
+          <div class="gs-setting-control">
+            <textarea rows="4" cols="22" style="font-size:12px;">迈进
+博观约取
+厚积薄发</textarea>
+          </div>
+        </div>
+
+        <div class="gs-setting-row">
+          <div>
+            <div class="gs-setting-name">主题模式</div>
+            <div class="gs-setting-desc">浅色 / 深色 / 跟随系统。</div>
+          </div>
+          <div class="gs-setting-control"><span class="gs-toggle on"></span> 跟随系统</div>
+        </div>
+      </div>
+
+      <div class="gs-set-section">
+        <div class="gs-set-header">
+          <div class="gs-set-title">卡片识别</div>
+          <div class="gs-set-sub-zh">哪些标签行算卡片、卡片 ID 如何生成</div>
+        </div>
+        <div class="gs-setting-row">
+          <div>
+            <div class="gs-setting-name">触发标签</div>
+            <div class="gs-setting-desc">包含这些标签的行会被识别为复习卡片。每行一个，带 # 前缀。</div>
+          </div>
+          <div class="gs-setting-control">
+            <textarea rows="3" cols="20" style="font-size:12px;">#grind
+#flashcard</textarea>
+          </div>
+        </div>
+        <div class="gs-setting-row">
+          <div>
+            <div class="gs-setting-name">嵌入卡片 ID</div>
+            <div class="gs-setting-desc">⚠ 会修改你的笔记。开启后在触发行尾添加注释，复习历史可在重命名后保留。</div>
+          </div>
+          <div class="gs-setting-control"><span class="gs-toggle on"></span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EN -->
+    <div class="panel">
+      <div class="panel-label en">EN MODE</div>
+
+      <div class="gs-nav-strip">
+        <div class="gs-nav-icon">⊞</div>
+        <div class="gs-nav-icon">↻</div>
+        <div class="gs-nav-icon">≡</div>
+        <div class="gs-nav-icon active">◐</div>
+      </div>
+
+      <div class="gs-set-section">
+        <div class="gs-set-header">
+          <div class="gs-set-title">Interface</div>
+          <div class="gs-set-sub-zh">Appearance and language for the workspace</div>
+        </div>
+
+        <!-- NEW: Language picker -->
+        <div class="lang-picker-row">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <div style="display:flex; align-items:center; gap:6px; margin-bottom:2px;">
+                <span class="lang-picker-flag" style="background:var(--gs-clay)">NEW</span>
+                <span class="gs-setting-name">Interface language</span>
+              </div>
+              <div class="gs-setting-desc">Switch the UI language. Workspace views, settings, and review session update together.</div>
+            </div>
+            <div class="lang-seg">
+              <button>中文</button>
+              <button class="on">English</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="gs-setting-row">
+          <div>
+            <div class="gs-setting-name">Custom slogans</div>
+            <div class="gs-setting-desc">Random motivational lines shown in the Overview top-right. One per line; leave empty for defaults.</div>
+          </div>
+          <div class="gs-setting-control">
+            <textarea rows="4" cols="22" style="font-size:12px;">Step forward
+Less but better
+Steady gains</textarea>
+          </div>
+        </div>
+
+        <div class="gs-setting-row">
+          <div>
+            <div class="gs-setting-name">Theme mode</div>
+            <div class="gs-setting-desc">Light / Dark / Follow system.</div>
+          </div>
+          <div class="gs-setting-control"><span class="gs-toggle on"></span> Follow system</div>
+        </div>
+      </div>
+
+      <div class="gs-set-section">
+        <div class="gs-set-header">
+          <div class="gs-set-title">Card identification</div>
+          <div class="gs-set-sub-zh">Which tagged lines become cards and how their IDs are generated</div>
+        </div>
+        <div class="gs-setting-row">
+          <div>
+            <div class="gs-setting-name">Trigger tags</div>
+            <div class="gs-setting-desc">Lines containing any of these tags become review cards. One per line, with the # prefix.</div>
+          </div>
+          <div class="gs-setting-control">
+            <textarea rows="3" cols="20" style="font-size:12px;">#grind
+#flashcard</textarea>
+          </div>
+        </div>
+        <div class="gs-setting-row">
+          <div>
+            <div class="gs-setting-name">Embed card IDs</div>
+            <div class="gs-setting-desc">⚠ Modifies your notes. Appends a one-time comment to each trigger line so review history survives renames.</div>
+          </div>
+          <div class="gs-setting-control"><span class="gs-toggle on"></span></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<footer style="max-width:1280px; margin:48px auto 0; font-size:11px; color:var(--gs-ink-3); border-top:1px solid var(--gs-line); padding-top:16px; line-height:1.6;">
+  <strong>关于实现（不属于本 mockup 范围）：</strong>
+  完整实施需要一个 i18n 字典（约 ~120-150 条字符串），用 <code>t('overview.title')</code> 取代当前 hardcoded 文案；<code>setting.language</code> 字段存于 settings，listener 在切换时触发 view re-render。
+  Onboarding modal 在用户首次进入插件时还没有 settings.language（默认值未设），按 <code>navigator.language.startsWith('zh') ? 'zh' : 'en'</code> 取系统语言作为初始值，用户可在 modal 顶部即时切换；之后写入 settings.language。
+</footer>
+
+</body>
+</html>

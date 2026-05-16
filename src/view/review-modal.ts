@@ -10,6 +10,7 @@ import { t, StringKey } from '../i18n';
 export class ReviewModal extends Modal {
   private engine: ReviewEngine;
   private cardManager: CardManager;
+  private gsStore: GrindstoneStore;
   private component: Component;
   private cardDisplayedAt = 0;
   private answerShown = false;
@@ -24,12 +25,16 @@ export class ReviewModal extends Modal {
     super(app);
     this.engine = new ReviewEngine(queue, gsStore, cardManager);
     this.cardManager = cardManager;
+    this.gsStore = gsStore;
     this.component = new Component();
   }
 
   onOpen(): void {
     this.component.load();
     this.modalEl.addClass('grindstone-review-modal');
+    const mode = this.gsStore.getSettings().gsTheme;
+    this.modalEl.classList.toggle('gs-force-dark', mode === 'dark');
+    this.modalEl.classList.toggle('gs-force-light', mode === 'light');
     this.renderCurrent();
     this.registerKeyboard();
   }

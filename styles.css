@@ -134,7 +134,8 @@
 .grindstone-workspace { min-width: 280px; }
 
 /* ── Theme tokens ─────────────────────────────── */
-.grindstone-workspace {
+.grindstone-workspace,
+.grindstone-review-modal {
   --gs-paper: #f4f1ec;
   --gs-paper-2: #ebe6dd;
   --gs-ink: #1a1d1b;
@@ -158,7 +159,9 @@
 }
 
 body.theme-dark .grindstone-workspace:not(.gs-force-light),
-.grindstone-workspace.gs-force-dark {
+.grindstone-workspace.gs-force-dark,
+body.theme-dark .grindstone-review-modal:not(.gs-force-light),
+.grindstone-review-modal.gs-force-dark {
   --gs-paper: #0f1311;
   --gs-paper-2: #161a17;
   --gs-ink: #e6e6df;
@@ -1187,15 +1190,19 @@ body.theme-dark .grindstone-workspace:not(.gs-force-light) .gs-rail-item-on,
 }
 .rvm-card-back-md p { margin: 0 0 8px; }
 
-.rvm-card-actions { display: flex; gap: 8px; }
-.rvm-card-btn {
-  padding: 8px 18px; border-radius: 8px;
-  background: var(--background-secondary);
-  border: 1px solid var(--background-modifier-border);
-  font-size: 13px; color: var(--text-muted);
-  cursor: pointer; transition: all .12s;
+.rvm-card-actions { display: flex; gap: 10px; }
+.grindstone-review-modal .rvm-card-btn {
+  padding: 10px 22px; border-radius: 10px;
+  background: var(--gs-green); color: var(--gs-paper);
+  border: 0;
+  font: 600 13px var(--gs-font-zh);
+  cursor: pointer; transition: all .15s;
+  box-shadow: 0 4px 14px rgba(31,77,58,.18);
 }
-.rvm-card-btn:hover { border-color: var(--text-muted); color: var(--text-normal); }
+.grindstone-review-modal .rvm-card-btn:hover {
+  background: var(--gs-green-2); transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(31,77,58,.22);
+}
 
 .rvm-rate {
   display: grid; grid-template-columns: repeat(4, 1fr);

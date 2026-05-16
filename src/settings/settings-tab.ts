@@ -177,15 +177,6 @@ export class GrindstoneSettingTab extends PluginSettingTab {
       });
 
     new Setting(section)
-      .setName('周日显示周回顾')
-      .setDesc('每周日在概览页顶部展示本周 vs 上周的复习量、准确率变化、最稳/最难标签。关闭后即使周日也不显示。')
-      .addToggle((toggle) => {
-        toggle.setValue(settings.weeklyReviewEnabled !== false).onChange(async (value) => {
-          await this.plugin.store.updateSettings({ weeklyReviewEnabled: value });
-        });
-      });
-
-    new Setting(section)
       .setName('Streak 严格模式')
       .setDesc('开启后,漏一天直接清零(传统行为)。默认关闭——每周一自动 +1 ❄ freeze(累计 2 个上限),漏一天会自动消耗一个 freeze 来保住 streak。')
       .addToggle((toggle) => {

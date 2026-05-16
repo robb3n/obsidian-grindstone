@@ -173,8 +173,6 @@ export interface GrindstoneSettings {
   activePresetId?: string;
   /** Per-deck SRS strategy overrides. Key = top-level tag. Value = preset ID or custom SrsParams. */
   deckSrsOverrides?: Record<string, string | SrsParams>;
-  /** Show the Sunday-only weekly review tile on Overview. Defaults to true (undefined === enabled). */
-  weeklyReviewEnabled?: boolean;
   /**
    * Strict streak mode. When true, missing a day resets streak to 0 (old behavior).
    * When false/undefined (default), the freeze system kicks in: Mondays grant +1

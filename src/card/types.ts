@@ -173,6 +173,8 @@ export interface GrindstoneSettings {
   activePresetId?: string;
   /** Per-deck SRS strategy overrides. Key = top-level tag. Value = preset ID or custom SrsParams. */
   deckSrsOverrides?: Record<string, string | SrsParams>;
+  /** Show the Sunday-only weekly review tile on Overview. Defaults to true (undefined === enabled). */
+  weeklyReviewEnabled?: boolean;
   /** One-time migration flag: Anki Standard step1/step2 swap fix. */
   _ankiStepFix?: boolean;
   /** First-run onboarding completed (or auto-marked for upgrading users). */

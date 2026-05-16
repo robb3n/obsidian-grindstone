@@ -22,7 +22,7 @@ import { resolvePresetParams, resolveStrategyName } from './queries/srs';
 
 import type {
   OverviewStats, ForecastDay, TodayProgress, MaturityData,
-  RatingsData, TagSummary,
+  RatingsData, TagSummary, WeeklyReview,
 } from './queries/overview';
 import type { DeckNode } from './queries/decks';
 import type { StatsKPI, ForgettingPoint, AccuracyByTag } from './queries/stats';
@@ -33,7 +33,7 @@ import type { TagTreeNode } from './queries/tags';
 export type {
   OverviewStats, ForecastDay, TodayProgress, MaturityData,
   RatingsData, TagSummary, DeckNode, StatsKPI, ForgettingPoint,
-  AccuracyByTag, CardEntry, ReviewSession, TagTreeNode,
+  AccuracyByTag, CardEntry, ReviewSession, TagTreeNode, WeeklyReview,
 };
 
 export class GrindstoneStore {
@@ -54,6 +54,7 @@ export class GrindstoneStore {
   }
   get12WeekHeatmap(): number[] { return Overview.get12WeekHeatmap(this.dataStore); }
   getTopTags(limit?: number): TagSummary[] { return Overview.getTopTags(this.dataStore, limit); }
+  getWeeklyReview(): WeeklyReview { return Overview.getWeeklyReview(this.dataStore); }
 
   // ── Decks ───────────────────────────────────────────────
 

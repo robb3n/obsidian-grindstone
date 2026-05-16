@@ -1545,33 +1545,49 @@ body.theme-dark .grindstone-workspace:not(.gs-force-light) .gs-rail-item-on,
 
 /* ━━━ Shell: rail auto-collapse / hide ━━━ */
 
-/* ≤900: rail auto-collapses to icon-only (mirrors .gs-rail--collapsed) */
-@container leaf (max-width: 900px) {
-  .grindstone-workspace .gs-app { grid-template-columns: 54px 1fr; }
-  .grindstone-workspace .gs-rail { padding: 22px 8px 14px; align-items: center; gap: 16px; }
-  .grindstone-workspace .gs-rail-logo { justify-content: center; padding: 0; }
-  .grindstone-workspace .gs-rail-zh,
-  .grindstone-workspace .gs-rail-en,
-  .grindstone-workspace .gs-rail-section { display: none; }
-  .grindstone-workspace .gs-rail-nav { width: 100%; align-items: center; }
-  .grindstone-workspace .gs-rail-item { justify-content: center; padding: 8px; width: 38px; height: 38px; }
-  .grindstone-workspace .gs-rail-foot { padding: 0; align-items: center; }
-  .grindstone-workspace .gs-rail-streak {
-    flex-direction: column; gap: 2px; padding: 6px 4px; text-align: center;
-    background: transparent; border: none;
-  }
-  .grindstone-workspace .gs-rail-streak-flame { font-size: 14px; }
-  .grindstone-workspace .gs-rail-streak-num { font-size: 12px; }
-  .grindstone-workspace .gs-rail-streak-cap { display: none; }
-  .grindstone-workspace .gs-themetoggle {
-    width: 34px; height: 34px; padding: 0; justify-content: center; border-radius: 8px;
-  }
-}
+/* ≤900: rail auto-collapse is handled in JS (WorkspaceView ResizeObserver →
+   .gs-rail--collapsed / .gs-app--collapsed). Keeping it in JS ensures the
+   DOM matches the visual state (icon-only nav, no overflowing labels). */
 
 /* ≤560: rail hidden entirely */
 @container leaf (max-width: 560px) {
   .grindstone-workspace .gs-app { grid-template-columns: 1fr; }
   .grindstone-workspace .gs-rail { display: none !important; }
+}
+
+/* Too-narrow notice: rendered when leaf width drops below the responsive
+   layout's usable floor (≤ TOO_NARROW_THRESHOLD in WorkspaceView.ts). */
+.grindstone-workspace .gs-too-narrow {
+  display: none;
+  grid-column: 1 / -1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 6px;
+  padding: 40px 24px;
+  background: var(--gs-paper);
+  color: var(--gs-ink-2);
+}
+.grindstone-workspace .gs-app--too-narrow .gs-too-narrow { display: flex; }
+.grindstone-workspace .gs-app--too-narrow .gs-rail,
+.grindstone-workspace .gs-app--too-narrow .gs-main { display: none !important; }
+.grindstone-workspace .gs-too-narrow-icon {
+  font-size: 28px;
+  color: var(--gs-ink-3);
+  line-height: 1;
+  margin-bottom: 6px;
+}
+.grindstone-workspace .gs-too-narrow-en {
+  font-size: 9px; letter-spacing: 0.24em; color: var(--gs-ink-3); font-weight: 600;
+}
+.grindstone-workspace .gs-too-narrow-title {
+  font: 600 17px var(--gs-font-zh); color: var(--gs-ink); letter-spacing: 0.04em;
+  margin-top: 2px;
+}
+.grindstone-workspace .gs-too-narrow-sub {
+  font-size: 12px; color: var(--gs-ink-3); line-height: 1.6;
+  max-width: 280px; margin-top: 4px;
 }
 
 /* ━━━ Overview ━━━ */

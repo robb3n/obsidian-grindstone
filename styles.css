@@ -846,6 +846,11 @@ body.theme-dark .grindstone-workspace:not(.gs-force-light) .gs-rail-item-on,
 .grindstone-workspace .tg-search:focus-within { border-color: var(--gs-green); color: var(--gs-ink); }
 .grindstone-workspace .tg-search input { border: 0; background: transparent; outline: none; font: 500 12px var(--gs-font-zh); color: var(--gs-ink); width: 140px; }
 .grindstone-workspace .tg-search input::placeholder { color: var(--gs-ink-3); }
+.grindstone-workspace .tg-mat-seg { display: inline-flex; align-items: stretch; gap: 1px; padding: 2px; border-radius: 8px; border: 1px solid var(--gs-line); background: var(--gs-paper-2); }
+.grindstone-workspace .tg-mat-tab { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; padding: 3px 9px; border: 0; background: transparent; border-radius: 6px; cursor: pointer; font: 500 11px var(--gs-font-zh); color: var(--gs-ink-2); letter-spacing: 0.02em; transition: background .15s, color .15s; }
+.grindstone-workspace .tg-mat-tab:hover { color: var(--gs-ink); background: rgba(0,0,0,0.04); }
+.grindstone-workspace .tg-mat-tab-on,
+.grindstone-workspace .tg-mat-tab-on:hover { background: var(--gs-green); color: #f4f1ec; font-weight: 600; }
 .grindstone-workspace .tg-tree { background: var(--gs-paper); border-right: 1px solid var(--gs-line); padding: 10px 8px; overflow: auto; display: flex; flex-direction: column; gap: 1px !important; }
 .grindstone-workspace .tg-tree > * { margin: 0 !important; padding-top: 4px !important; padding-bottom: 4px !important; padding-right: 4px !important; }
 .grindstone-workspace .tg-tree .tg-tree-caret,
@@ -877,6 +882,13 @@ body.theme-dark .grindstone-workspace:not(.gs-force-light) .gs-rail-item-on,
 .grindstone-workspace .tg-filter-chip-x:hover { opacity: 1; background: rgba(31,77,58,.12); }
 .grindstone-workspace .tg-filter-chip-search .tg-filter-chip-x { color: var(--gs-ink-3); }
 .grindstone-workspace .tg-filter-chip-search .tg-filter-chip-x:hover { color: var(--gs-ink); background: var(--gs-line); }
+.grindstone-workspace .tg-filter-chip-mat-new { background: rgba(184,83,58,.12); color: var(--gs-clay); }
+.grindstone-workspace .tg-filter-chip-mat-new .tg-filter-chip-x { color: var(--gs-clay); }
+.grindstone-workspace .tg-filter-chip-mat-new .tg-filter-chip-x:hover { background: rgba(184,83,58,.18); }
+.grindstone-workspace .tg-filter-chip-mat-learning { background: rgba(184,149,106,.16); color: var(--gs-gold); }
+.grindstone-workspace .tg-filter-chip-mat-learning .tg-filter-chip-x { color: var(--gs-gold); }
+.grindstone-workspace .tg-filter-chip-mat-learning .tg-filter-chip-x:hover { background: rgba(184,149,106,.22); }
+.grindstone-workspace .tg-filter-chip-mat-mature { background: var(--gs-green-soft); color: var(--gs-green); }
 .grindstone-workspace .tg-filter-and { font-size: 9px; font-weight: 700; letter-spacing: .06em; color: var(--gs-ink-3); }
 .grindstone-workspace .tg-filter-paren { font-size: 14px; font-weight: 300; color: var(--gs-ink-3); line-height: 1; }
 .grindstone-workspace .tg-filter-add { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border: 1px dashed var(--gs-line); border-radius: 6px; background: transparent; color: var(--gs-ink-3); cursor: pointer; transition: all .15s; }

@@ -6,6 +6,26 @@ import { matchesAnyPrefix } from '../../util/tag-match';
 
 type SortField = 'front' | 'ef' | 'due';
 type SortDir = 'asc' | 'desc';
+type Maturity = 'all' | 'new' | 'learning' | 'mature';
+
+const MATURITY_SEG: Array<{ id: Maturity; zh: string }> = [
+  { id: 'all', zh: '全部' },
+  { id: 'new', zh: '新' },
+  { id: 'learning', zh: '习' },
+  { id: 'mature', zh: '熟' },
+];
+
+const MATURITY_CHIP_LABEL: Record<Exclude<Maturity, 'all'>, string> = {
+  new: '新卡',
+  learning: '学习中',
+  mature: '已熟',
+};
+
+function classifyMaturity(card: { reviewCount: number; interval: number }): Exclude<Maturity, 'all'> {
+  if (card.reviewCount === 0) return 'new';
+  if (card.interval < 21) return 'learning';
+  return 'mature';
+}
 
 export function renderTags(container: HTMLElement, ctx: TabContext, initialTag?: string): () => void {
   // View-level Component owns all child Components spawned by MarkdownRenderer
@@ -17,6 +37,7 @@ export function renderTags(container: HTMLElement, ctx: TabContext, initialTag?:
 
   const selectedTags = new Set<string>(initialTag ? [initialTag] : []);
   let search = '';
+  let maturity: Maturity = 'all';
   const expanded: Record<string, boolean> = {};
   let sortField: SortField = 'ef';
   let sortDir: SortDir = 'asc';
@@ -47,6 +68,23 @@ export function renderTags(container: HTMLElement, ctx: TabContext, initialTag?:
   const searchInput = searchBox.createEl('input', { placeholder: '搜索卡片...' });
   searchInput.addEventListener('input', () => { search = searchInput.value; renderFilterBar(); renderMain(); });
 
+  // Maturity segmented control
+  const matSeg = headR.createDiv({ cls: 'tg-mat-seg' });
+  const renderMatSeg = () => {
+    matSeg.empty();
+    for (const s of MATURITY_SEG) {
+      const btn = matSeg.createEl('button', { cls: `tg-mat-tab${maturity === s.id ? ' tg-mat-tab-on' : ''}` });
+      btn.textContent = s.zh;
+      btn.addEventListener('click', () => {
+        if (maturity === s.id) return;
+        maturity = s.id;
+        renderMatSeg();
+        renderFilterBar();
+        renderMain();
+      });
+    }
+  };
+
   // ── Page Body (tree + main) ──
   const page = container.createDiv({ cls: 'tg-page' });
   const treeSidebar = page.createEl('aside', { cls: 'tg-tree' });
@@ -76,6 +114,8 @@ export function renderTags(container: HTMLElement, ctx: TabContext, initialTag?:
 
   const clearAll = () => {
     selectedTags.clear();
+    maturity = 'all';
+    renderMatSeg();
     renderTree();
     renderFilterBar();
     renderMain();
@@ -86,7 +126,7 @@ export function renderTags(container: HTMLElement, ctx: TabContext, initialTag?:
 
   const renderFilterBar = () => {
     filterBarEl.empty();
-    const hasFilters = selectedTags.size > 0 || search.length > 0;
+    const hasFilters = selectedTags.size > 0 || search.length > 0 || maturity !== 'all';
     if (!hasFilters) {
       filterBarEl.style.display = 'none';
       return;
@@ -140,6 +180,24 @@ export function renderTags(container: HTMLElement, ctx: TabContext, initialTag?:
       });
     }
 
+    // Maturity chip
+    if (maturity !== 'all') {
+      if (selectedTags.size > 0 || search.length > 0) {
+        filterBarEl.createSpan({ cls: 'tg-filter-and gs-en', text: 'AND' });
+      }
+      const chip = filterBarEl.createDiv({ cls: `tg-filter-chip tg-filter-chip-maturity tg-filter-chip-mat-${maturity}` });
+      chip.createSpan({ cls: 'tg-filter-chip-label', text: MATURITY_CHIP_LABEL[maturity] });
+      const removeBtn = chip.createSpan({ cls: 'tg-filter-chip-x' });
+      removeBtn.innerHTML = `<svg width="8" height="8" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 2l6 6M8 2l-6 6"/></svg>`;
+      removeBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        maturity = 'all';
+        renderMatSeg();
+        renderFilterBar();
+        renderMain();
+      });
+    }
+
     // Tag picker (+) button
     const addBtn = filterBarEl.createEl('button', { cls: 'tg-filter-add' });
     addBtn.innerHTML = `<svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M5 1v8M1 5h8"/></svg>`;
@@ -160,8 +218,9 @@ export function renderTags(container: HTMLElement, ctx: TabContext, initialTag?:
       }
     }
 
-    // Clear all button
-    if (selectedTags.size > 1 || (selectedTags.size > 0 && search.length > 0)) {
+    // Clear all button — show when 2+ filters are active across tags/search/maturity
+    const activeCount = selectedTags.size + (search.length > 0 ? 1 : 0) + (maturity !== 'all' ? 1 : 0);
+    if (activeCount >= 2) {
       const clearBtn = filterBarEl.createEl('button', { cls: 'tg-filter-clear gs-en', text: 'CLEAR' });
       clearBtn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -286,7 +345,11 @@ export function renderTags(container: HTMLElement, ctx: TabContext, initialTag?:
     // Preserve the filter bar, clear everything else
     while (main.children.length > 1) main.removeChild(main.lastChild!);
 
-    const cards = sortCards(ctx.store.getCardsByTags(selectedTags, search || undefined), sortField, sortDir);
+    let entries = ctx.store.getCardsByTags(selectedTags, search || undefined);
+    if (maturity !== 'all') {
+      entries = entries.filter((e) => classifyMaturity(e.card) === maturity);
+    }
+    const cards = sortCards(entries, sortField, sortDir);
 
     tagCountPill.textContent = `${tree.length} 个标签`;
     matchPill.textContent = `${cards.length} 张匹配`;
@@ -389,6 +452,7 @@ export function renderTags(container: HTMLElement, ctx: TabContext, initialTag?:
     renderCards();
   };
 
+  renderMatSeg();
   renderTree();
   renderFilterBar();
   renderMain();

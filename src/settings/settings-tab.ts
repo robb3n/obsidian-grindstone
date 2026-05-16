@@ -1,10 +1,11 @@
-import { App, PluginSettingTab, Setting, setIcon, setTooltip, MarkdownRenderer } from 'obsidian';
+import { App, PluginSettingTab, Setting, setIcon, setTooltip, MarkdownRenderer, Notice } from 'obsidian';
 import type GrindstonePlugin from '../main';
 import {
   SrsParams, DEFAULT_SRS_PARAMS, SrsPreset, BUILTIN_PRESETS,
 } from '../card/types';
 import { renderSrsVisualization } from './srs-visualization';
 import { DeckResetConfirmModal } from '../view/strategy-modals';
+import { buildCardsCsv, buildReviewLogsCsv, triggerDownload, todayStamp } from '../util/csv-export';
 
 type SectionDef = {
   id: string;
@@ -30,6 +31,7 @@ export class GrindstoneSettingTab extends PluginSettingTab {
       { id: 'card-id',         zh: '卡片识别', icon: 'tag',        render: this.renderCardIdSection.bind(this) },
       { id: 'review-behavior', zh: '复习行为', icon: 'book-open',  render: this.renderReviewBehaviorSection.bind(this) },
       { id: 'srs-strategy',    zh: 'SRS 策略', icon: 'sliders',    render: this.renderSrsStrategySection.bind(this) },
+      { id: 'data-export',     zh: '数据导出', icon: 'download',   render: this.renderDataExportSection.bind(this) },
     ];
 
     // Maps from section id to nav-icon / section-element. Declared before
@@ -464,5 +466,50 @@ export class GrindstoneSettingTab extends PluginSettingTab {
         ).open();
       });
     }
+  }
+
+  // ════════════════════════════════════════════════
+  // Section 4: 数据导出
+  // ════════════════════════════════════════════════
+  private renderDataExportSection(containerEl: HTMLElement): void {
+    const section = containerEl.createDiv({ cls: 'gs-set-section' });
+    this.sectionHeader(section, '数据导出', 'DATA EXPORT · 导出卡片与复习历史为 CSV');
+
+    new Setting(section)
+      .setName('导出全部数据')
+      .setDesc('将卡片状态和复习历史导出为两个 CSV 文件（UTF-8 BOM，Excel 直接打开中文不乱码）。文件保存到浏览器默认下载目录。')
+      .addButton((btn) => {
+        btn.setButtonText('导出 CSV')
+          .setCta()
+          .onClick(async () => {
+            btn.setDisabled(true);
+            btn.setButtonText('导出中…');
+            try {
+              const cards = this.plugin.store.getAllCards();
+              const logs = this.plugin.store.getReviewLogs();
+              const stamp = todayStamp();
+
+              const cardsCsv = buildCardsCsv(cards);
+              triggerDownload(`grindstone-cards-${stamp}.csv`, cardsCsv);
+
+              // Yield to let the first download fire before building the second
+              // payload — avoids a single long synchronous burst on large vaults.
+              await new Promise((r) => setTimeout(r, 50));
+
+              const logsCsv = buildReviewLogsCsv(logs);
+              triggerDownload(`grindstone-review-logs-${stamp}.csv`, logsCsv);
+
+              new Notice(
+                `已导出 ${Object.keys(cards).length} 张卡片 / ${logs.length} 条复习记录`,
+              );
+            } catch (e) {
+              console.error('[Grindstone] CSV export failed', e);
+              new Notice('导出失败,详见控制台');
+            } finally {
+              btn.setDisabled(false);
+              btn.setButtonText('导出 CSV');
+            }
+          });
+      });
   }
 }

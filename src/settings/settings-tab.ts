@@ -184,6 +184,15 @@ export class GrindstoneSettingTab extends PluginSettingTab {
           await this.plugin.store.updateSettings({ weeklyReviewEnabled: value });
         });
       });
+
+    new Setting(section)
+      .setName('Streak 严格模式')
+      .setDesc('开启后,漏一天直接清零(传统行为)。默认关闭——每周一自动 +1 ❄ freeze(累计 2 个上限),漏一天会自动消耗一个 freeze 来保住 streak。')
+      .addToggle((toggle) => {
+        toggle.setValue(settings.strictStreakMode === true).onChange(async (value) => {
+          await this.plugin.store.updateSettings({ strictStreakMode: value });
+        });
+      });
   }
 
   // ════════════════════════════════════════════════

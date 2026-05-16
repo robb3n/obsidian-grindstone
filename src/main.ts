@@ -24,6 +24,10 @@ export default class GrindstonePlugin extends Plugin {
       () => this.gsStore.invalidatePrimaryDeckCache(),
     );
 
+    // Daily streak-freeze sweep: grant weekly +1 (Monday cap 2) and bridge
+    // gap days since last review. No-op in strict mode.
+    await this.gsStore.ensureFreezeState();
+
     // Register workspace view
     this.registerView(
       WORKSPACE_VIEW_TYPE,

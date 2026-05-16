@@ -251,20 +251,26 @@ function computeStreak(ds: DataStore): number {
     reviewDates.add(log.timestamp.slice(0, 10));
   }
 
+  // In non-strict mode, freeze-bridged days count as active. The sweep that
+  // populates freezeUsedDates runs at plugin load (see ensureFreezeState).
+  const settings = ds.getSettings();
+  const freezeUsed = settings.strictStreakMode === true
+    ? new Set<string>()
+    : new Set(settings.freezeUsedDates ?? []);
+  const isActive = (s: string) => reviewDates.has(s) || freezeUsed.has(s);
+
   let streak = 0;
   const d = new Date();
   const t = formatDate(d);
 
-  if (reviewDates.has(t)) {
+  if (isActive(t)) {
     streak++;
-    d.setDate(d.getDate() - 1);
-  } else {
-    d.setDate(d.getDate() - 1);
   }
+  d.setDate(d.getDate() - 1);
 
   for (let i = 0; i < 365; i++) {
     const dStr = formatDate(d);
-    if (!reviewDates.has(dStr)) break;
+    if (!isActive(dStr)) break;
     streak++;
     d.setDate(d.getDate() - 1);
   }

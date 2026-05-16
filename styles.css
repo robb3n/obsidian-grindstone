@@ -241,6 +241,23 @@ body.theme-dark .grindstone-workspace:not(.gs-force-light) .gs-rail-item-on,
 .grindstone-workspace .gs-rail-streak-flame { font-size: 18px; }
 .grindstone-workspace .gs-rail-streak-num { font-size: 18px; font-weight: 600; color: var(--gs-ink); font-family: var(--gs-font-mono); line-height: 1; }
 .grindstone-workspace .gs-rail-streak-cap { font-size: 10px; color: var(--gs-ink-3); margin-top: 2px; }
+.grindstone-workspace .gs-rail-streak-freeze {
+  margin-left: auto;
+  font-size: 11px;
+  font-family: var(--gs-font-mono);
+  color: var(--gs-ink-2);
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: var(--gs-paper-2);
+  border: 1px solid var(--gs-line);
+  line-height: 1.4;
+  white-space: nowrap;
+}
+.grindstone-workspace .gs-rail--collapsed .gs-rail-streak-freeze {
+  margin-left: 0;
+  font-size: 9px;
+  padding: 2px 5px;
+}
 
 /* ── Rail collapse button ────────────────────── */
 .grindstone-workspace .gs-rail-collapse-btn {

@@ -175,6 +175,18 @@ export interface GrindstoneSettings {
   deckSrsOverrides?: Record<string, string | SrsParams>;
   /** Show the Sunday-only weekly review tile on Overview. Defaults to true (undefined === enabled). */
   weeklyReviewEnabled?: boolean;
+  /**
+   * Strict streak mode. When true, missing a day resets streak to 0 (old behavior).
+   * When false/undefined (default), the freeze system kicks in: Mondays grant +1
+   * freeze (cap 2), and gaps after the last review auto-consume one freeze per day.
+   */
+  strictStreakMode?: boolean;
+  /** Current bank of streak freezes (capped at FREEZE_CAP). */
+  streakFreezes?: number;
+  /** Dates (YYYY-MM-DD) where a freeze was auto-consumed to bridge a gap. */
+  freezeUsedDates?: string[];
+  /** Most recent Monday for which a weekly freeze grant has been recorded. */
+  lastFreezeGrantDate?: string;
   /** One-time migration flag: Anki Standard step1/step2 swap fix. */
   _ankiStepFix?: boolean;
   /** First-run onboarding completed (or auto-marked for upgrading users). */

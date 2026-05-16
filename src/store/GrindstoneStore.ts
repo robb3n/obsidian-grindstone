@@ -19,6 +19,7 @@ import * as Stats from './queries/stats';
 import * as Review from './queries/review';
 import * as Tags from './queries/tags';
 import { resolvePresetParams, resolveStrategyName } from './queries/srs';
+import { computeFreezeSweep } from './queries/streak-freeze';
 
 import type {
   OverviewStats, ForecastDay, TodayProgress, MaturityData,
@@ -55,6 +56,24 @@ export class GrindstoneStore {
   get12WeekHeatmap(): number[] { return Overview.get12WeekHeatmap(this.dataStore); }
   getTopTags(limit?: number): TagSummary[] { return Overview.getTopTags(this.dataStore, limit); }
   getWeeklyReview(): WeeklyReview { return Overview.getWeeklyReview(this.dataStore); }
+
+  /** Returns the current freeze bank; 0 when strict mode is on. */
+  getStreakFreezes(): number {
+    const s = this.dataStore.getSettings();
+    if (s.strictStreakMode === true) return 0;
+    return s.streakFreezes ?? 0;
+  }
+
+  /**
+   * Run the freeze-state sweep (idempotent). Called once at plugin load to
+   * grant weekly freezes and auto-consume any pending gap days. No-op when
+   * strict mode is on.
+   */
+  async ensureFreezeState(): Promise<void> {
+    const patch = computeFreezeSweep(this.dataStore);
+    if (!patch) return;
+    await this.dataStore.updateSettings(patch);
+  }
 
   // ── Decks ───────────────────────────────────────────────
 

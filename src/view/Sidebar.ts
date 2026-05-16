@@ -23,6 +23,8 @@ export interface SidebarOptions {
   onNavigate: (tab: TabId) => void;
   dueCount: number;
   streak: number;
+  /** Current freeze bank (0 in strict mode). Renders ❄ × N when > 0. */
+  freezes: number;
   onToggleTheme: () => void;
   themeMode: 'light' | 'dark' | undefined;
   isDark: boolean;
@@ -83,6 +85,13 @@ function renderExpanded(el: HTMLElement, opts: SidebarOptions): void {
   const streakText = streak.createDiv();
   streakText.createDiv({ cls: 'gs-rail-streak-num', text: String(opts.streak) });
   streakText.createDiv({ cls: 'gs-rail-streak-cap', text: '连续打卡 \u00B7 day streak' });
+  if (opts.freezes > 0) {
+    const fz = streak.createSpan({
+      cls: 'gs-rail-streak-freeze',
+      text: `\u2744\uFE0F\u00D7${opts.freezes}`,
+    });
+    fz.setAttribute('title', `${opts.freezes} \u4E2A streak freeze \u5F85\u6D88\u8017\uFF08\u6F0F\u4E00\u5929\u4F1A\u81EA\u52A8\u7528\u6389\u4E00\u4E2A\uFF09`);
+  }
 
   renderThemeToggle(foot, opts, false);
 }
@@ -125,6 +134,13 @@ function renderCollapsed(el: HTMLElement, opts: SidebarOptions): void {
   const streak = foot.createDiv({ cls: 'gs-rail-streak' });
   streak.createSpan({ cls: 'gs-rail-streak-flame', text: '\uD83D\uDD25' });
   streak.createSpan({ cls: 'gs-rail-streak-num', text: String(opts.streak) });
+  if (opts.freezes > 0) {
+    const fz = streak.createSpan({
+      cls: 'gs-rail-streak-freeze',
+      text: `\u2744\uFE0F${opts.freezes}`,
+    });
+    fz.setAttribute('title', `${opts.freezes} \u4E2A streak freeze`);
+  }
 
   renderThemeToggle(foot, opts, true);
 }

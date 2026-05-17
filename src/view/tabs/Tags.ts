@@ -292,6 +292,7 @@ export function renderTags(container: HTMLElement, ctx: TabContext, initialTag?:
     const isSel = selectedTags.has(node.path);
 
     const row = parent.createDiv({ cls: `tg-tree-row${isSel ? ' tg-tree-row-on' : ''}` });
+    row.setAttribute('data-level', String(level));
     row.style.paddingLeft = `${8 + level * 14}px`;
 
     const caret = row.createEl('button', { cls: 'tg-tree-caret' });

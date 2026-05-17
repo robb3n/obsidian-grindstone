@@ -1707,6 +1707,7 @@ body.theme-dark .grindstone-workspace:not(.gs-force-light) .gs-rail-item-on,
   .grindstone-workspace .tg-tree-caret,
   .grindstone-workspace .tg-tree-bullet,
   .grindstone-workspace .tg-tree-all-icon { display: none; }
+  .grindstone-workspace .tg-tree-row[data-level]:not([data-level="0"]) { display: none; }
 }
 
 /* ≤560: row → card-style with grid-template-areas */

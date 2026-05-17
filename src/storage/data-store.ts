@@ -216,7 +216,7 @@ export class DataStore {
     await this.save();
   }
 
-  /** Number of cards reviewed per day over the last N days. */
+  /** Number of review events per day over the last N days (one per rating, not per unique card). */
   getReviewHistory(days: number): Array<{ date: string; count: number }> {
     const result: Array<{ date: string; count: number }> = [];
     const today = new Date();

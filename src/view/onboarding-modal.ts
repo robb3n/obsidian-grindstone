@@ -57,21 +57,18 @@ export class OnboardingModal extends Modal {
     // exist yet at onboarding time.
     const langRow = contentEl.createDiv({ cls: 'gs-ob-lang-row' });
     langRow.createSpan({ cls: 'gs-ob-lang-label', text: t('onboarding.lang_label') });
-    const langSeg = langRow.createDiv({ cls: 'gs-ob-lang-seg' });
-    const makeLangBtn = (lang: Lang, label: string) => {
-      const btn = langSeg.createEl('button', {
-        cls: `gs-ob-lang-btn${getLang() === lang ? ' gs-ob-lang-btn-on' : ''}`,
-        text: label,
-      });
-      btn.addEventListener('click', () => {
-        if (getLang() === lang) return;
-        setLang(lang);
-        // Re-render so the rest of the modal reflects the new language immediately.
-        this.renderContent();
-      });
-    };
-    makeLangBtn('zh', '中文');
-    makeLangBtn('en', 'English');
+    const langSelect = langRow.createEl('select', { cls: 'dropdown' });
+    for (const [lang, label] of [['zh', '中文'], ['en', 'English']] as Array<[Lang, string]>) {
+      const opt = langSelect.createEl('option', { value: lang, text: label });
+      if (getLang() === lang) opt.selected = true;
+    }
+    langSelect.addEventListener('change', () => {
+      const next = langSelect.value as Lang;
+      if (getLang() === next) return;
+      setLang(next);
+      // Re-render so the rest of the modal reflects the new language immediately.
+      this.renderContent();
+    });
 
     // Header
     const head = contentEl.createDiv({ cls: 'gs-ob-head' });

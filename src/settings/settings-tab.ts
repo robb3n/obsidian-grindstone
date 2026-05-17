@@ -200,30 +200,19 @@ export class GrindstoneSettingTab extends PluginSettingTab {
       .setName(t('settings.language.name'))
       .setDesc(t('settings.language.desc'));
 
-    const segEl = langSetting.controlEl.createDiv({ cls: 'gs-lang-seg' });
-    const renderLangSeg = () => {
-      segEl.empty();
-      const opts: Array<{ lang: Lang; labelKey: StringKey }> = [
-        { lang: 'zh', labelKey: 'settings.language.zh' },
-        { lang: 'en', labelKey: 'settings.language.en' },
-      ];
-      const current = getLang();
-      for (const o of opts) {
-        const btn = segEl.createEl('button', {
-          cls: `gs-lang-btn${current === o.lang ? ' gs-lang-btn-on' : ''}`,
-          text: t(o.labelKey),
-        });
-        btn.addEventListener('click', async () => {
-          if (getLang() === o.lang) return;
-          setLang(o.lang);
-          await this.plugin.store.updateSettings({ language: o.lang });
-          // Re-render every open workspace view, then this settings tab itself.
-          this.plugin.refreshAllWorkspaceViews();
-          this.display();
-        });
-      }
-    };
-    renderLangSeg();
+    langSetting.addDropdown((dd) => {
+      dd.addOption('zh', t('settings.language.zh'));
+      dd.addOption('en', t('settings.language.en'));
+      dd.setValue(getLang());
+      dd.onChange(async (value) => {
+        const newLang = value as Lang;
+        if (getLang() === newLang) return;
+        setLang(newLang);
+        await this.plugin.store.updateSettings({ language: newLang });
+        this.plugin.refreshAllWorkspaceViews();
+        this.display();
+      });
+    });
 
     const settings = this.plugin.store.getSettings();
 

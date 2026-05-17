@@ -106,6 +106,20 @@ export class DataStore {
     await this.save();
   }
 
+  /**
+   * Clear all learning data — cards, review logs, and derived streak/freeze
+   * state. Settings (language, SRS params, slogan, deck overrides, etc.) are
+   * preserved.
+   */
+  async resetLearningData(): Promise<void> {
+    this.data.cards = {};
+    this.data.reviewLogs = [];
+    this.data.settings.streakFreezes = undefined;
+    this.data.settings.freezeUsedDates = undefined;
+    this.data.settings.lastFreezeGrantDate = undefined;
+    await this.flushSave();
+  }
+
   getCard(id: string): CardData | undefined {
     return this.data.cards[id];
   }

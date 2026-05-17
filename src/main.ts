@@ -208,6 +208,18 @@ export default class GrindstonePlugin extends Plugin {
     }
   }
 
+  /**
+   * Wipe all SRS state (cards + logs + streak/freeze counts) while keeping
+   * user settings. Re-scans the vault so cards are rediscovered as fresh
+   * entries, then refreshes any open workspace views.
+   */
+  async resetLearningData(): Promise<void> {
+    await this.store.resetLearningData();
+    this.gsStore.invalidatePrimaryDeckCache();
+    await this.cardManager.fullScan();
+    this.refreshAllWorkspaceViews();
+  }
+
   private async activateWorkspace(): Promise<void> {
     const existing = this.app.workspace.getLeavesOfType(WORKSPACE_VIEW_TYPE);
     if (existing.length > 0) {

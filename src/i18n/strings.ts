@@ -337,6 +337,21 @@ export const STRINGS_ZH = {
   'error.retry':               '重试',
   'narrow.title':              '视图太窄',
   'narrow.sub':                '请拉宽窗口或减少分栏，让磨石有足够的空间展开。',
+
+  // ── Danger zone / Reset learning data ──
+  'settings.section.danger':       '危险区域',
+  'settings.section.danger_sub':   '不可逆操作',
+  'settings.reset.name':           '重置学习数据',
+  'settings.reset.desc':           '清空所有卡片和复习记录，保留设置（语言、SRS 参数、slogan、卡组策略覆盖等）。下次扫描时会根据笔记重新发现卡片，所有进度从零开始。',
+  'settings.reset.button':         '重置…',
+  'settings.reset.modal_title':    '重置学习数据',
+  'settings.reset.modal_body':     '此操作将清空：\n• 全部 {cards} 张卡片的复习状态\n• 全部 {logs} 条复习日志\n• Streak 与 freeze 计数\n\n设置（语言、SRS 参数、slogan、卡组策略覆盖等）原样保留。\n\n下次启动会重新扫描笔记，发现卡片时按新卡处理。',
+  'settings.reset.modal_warn':     '⚠ 此操作不可逆，已有的复习进度无法恢复',
+  'settings.reset.input_label':    '输入 {token} 确认',
+  'settings.reset.confirm_token':  '重置',
+  'settings.reset.cancel':         '取消',
+  'settings.reset.confirm':        '确认重置',
+  'settings.reset.notice_done':    '学习数据已重置',
 } as const;
 
 export const STRINGS_EN: Record<keyof typeof STRINGS_ZH, string> = {
@@ -672,4 +687,19 @@ export const STRINGS_EN: Record<keyof typeof STRINGS_ZH, string> = {
   'error.retry':               'Retry',
   'narrow.title':              'View too narrow',
   'narrow.sub':                'Widen the window or close split panes so Grindstone has enough room.',
+
+  // ── Danger zone / Reset learning data ──
+  'settings.section.danger':       'Danger zone',
+  'settings.section.danger_sub':   'Irreversible actions',
+  'settings.reset.name':           'Reset learning data',
+  'settings.reset.desc':           'Clear all cards and review logs while keeping settings (language, SRS params, slogan, deck overrides, etc.). Cards will be rediscovered from your notes on next scan with fresh SRS state.',
+  'settings.reset.button':         'Reset…',
+  'settings.reset.modal_title':    'Reset learning data',
+  'settings.reset.modal_body':     'This will clear:\n• Review state for all {cards} cards\n• All {logs} review log entries\n• Streak and freeze counts\n\nSettings (language, SRS params, slogan, deck overrides, etc.) are preserved.\n\nCards will be rediscovered from your notes as fresh entries on next scan.',
+  'settings.reset.modal_warn':     '⚠ Irreversible — review progress cannot be recovered',
+  'settings.reset.input_label':    'Type {token} to confirm',
+  'settings.reset.confirm_token':  'RESET',
+  'settings.reset.cancel':         'Cancel',
+  'settings.reset.confirm':        'Confirm reset',
+  'settings.reset.notice_done':    'Learning data has been reset',
 };

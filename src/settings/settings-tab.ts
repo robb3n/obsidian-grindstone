@@ -5,6 +5,7 @@ import {
 } from '../card/types';
 import { renderSrsVisualization } from './srs-visualization';
 import { DeckResetConfirmModal } from '../view/strategy-modals';
+import { ResetLearningDataModal } from '../view/reset-data-modal';
 import { DEFAULT_SLOGANS } from '../view/tabs/Overview';
 import { t, setLang, getLang, Lang, StringKey } from '../i18n';
 
@@ -33,10 +34,11 @@ export class GrindstoneSettingTab extends PluginSettingTab {
     containerEl.addClass('gs-settings');
 
     const SECTIONS: SectionDef[] = [
-      { id: 'card-id',         labelKey: 'settings.section.card_id',   icon: 'tag',       render: this.renderCardIdSection.bind(this) },
-      { id: 'review-behavior', labelKey: 'settings.section.review',    icon: 'book-open', render: this.renderReviewBehaviorSection.bind(this) },
-      { id: 'srs-strategy',    labelKey: 'settings.section.srs',       icon: 'sliders',   render: this.renderSrsStrategySection.bind(this) },
-      { id: 'interface',       labelKey: 'settings.section.interface', icon: 'palette',   render: this.renderInterfaceSection.bind(this) },
+      { id: 'card-id',         labelKey: 'settings.section.card_id',   icon: 'tag',             render: this.renderCardIdSection.bind(this) },
+      { id: 'review-behavior', labelKey: 'settings.section.review',    icon: 'book-open',       render: this.renderReviewBehaviorSection.bind(this) },
+      { id: 'srs-strategy',    labelKey: 'settings.section.srs',       icon: 'sliders',         render: this.renderSrsStrategySection.bind(this) },
+      { id: 'interface',       labelKey: 'settings.section.interface', icon: 'palette',         render: this.renderInterfaceSection.bind(this) },
+      { id: 'danger-zone',     labelKey: 'settings.section.danger',    icon: 'alert-triangle',  render: this.renderDangerZoneSection.bind(this) },
     ];
 
     const iconEls = new Map<string, HTMLElement>();
@@ -514,6 +516,31 @@ export class GrindstoneSettingTab extends PluginSettingTab {
         ).open();
       });
     }
+  }
+
+  // ════════════════════════════════════════════════
+  // Section: Danger zone
+  // ════════════════════════════════════════════════
+  private renderDangerZoneSection(containerEl: HTMLElement): void {
+    const section = containerEl.createDiv({ cls: 'gs-set-section gs-set-section-danger' });
+    this.sectionHeader(section, t('settings.section.danger'), t('settings.section.danger_sub'));
+
+    new Setting(section)
+      .setName(t('settings.reset.name'))
+      .setDesc(t('settings.reset.desc'))
+      .addButton((btn) => {
+        btn
+          .setButtonText(t('settings.reset.button'))
+          .setWarning()
+          .onClick(() => {
+            const cardCount = Object.keys(this.plugin.store.getAllCards()).length;
+            const logCount = this.plugin.store.getReviewLogs().length;
+            new ResetLearningDataModal(this.app, cardCount, logCount, async () => {
+              await this.plugin.resetLearningData();
+              this.display();
+            }).open();
+          });
+      });
   }
 
 }

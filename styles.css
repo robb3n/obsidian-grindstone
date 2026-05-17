@@ -1058,6 +1058,32 @@ body.theme-dark .grindstone-workspace:not(.gs-force-light) .gs-rail-item-on,
 .dk-reset-warning { font-size: 11px; color: var(--text-error); margin-top: 4px; padding-left: 22px; }
 .dk-reset-actions { display: flex; justify-content: flex-end; gap: 8px; }
 
+/* ── Reset Learning Data Modal ─────────────────────────── */
+.gs-reset-modal .modal-content { max-width: 460px; }
+.gs-reset-modal h3 { margin: 0 0 12px; font-size: 15px; color: var(--text-error); }
+.gs-reset-body { font-size: 12px; color: var(--text-normal); line-height: 1.6; margin-bottom: 12px; }
+.gs-reset-body div:empty + br { display: none; }
+.gs-reset-warn { font-size: 12px; color: var(--text-error); margin-bottom: 16px; font-weight: 500; }
+.gs-reset-input-wrap { margin-bottom: 16px; }
+.gs-reset-input-label { font-size: 11px; color: var(--text-muted); margin-bottom: 6px; letter-spacing: 0.04em; }
+.gs-reset-input {
+  width: 100%; box-sizing: border-box;
+  padding: 8px 12px; font-size: 13px; font-family: var(--font-monospace);
+  background: var(--background-primary); color: var(--text-normal);
+  border: 1.5px solid var(--background-modifier-border); border-radius: 6px;
+}
+.gs-reset-input:focus { border-color: var(--text-error); outline: none; }
+.gs-reset-actions { display: flex; justify-content: flex-end; gap: 8px; }
+.gs-reset-actions .gs-btn { padding: 6px 14px; border: 1px solid var(--background-modifier-border); border-radius: 6px; background: var(--background-primary); color: var(--text-normal); font-size: 12px; cursor: pointer; }
+.gs-reset-actions .gs-btn:hover { background: var(--background-secondary); }
+.gs-reset-actions .gs-btn-danger { background: var(--text-error); color: var(--text-on-accent, #fff); border-color: var(--text-error); }
+.gs-reset-actions .gs-btn-danger:hover:not(:disabled) { opacity: 0.88; }
+.gs-reset-actions .gs-btn-danger:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* Danger zone section — visual separator from preceding sections */
+.gs-set-section-danger { margin-top: 40px; border-top: 2px solid var(--background-modifier-error-hover, var(--text-error)); padding-top: 22px; }
+.gs-set-section-danger .gs-set-title-md { color: var(--text-error); }
+
 /* ── Onboarding Modal ──────────────────────────────────── */
 .gs-onboarding-modal .modal-content { max-width: 520px; padding: 20px 24px; }
 

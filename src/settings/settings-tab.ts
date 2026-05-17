@@ -184,6 +184,7 @@ export class GrindstoneSettingTab extends PluginSettingTab {
       .addToggle((toggle) => {
         toggle.setValue(settings.strictStreakMode === true).onChange(async (value) => {
           await this.plugin.store.updateSettings({ strictStreakMode: value });
+          this.plugin.refreshAllWorkspaceViews();
         });
       });
   }

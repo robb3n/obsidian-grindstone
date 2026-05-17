@@ -166,6 +166,7 @@ export class GrindstoneWorkspaceView extends ItemView {
       dueCount: this.store.getDueCards().length,
       streak: this.store.getOverviewStats().streak,
       freezes: this.store.getStreakFreezes(),
+      strictMode: this.store.getSettings().strictStreakMode === true,
       onToggleTheme: () => this.toggleTheme(),
       themeMode: this.store.getSettings().gsTheme,
       isDark: this.isDark(),

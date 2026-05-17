@@ -23,8 +23,10 @@ export interface SidebarOptions {
   onNavigate: (tab: TabId) => void;
   dueCount: number;
   streak: number;
-  /** Current freeze bank (0 in strict mode). Renders ❄ × N when > 0. */
+  /** Current freeze bank (0 in strict mode). */
   freezes: number;
+  /** When true, the freeze system is disabled — hide the ❄ badge entirely. */
+  strictMode: boolean;
   onToggleTheme: () => void;
   themeMode: 'light' | 'dark' | undefined;
   isDark: boolean;
@@ -84,11 +86,11 @@ function renderExpanded(el: HTMLElement, opts: SidebarOptions): void {
   const streakText = streak.createDiv();
   streakText.createDiv({ cls: 'gs-rail-streak-num', text: String(opts.streak) });
   streakText.createDiv({ cls: 'gs-rail-streak-cap', text: t('sidebar.streak_cap') });
-  if (opts.freezes > 0) {
-    const fz = streak.createSpan({
-      cls: 'gs-rail-streak-freeze',
-      text: `❄️×${opts.freezes}`,
-    });
+  if (!opts.strictMode) {
+    const cls = opts.freezes > 0
+      ? 'gs-rail-streak-freeze'
+      : 'gs-rail-streak-freeze gs-rail-streak-freeze--zero';
+    const fz = streak.createSpan({ cls, text: `❄️×${opts.freezes}` });
     fz.setAttribute('title', t('sidebar.freeze_tooltip', { n: opts.freezes }));
   }
 
@@ -134,11 +136,11 @@ function renderCollapsed(el: HTMLElement, opts: SidebarOptions): void {
   const streak = foot.createDiv({ cls: 'gs-rail-streak' });
   streak.createSpan({ cls: 'gs-rail-streak-flame', text: '🔥' });
   streak.createSpan({ cls: 'gs-rail-streak-num', text: String(opts.streak) });
-  if (opts.freezes > 0) {
-    const fz = streak.createSpan({
-      cls: 'gs-rail-streak-freeze',
-      text: `❄️${opts.freezes}`,
-    });
+  if (!opts.strictMode) {
+    const cls = opts.freezes > 0
+      ? 'gs-rail-streak-freeze'
+      : 'gs-rail-streak-freeze gs-rail-streak-freeze--zero';
+    const fz = streak.createSpan({ cls, text: `❄️${opts.freezes}` });
     fz.setAttribute('title', t('sidebar.freeze_short', { n: opts.freezes }));
   }
 

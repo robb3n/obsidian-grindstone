@@ -255,6 +255,10 @@ body.theme-dark .grindstone-workspace:not(.gs-force-light) .gs-rail-item-on,
   line-height: 1.4;
   white-space: nowrap;
 }
+.grindstone-workspace .gs-rail-streak-freeze--zero {
+  opacity: 0.45;
+  color: var(--gs-ink-3);
+}
 .grindstone-workspace .gs-rail--collapsed .gs-rail-streak-freeze {
   margin-left: 0;
   font-size: 9px;

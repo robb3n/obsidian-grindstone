@@ -42,23 +42,44 @@ function renderPreFlight(container: HTMLElement, ctx: TabContext): void {
   const page = container.createDiv({ cls: 'gs-page rv-page' });
 
   // Tabs
-  let activeTab = 'launch';
+  type TabId = 'launch' | 'debrief';
+  let activeTab: TabId = 'launch';
   const tabs = page.createDiv({ cls: 'rv-tabs' });
   const sectionWrap = page.createDiv({ cls: 'rv-section-wrap' });
 
-  const SECTIONS: { id: 'launch' | 'debrief'; labelKey: StringKey }[] = [
+  const SECTIONS: { id: TabId; labelKey: StringKey }[] = [
     { id: 'launch',  labelKey: 'review.tab.launch' },
     { id: 'debrief', labelKey: 'review.tab.debrief' },
   ];
 
-  const renderTabs = () => {
-    tabs.empty();
-    for (const s of SECTIONS) {
-      const btn = tabs.createEl('button', { cls: `rv-tab${activeTab === s.id ? ' rv-tab-on' : ''}` });
-      btn.createSpan({ cls: 'rv-tab-zh', text: t(s.labelKey) });
-      btn.addEventListener('click', () => { activeTab = s.id; renderTabs(); renderSection(); });
-    }
+  const indicator = tabs.createSpan({ cls: 'rv-tab-ind' });
+  const tabBtns: Partial<Record<TabId, HTMLButtonElement>> = {};
+
+  const positionIndicator = () => {
+    const active = tabBtns[activeTab];
+    if (!active) return;
+    const padLeft = parseFloat(getComputedStyle(tabs).paddingLeft) || 0;
+    const padTop = parseFloat(getComputedStyle(tabs).paddingTop) || 0;
+    const x = active.offsetLeft - padLeft;
+    const y = active.offsetTop - padTop;
+    indicator.style.width = active.offsetWidth + 'px';
+    indicator.style.transform = `translate(${x}px, ${y}px)`;
   };
+
+  for (const s of SECTIONS) {
+    const btn = tabs.createEl('button', { cls: `rv-tab${activeTab === s.id ? ' rv-tab-on' : ''}` });
+    btn.createSpan({ cls: 'rv-tab-zh', text: t(s.labelKey) });
+    btn.addEventListener('click', () => {
+      if (activeTab === s.id) return;
+      const prev = tabBtns[activeTab];
+      prev?.removeClass('rv-tab-on');
+      btn.addClass('rv-tab-on');
+      activeTab = s.id;
+      positionIndicator();
+      renderSection();
+    });
+    tabBtns[s.id] = btn;
+  }
 
   const renderSection = () => {
     sectionWrap.empty();
@@ -66,7 +87,13 @@ function renderPreFlight(container: HTMLElement, ctx: TabContext): void {
     else if (activeTab === 'debrief') renderDebrief(sectionWrap, sessions, ctx);
   };
 
-  renderTabs();
+  // Initial position (suppress animation on first paint by adding then removing a flag)
+  tabs.addClass('rv-tabs-init');
+  requestAnimationFrame(() => {
+    positionIndicator();
+    requestAnimationFrame(() => tabs.removeClass('rv-tabs-init'));
+  });
+
   renderSection();
 }
 

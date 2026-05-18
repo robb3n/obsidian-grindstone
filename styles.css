@@ -627,26 +627,40 @@ body.theme-dark .grindstone-workspace:not(.gs-force-light) .gs-rail-item-on,
 
 .grindstone-workspace .rv-page { padding: 18px 28px 36px; gap: 16px; }
 
-/* Tabs — segmented control */
+/* Tabs — segmented control with sliding indicator */
 .grindstone-workspace .rv-tabs {
+  position: relative;
   display: inline-flex; align-items: stretch; gap: 2px;
   padding: 3px; border-radius: 10px;
   border: 1px solid var(--gs-line);
   background: var(--gs-paper-2);
   width: fit-content;
+  isolation: isolate;
 }
+.grindstone-workspace .rv-tab-ind {
+  position: absolute;
+  top: 3px; left: 3px;
+  height: calc(100% - 6px);
+  width: 0;
+  background: var(--gs-green);
+  border-radius: 7px;
+  z-index: 0;
+  transition:
+    transform .28s cubic-bezier(.4, 0, .2, 1),
+    width     .28s cubic-bezier(.4, 0, .2, 1);
+  will-change: transform, width;
+}
+.grindstone-workspace .rv-tabs-init .rv-tab-ind { transition: none; }
 .grindstone-workspace .rv-tab {
+  position: relative; z-index: 1;
   display: inline-flex; align-items: center; justify-content: center;
   min-width: 72px; padding: 6px 18px; border: 0;
   background: transparent; border-radius: 7px;
   cursor: pointer; text-align: center;
-  transition: background .18s ease, color .18s ease;
+  transition: color .22s ease;
 }
-.grindstone-workspace .rv-tab-zh { font: 500 13px var(--gs-font-zh); color: var(--gs-ink-2); letter-spacing: 0.02em; }
-.grindstone-workspace .rv-tab:hover { background: rgba(0,0,0,0.03); }
-.grindstone-workspace .rv-tab:hover .rv-tab-zh { color: var(--gs-ink); }
-.grindstone-workspace .rv-tab-on,
-.grindstone-workspace .rv-tab-on:hover { background: var(--gs-green); }
+.grindstone-workspace .rv-tab-zh { font: 500 13px var(--gs-font-zh); color: var(--gs-ink-2); letter-spacing: 0.02em; transition: color .22s ease; }
+.grindstone-workspace .rv-tab:not(.rv-tab-on):hover .rv-tab-zh { color: var(--gs-ink); }
 .grindstone-workspace .rv-tab-on .rv-tab-zh { color: #f4f1ec; font-weight: 600; }
 .grindstone-workspace .rv-section-wrap { padding-top: 14px; }
 
